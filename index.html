@@ -7,48 +7,54 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html, body {
-    width:100%; height:100%;
+  html {
+    width:100%;
+    height:100vh;
+    height:100dvh;
+    background:#0b1020;
+    overflow:hidden;
+  }
+  body {
+    width:100%;
+    height:100vh;
+    height:100dvh;
     background:#0b1020;
     overflow:hidden;
     font-family:Arial, sans-serif;
     user-select:none;
     color:#fff;
-  }
-  /* ВАЖНО: разрешаем вертикальную прокрутку */
-  .screen { position:fixed; inset:0; display:none; flex-direction:column; overflow:hidden; }
-  .screen.active { display:flex; animation:screenIn .35s ease-out; }
-  @keyframes screenIn {
-    from { opacity:0; transform:scale(0.97); }
-    to   { opacity:1; transform:scale(1); }
+    position:relative;
   }
 
-  body::before {
-    content:'';
-    position:fixed;
-    inset:0;
-    background:
-      radial-gradient(circle at 20% 30%, rgba(79,195,247,0.08), transparent 50%),
-      radial-gradient(circle at 80% 70%, rgba(255,213,79,0.06), transparent 50%),
-      radial-gradient(circle at 50% 100%, rgba(186,104,200,0.08), transparent 60%);
-    pointer-events:none;
-    z-index:0;
+  /* ЭКРАНЫ */
+  .screen {
+    position:absolute;
+    top:0; left:0; right:0; bottom:0;
+    display:none;
+    flex-direction:column;
+    overflow:hidden;
+    height:100%;
   }
+  .screen.active { display:flex; }
 
-  /* ===== МЕНЮ ===== */
+  /* МЕНЮ — со скроллом */
   #menu {
     align-items:center;
     justify-content:flex-start;
-    padding:16px 16px 32px;
+    padding:16px 16px 60px;
     gap:8px;
-    overflow-y:auto;
+    overflow-y:scroll !important;
     overflow-x:hidden;
     -webkit-overflow-scrolling:touch;
-    touch-action:pan-y;
+    overscroll-behavior:contain;
+    touch-action:pan-y !important;
     position:relative;
     z-index:1;
+    height:100%;
   }
-  #menu::-webkit-scrollbar { width:0; }
+  #menu::-webkit-scrollbar { width:0; height:0; display:none; }
+  #menu::-webkit-scrollbar-thumb { background:transparent; }
+
   #menu h1 {
     font-size:28px; letter-spacing:3px;
     background:linear-gradient(90deg, #4fc3f7, #ffd54f, #ba68c8, #4fc3f7);
@@ -56,19 +62,13 @@
     -webkit-background-clip:text;
     background-clip:text;
     color:transparent;
-    animation:titleShine 4s linear infinite;
     font-weight:bold;
     margin-bottom:2px;
     filter:drop-shadow(0 0 20px rgba(79,195,247,0.5));
     flex-shrink:0;
   }
-  @keyframes titleShine {
-    0% { background-position:0% 50%; }
-    100% { background-position:300% 50%; }
-  }
   #menu .sub { color:#888; font-size:12px; margin-bottom:6px; flex-shrink:0; }
 
-  /* БЛОК ПОЛЬЗОВАТЕЛЯ ИЗ TELEGRAM */
   .tg-user {
     display:none;
     align-items:center; gap:10px;
@@ -151,7 +151,6 @@
     font-size:16px; font-weight:bold; color:#fff;
     display:flex; align-items:center; gap:12px;
     cursor:pointer;
-    transition:transform .12s, box-shadow .25s, border-color .2s;
     font-family:Arial, sans-serif;
     flex-shrink:0;
   }
@@ -162,8 +161,12 @@
   .game-btn .info .d { font-size:11px; color:#7ba8d6; font-weight:normal; margin-top:2px; }
   .game-btn .arrow { color:#4fc3f7; font-size:20px; }
 
-  /* ===== ЭКРАНЫ ИГР ===== */
-  .game-screen { background:#0a0e1a; position:relative; z-index:1; }
+  /* ЭКРАНЫ ИГР */
+  .game-screen {
+    background:#0a0e1a;
+    position:relative;
+    z-index:1;
+  }
   .top-bar {
     display:flex; align-items:center;
     padding:10px 14px; gap:10px;
@@ -188,23 +191,25 @@
     font-size:12px; font-weight:bold; color:#ffd54f;
   }
 
-  /* ===== ЭКРАНЫ С ПРОКРУТКОЙ ===== */
+  /* КОНТЕНТ С ПРОКРУТКОЙ */
   .scroll-content {
     flex:1;
-    overflow-y:auto;
+    overflow-y:scroll !important;
     overflow-x:hidden;
     -webkit-overflow-scrolling:touch;
-    touch-action:pan-y;
+    overscroll-behavior:contain;
+    touch-action:pan-y !important;
     display:flex;
     flex-direction:column;
     align-items:center;
-    padding:20px;
+    padding:20px 20px 60px;
     gap:10px;
+    height:0;
+    min-height:0;
   }
-  .scroll-content::-webkit-scrollbar { width:0; }
+  .scroll-content::-webkit-scrollbar { width:0; height:0; display:none; }
 
   /* ВВОД ИМЁН */
-  #nameScreen .scroll-content { justify-content:flex-start; }
   #nameScreen h2 { font-size:22px; color:#4fc3f7; text-align:center; margin-bottom:4px; margin-top:20px; }
   #nameScreen p { color:#aaa; font-size:12px; text-align:center; margin-bottom:8px; }
   .name-label { width:100%; max-width:340px; font-size:13px; font-weight:bold; margin-bottom:-4px; }
@@ -241,7 +246,6 @@
     background:linear-gradient(145deg, #4fc3f7, #2196f3);
     color:#fff; border:none; border-radius:30px;
     font-size:17px; font-weight:bold;
-    box-shadow:0 0 25px rgba(79,195,247,0.7);
     cursor:pointer;
     font-family:Arial, sans-serif;
   }
@@ -251,9 +255,15 @@
   #luckyGame .wrap {
     flex:1; display:flex; flex-direction:column;
     align-items:center; justify-content:center;
-    padding:14px; gap:10px; overflow-y:auto;
+    padding:14px; gap:10px;
+    overflow-y:scroll !important;
     -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    touch-action:pan-y !important;
+    height:0;
+    min-height:0;
   }
+  #luckyGame .wrap::-webkit-scrollbar { width:0; display:none; }
   #luckyGame .hud {
     display:flex; justify-content:space-between;
     width:100%; max-width:440px;
@@ -282,11 +292,6 @@
     background:linear-gradient(145deg, #2e7d32, #1b5e20) !important;
     border-color:#66bb6a !important;
     box-shadow:0 0 40px #66bb6a !important;
-    animation:winnerPulse .6s infinite alternate;
-  }
-  @keyframes winnerPulse {
-    from { transform:scale(1.02); }
-    to   { transform:scale(1.08); }
   }
   #luckyGame .msg { font-size:14px; font-weight:bold; text-align:center; min-height:22px; }
   #luckyGame .msg.win { color:#66bb6a; }
@@ -298,7 +303,7 @@
     padding:12px 36px; font-size:16px; font-weight:bold;
     background:linear-gradient(145deg, #4fc3f7, #2196f3);
     color:#fff; border:none; border-radius:30px;
-    box-shadow:0 0 25px #4fc3f7; cursor:pointer;
+    cursor:pointer;
   }
   #luckyGame .playBtn.hidden { display:none; }
 
@@ -307,9 +312,15 @@
   .casino-game .area {
     flex:1; display:flex; flex-direction:column;
     align-items:center; justify-content:center;
-    gap:14px; padding:14px; overflow-y:auto;
+    gap:14px; padding:14px;
+    overflow-y:scroll !important;
     -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    touch-action:pan-y !important;
+    height:0;
+    min-height:0;
   }
+  .casino-game .area::-webkit-scrollbar { width:0; display:none; }
   .reels {
     display:flex; gap:10px;
     background:linear-gradient(145deg, #2a1e4d, #1a1035);
@@ -349,12 +360,11 @@
     background:linear-gradient(145deg, #ffd54f, #ffb300);
     color:#0a0e1a;
     border:none; border-radius:30px;
-    box-shadow:0 0 25px rgba(255,213,79,0.7);
     cursor:pointer;
     font-family:Arial, sans-serif;
   }
   .big-btn:active { transform:scale(0.95); }
-  .big-btn:disabled { background:#444; color:#888; box-shadow:none; cursor:not-allowed; }
+  .big-btn:disabled { background:#444; color:#888; cursor:not-allowed; }
 
   .result-msg { font-size:17px; font-weight:bold; text-align:center; min-height:26px; }
   .result-msg.win { color:#66bb6a; }
@@ -374,7 +384,7 @@
     border:2px solid #3d2d70; background:#241a48;
     color:#fff; font-size:13px; font-weight:bold; cursor:pointer;
   }
-  .bet-opt.active { border-color:#ffd54f; background:#3d2d70; box-shadow:0 0 18px rgba(255,213,79,0.6); }
+  .bet-opt.active { border-color:#ffd54f; background:#3d2d70; }
   .bet-opt.red { border-color:#ff5252; color:#ff5252; }
   .bet-opt.red.active { background:#7f0000; color:#fff; border-color:#ff5252; }
   .bet-opt.black { border-color:#666; color:#aaa; }
@@ -445,9 +455,14 @@
     flex:1; display:flex; flex-direction:column;
     justify-content:space-evenly;
     padding:8px 10px; gap:8px;
-    overflow-y:auto; min-height:0;
+    overflow-y:scroll !important;
     -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    touch-action:pan-y !important;
+    height:0;
+    min-height:0;
   }
+  .table::-webkit-scrollbar { width:0; display:none; }
 
   .hand {
     background:linear-gradient(145deg, #1a1035, #150c2b);
@@ -457,7 +472,7 @@
   }
   .hand.active-p1 { border-color:#4fc3f7; box-shadow:0 0 25px rgba(79,195,247,0.7); }
   .hand.active-p2 { border-color:#ba68c8; box-shadow:0 0 25px rgba(186,104,200,0.7); }
-  .hand.winner { border-color:#66bb6a !important; box-shadow:0 0 35px rgba(102,187,106,0.9) !important; }
+  .hand.winner { border-color:#66bb6a !important; }
   .hand.loser { opacity:0.4; }
   .hand-title {
     font-size:12px; color:#a08cd0;
@@ -626,7 +641,7 @@
 <div class="confetti-container" id="confettiBox"></div>
 <div class="flash" id="flashBox"></div>
 
-<!-- ============ ГЛАВНОЕ МЕНЮ ============ -->
+<!-- МЕНЮ -->
 <div class="screen active" id="menu">
   <h1>🎮 МИНИ-ИГРЫ</h1>
   <div class="sub">Выбери игру</div>
@@ -651,53 +666,46 @@
     <div class="info"><div class="n">20 ячеек</div><div class="d">1 или 2 игрока · кто первый найдёт алмаз</div></div>
     <div class="arrow">›</div>
   </div>
-
   <div class="game-btn" data-game="bj">
     <div class="ico">🃏</div>
     <div class="info"><div class="n">Блэкджек</div><div class="d">1 или 2 игрока</div></div>
     <div class="arrow">›</div>
   </div>
-
   <div class="game-btn" data-game="dice">
     <div class="ico">🎲</div>
     <div class="info"><div class="n">Кости</div><div class="d">1 или 2 игрока</div></div>
     <div class="arrow">›</div>
   </div>
-
   <div class="game-btn" data-game="slots">
     <div class="ico">🎰</div>
     <div class="info"><div class="n">Слоты</div><div class="d">Крути барабаны, лови 3 в ряд</div></div>
     <div class="arrow">›</div>
   </div>
-
   <div class="game-btn" data-game="roulette">
     <div class="ico">🎡</div>
     <div class="info"><div class="n">Рулетка</div><div class="d">Красное, чёрное или число</div></div>
     <div class="arrow">›</div>
   </div>
-
   <div class="game-btn" data-game="online">
     <div class="ico">🌐</div>
     <div class="info"><div class="n">Онлайн</div><div class="d">Скоро · игра с друзьями по сети</div></div>
     <div class="arrow">›</div>
   </div>
-
   <div class="game-btn" data-game="names">
     <div class="ico">✏️</div>
     <div class="info"><div class="n">Имена игроков</div><div class="d">Изменить имена для игр</div></div>
     <div class="arrow">›</div>
   </div>
-
   <div class="game-btn" data-game="resetBal">
     <div class="ico">🔄</div>
     <div class="info"><div class="n">Сбросить балансы</div><div class="d">Все игры до 100 000 монет</div></div>
     <div class="arrow">›</div>
   </div>
 
-  <div style="margin-top:12px; color:#555; font-size:11px;">v5.2 · для экспериментов ❤</div>
+  <div style="margin-top:12px; color:#555; font-size:11px;">v6.0 · для экспериментов ❤</div>
 </div>
 
-<!-- ============ ВВОД ИМЁН ============ -->
+<!-- ИМЕНА -->
 <div class="screen game-screen" id="nameScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -715,14 +723,14 @@
   </div>
 </div>
 
-<!-- ============ ОНЛАЙН ============ -->
+<!-- ОНЛАЙН -->
 <div class="screen game-screen" id="onlineScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
     <div class="game-title">🌐 Онлайн</div>
     <div style="width:60px;"></div>
   </div>
-  <div class="scroll-content">
+  <div class="scroll-content" style="justify-content:flex-start;">
     <div class="big-icon">🌐</div>
     <h2>Онлайн-режим</h2>
     <div class="soon">СКОРО</div>
@@ -733,7 +741,7 @@
   </div>
 </div>
 
-<!-- ============ 20 ЯЧЕЕК: ВЫБОР ============ -->
+<!-- 20 ЯЧЕЕК: ВЫБОР -->
 <div class="screen game-screen" id="luckyModeScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -753,7 +761,7 @@
   </div>
 </div>
 
-<!-- ============ 20 ЯЧЕЕК: ИГРА ============ -->
+<!-- 20 ЯЧЕЕК: ИГРА -->
 <div class="screen game-screen" id="luckyGame">
   <div class="top-bar">
     <button class="back-btn" id="luckyMenuBtn">◀ Режим</button>
@@ -773,7 +781,7 @@
   </div>
 </div>
 
-<!-- ============ БЛЭКДЖЕК: ВЫБОР ============ -->
+<!-- БЛЭКДЖЕК: ВЫБОР -->
 <div class="screen game-screen" id="bjModeScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -803,7 +811,7 @@
   </div>
 </div>
 
-<!-- ============ БЛЭКДЖЕК: ИГРА ============ -->
+<!-- БЛЭКДЖЕК: ИГРА -->
 <div class="screen game-screen" id="bjGame">
   <div class="top-bar">
     <button class="back-btn" id="bjMenuBtn">◀ Режим</button>
@@ -855,7 +863,7 @@
   </div>
 </div>
 
-<!-- ============ КОСТИ: ВЫБОР ============ -->
+<!-- КОСТИ: ВЫБОР -->
 <div class="screen game-screen" id="diceModeScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -885,7 +893,7 @@
   </div>
 </div>
 
-<!-- ============ КОСТИ: ИГРА ============ -->
+<!-- КОСТИ: ИГРА -->
 <div class="screen game-screen" id="diceGame">
   <div class="top-bar">
     <button class="back-btn" id="diceMenuBtn">◀ Режим</button>
@@ -955,7 +963,7 @@
   </div>
 </div>
 
-<!-- ============ СЛОТЫ ============ -->
+<!-- СЛОТЫ -->
 <div class="screen game-screen casino-game" id="slotsGame">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -979,7 +987,7 @@
   </div>
 </div>
 
-<!-- ============ РУЛЕТКА ============ -->
+<!-- РУЛЕТКА -->
 <div class="screen game-screen casino-game" id="rouletteGame">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1071,7 +1079,7 @@ function flashScreen() {
   setTimeout(function() { f.classList.remove('flash-in'); }, 500);
 }
 
-/* ================= ИМЕНА ================= */
+/* ИМЕНА */
 var NAME1_KEY = 'player1_name_v1';
 var NAME2_KEY = 'player2_name_v1';
 var defaultName1 = 'Игрок 1';
@@ -1128,16 +1136,15 @@ function updateMenuBalance() {
   el.textContent = fmt(casinoBal);
 }
 
-/* ================= НАВИГАЦИЯ ================= */
+/* НАВИГАЦИЯ */
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
   setTimeout(function() {
     if (id === 'bjModeScreen')    updateBJMenuBalances();
     if (id === 'diceModeScreen')  updateDiceMenuBalances();
-    if (id === 'rouletteGame')    drawWheel();
+    if (id === 'rouletteGame')    { drawWheel(); updateCasinoBalanceUI(); }
     if (id === 'slotsGame')       updateCasinoBalanceUI();
-    if (id === 'rouletteGame')    updateCasinoBalanceUI();
     if (id === 'menu')            { updateMenuBalance(); updateNamesUI(); }
     if (id === 'nameScreen')      openNameScreen();
   }, 30);
@@ -1197,7 +1204,7 @@ function resetAllBalances() {
   spawnConfetti(40);
 }
 
-/* ================= ЗВУК ================= */
+/* ЗВУК */
 var audioCtx = null;
 function beep(freq, dur, type, vol) {
   try {
@@ -1226,17 +1233,13 @@ function sndCardDeal() { beep(500, 0.04, 'sine', 0.05); setTimeout(function(){be
 function vib(ms)     { if (navigator.vibrate) navigator.vibrate(ms); }
 function vibPattern(p) { if (navigator.vibrate) navigator.vibrate(p); }
 
-
-/* =========================================================
-   20 ЯЧЕЕК
-   ========================================================= */
+/* 20 ЯЧЕЕК */
 var updateLuckyMenu = function(){};
 (function() {
   var WINS1_KEY = 'lucky_wins1_v1';
   var WINS2_KEY = 'lucky_wins2_v1';
   var TOTAL = 20;
   var MAX_TRIES_1P = 3;
-
   var MODE = 1;
   var winIndex;
   var triesLeft = MAX_TRIES_1P;
@@ -1365,12 +1368,8 @@ var updateLuckyMenu = function(){};
     }
   };
 
-  document.getElementById('luckyRestart').addEventListener('click', function() {
-    startLucky();
-  });
-  document.getElementById('luckyMenuBtn').addEventListener('click', function() {
-    showScreen('luckyModeScreen');
-  });
+  document.getElementById('luckyRestart').addEventListener('click', function() { startLucky(); });
+  document.getElementById('luckyMenuBtn').addEventListener('click', function() { showScreen('luckyModeScreen'); });
   document.getElementById('luckyMode1').addEventListener('click', function() {
     MODE = 1;
     showScreen('luckyGame');
@@ -1393,15 +1392,11 @@ var updateLuckyMenu = function(){};
   });
 })();
 
-
-/* =========================================================
-   БЛЭКДЖЕК
-   ========================================================= */
+/* БЛЭКДЖЕК */
 (function() {
   var BAL1_KEY = 'bj_p1_v3';
   var BAL2_KEY = 'bj_p2_v3';
   var START_BALANCE = 100000;
-
   var p1Balance = parseInt(localStorage.getItem(BAL1_KEY) || String(START_BALANCE));
   var p2Balance = parseInt(localStorage.getItem(BAL2_KEY) || String(START_BALANCE));
   function saveBalances() {
@@ -1417,7 +1412,6 @@ var updateLuckyMenu = function(){};
     p1Bet: 500, p2Bet: 500,
     p1Done: false, p2Done: false,
     p1Blackjack: false, p2Blackjack: false,
-    p1Doubled: false, p2Doubled: false,
     holeHidden: false
   };
 
@@ -1535,23 +1529,19 @@ var updateLuckyMenu = function(){};
   }
   document.getElementById('bjP1BetUp').addEventListener('click', function() {
     if (state.phase !== 'bet') return;
-    state.p1Bet = Math.min(state.p1Bet + 100, 10000);
-    sndClick(); updateBetBJUI();
+    state.p1Bet = Math.min(state.p1Bet + 100, 10000); sndClick(); updateBetBJUI();
   });
   document.getElementById('bjP1BetDown').addEventListener('click', function() {
     if (state.phase !== 'bet') return;
-    state.p1Bet = Math.max(state.p1Bet - 100, 100);
-    sndClick(); updateBetBJUI();
+    state.p1Bet = Math.max(state.p1Bet - 100, 100); sndClick(); updateBetBJUI();
   });
   document.getElementById('bjP2BetUp').addEventListener('click', function() {
     if (state.phase !== 'bet') return;
-    state.p2Bet = Math.min(state.p2Bet + 100, 10000);
-    sndClick(); updateBetBJUI();
+    state.p2Bet = Math.min(state.p2Bet + 100, 10000); sndClick(); updateBetBJUI();
   });
   document.getElementById('bjP2BetDown').addEventListener('click', function() {
     if (state.phase !== 'bet') return;
-    state.p2Bet = Math.max(state.p2Bet - 100, 100);
-    sndClick(); updateBetBJUI();
+    state.p2Bet = Math.max(state.p2Bet - 100, 100); sndClick(); updateBetBJUI();
   });
 
   document.getElementById('bjDealBtn').addEventListener('click', dealBJ);
@@ -1565,7 +1555,6 @@ var updateLuckyMenu = function(){};
     state.dealer = []; state.p1 = []; state.p2 = [];
     state.p1Done = state.p2Done = false;
     state.p1Blackjack = state.p2Blackjack = false;
-    state.p1Doubled = state.p2Doubled = false;
     state.holeHidden = false;
     state.phase = 'bet';
     document.getElementById('bjP1Badge').innerHTML = '';
@@ -1689,7 +1678,6 @@ var updateLuckyMenu = function(){};
     if (player === 1) {
       p1Balance -= state.p1Bet;
       state.p1Bet *= 2;
-      state.p1Doubled = true;
       state.p1.push(state.deck.pop());
       renderBJ();
       state.p1Done = true;
@@ -1703,7 +1691,6 @@ var updateLuckyMenu = function(){};
     } else {
       p2Balance -= state.p2Bet;
       state.p2Bet *= 2;
-      state.p2Doubled = true;
       state.p2.push(state.deck.pop());
       renderBJ();
       state.p2Done = true;
@@ -1711,9 +1698,7 @@ var updateLuckyMenu = function(){};
       state.phase = 'done';
       setTimeout(finishBJ, 700);
     }
-    saveBalances();
-    updateBJBalancesUI();
-    updateBJUI();
+    saveBalances(); updateBJBalancesUI(); updateBJUI();
   }
 
   function dealerBJ() {
@@ -1853,9 +1838,7 @@ var updateLuckyMenu = function(){};
     document.getElementById('bjChipP2').style.display = 'none';
     document.getElementById('bjBetItemP2').style.display = 'none';
     document.getElementById('bjBetLblP1').textContent = 'Ставка';
-    updateBJBalancesUI();
-    updateNamesUI();
-    startNewBJ();
+    updateBJBalancesUI(); updateNamesUI(); startNewBJ();
   });
   document.getElementById('bjMode2').addEventListener('click', function() {
     GAME_MODE = 2;
@@ -1866,9 +1849,7 @@ var updateLuckyMenu = function(){};
     document.getElementById('bjChipP2').style.display = '';
     document.getElementById('bjBetItemP2').style.display = '';
     document.getElementById('bjBetLblP1').textContent = player1Name.substring(0, 8);
-    updateBJBalancesUI();
-    updateNamesUI();
-    startNewBJ();
+    updateBJBalancesUI(); updateNamesUI(); startNewBJ();
   });
   document.getElementById('bjMenuBtn').addEventListener('click', function() {
     showScreen('bjModeScreen');
@@ -1878,10 +1859,7 @@ var updateLuckyMenu = function(){};
   updateBJBalancesUI();
 })();
 
-
-/* =========================================================
-   КОСТИ
-   ========================================================= */
+/* КОСТИ */
 (function() {
   var BAL1_KEY = 'dice_p1_v3';
   var BAL2_KEY = 'dice_p2_v3';
@@ -1938,8 +1916,7 @@ var updateLuckyMenu = function(){};
     p1Bet = 500; p2Bet = 500;
     p1BetType = null; p2BetType = null;
     p1Roll = null; p2Roll = null;
-    turn = 1;
-    rolling = false;
+    turn = 1; rolling = false;
     document.querySelectorAll('#diceBetTypes .bet-opt').forEach(function(x){ x.classList.remove('active'); });
     document.getElementById('die1').textContent = '⚀';
     document.getElementById('die2').textContent = '⚀';
@@ -1973,14 +1950,10 @@ var updateLuckyMenu = function(){};
   }
 
   document.getElementById('diceMode1').addEventListener('click', function() {
-    MODE = 1;
-    showScreen('diceGame');
-    setupMode(); resetDice(); updateDiceBalancesUI(); updateNamesUI();
+    MODE = 1; showScreen('diceGame'); setupMode(); resetDice(); updateDiceBalancesUI(); updateNamesUI();
   });
   document.getElementById('diceMode2').addEventListener('click', function() {
-    MODE = 2;
-    showScreen('diceGame');
-    setupMode(); resetDice(); updateDiceBalancesUI(); updateNamesUI();
+    MODE = 2; showScreen('diceGame'); setupMode(); resetDice(); updateDiceBalancesUI(); updateNamesUI();
   });
   document.getElementById('diceMenuBtn').addEventListener('click', function() {
     showScreen('diceModeScreen');
@@ -2138,10 +2111,7 @@ var updateLuckyMenu = function(){};
   }
 })();
 
-
-/* =========================================================
-   КАЗИНО
-   ========================================================= */
+/* КАЗИНО */
 (function() {
   var BAL_KEY = 'casinoBalance_v2';
   var START_BALANCE = 100000;
@@ -2406,17 +2376,20 @@ var updateLuckyMenu = function(){};
   }
 })();
 
-/* ================= TELEGRAM ================= */
+/* TELEGRAM */
 function initTelegram() {
-  if (typeof window.Telegram === 'undefined' || !window.Telegram.WebApp) {
-    console.log('Не в Telegram');
-    return;
-  }
+  if (typeof window.Telegram === 'undefined' || !window.Telegram.WebApp) return;
   var tg = window.Telegram.WebApp;
   try { tg.ready(); } catch(e) {}
   try { tg.expand(); } catch(e) {}
   try { tg.setHeaderColor('#0b1020'); tg.setBackgroundColor('#0b1020'); } catch(e) {}
-  try { tg.enableVerticalSwipes && tg.enableVerticalSwipes(); } catch(e) {}
+
+  // Принудительно разрешаем вертикальные свайпы для скролла
+  try {
+    if (tg.enableVerticalSwipes) {
+      tg.enableVerticalSwipes();
+    }
+  } catch(e) {}
 
   var user = tg.initDataUnsafe && tg.initDataUnsafe.user;
   if (!user) return;
