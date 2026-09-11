@@ -77,6 +77,24 @@
     max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
 
+  /* КНОПКА СЧЁТА — кликабельная */
+  .score-btn {
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    background:linear-gradient(145deg, #4a2e5a, #2a1e3a);
+    border:2px solid #ba68c8;
+    border-radius:14px;
+    padding:8px 20px;
+    font-size:14px; font-weight:bold; color:#fff;
+    cursor:pointer;
+    margin-bottom:8px; flex-shrink:0;
+    box-shadow:0 0 18px rgba(186,104,200,0.4);
+    font-family:Arial, sans-serif;
+    transition:transform .12s;
+  }
+  .score-btn:active { transform:scale(0.95); }
+  .score-btn .lbl { color:#ba68c8; font-size:11px; }
+  .score-btn .val { color:#fff; font-size:15px; }
+
   .menu-balance {
     display:flex; align-items:center; gap:8px;
     background:linear-gradient(145deg, #2a1e4d, #1a1035);
@@ -115,6 +133,84 @@
   .game-btn .info .n { font-size:16px; color:#fff; }
   .game-btn .info .d { font-size:11px; color:#7ba8d6; font-weight:normal; margin-top:2px; }
   .game-btn .arrow { color:#4fc3f7; font-size:20px; }
+
+  /* ЭКРАН СТАТИСТИКИ */
+  #statsScreen .scroll-content { padding-top:24px; }
+  .stats-block {
+    width:100%; max-width:400px;
+    background:linear-gradient(145deg, #1a1035, #150c2b);
+    border:2px solid #3d2d70;
+    border-radius:16px;
+    padding:14px 16px;
+    margin-bottom:10px;
+  }
+  .stats-block h3 {
+    font-size:15px; color:#ffd54f;
+    margin-bottom:10px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .stats-row {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:8px 0;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    font-size:14px;
+  }
+  .stats-row:last-child { border-bottom:none; }
+  .stats-row .name { font-weight:bold; }
+  .stats-row .name.p1 { color:#4fc3f7; }
+  .stats-row .name.p2 { color:#ba68c8; }
+  .stats-row .score { font-size:16px; font-weight:bold; color:#fff; }
+  .stats-row .score.win { color:#66bb6a; }
+  .stats-row .score.lose { color:#888; }
+  .stats-empty {
+    text-align:center; color:#666; font-size:13px;
+    padding:14px;
+  }
+  .stats-total {
+    width:100%; max-width:400px;
+    background:linear-gradient(145deg, #2a1e4d, #1a1035);
+    border:2px solid #ffd54f;
+    border-radius:16px;
+    padding:16px;
+    margin-bottom:10px;
+    box-shadow:0 0 25px rgba(255,213,79,0.4);
+  }
+  .stats-total h3 {
+    font-size:15px; color:#ffd54f;
+    text-align:center;
+    margin-bottom:12px;
+  }
+  .stats-total-row {
+    display:flex; justify-content:space-around; align-items:center;
+  }
+  .stats-total-player {
+    text-align:center; flex:1;
+  }
+  .stats-total-player .p-name { font-size:12px; font-weight:bold; margin-bottom:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .stats-total-player.p1 .p-name { color:#4fc3f7; }
+  .stats-total-player.p2 .p-name { color:#ba68c8; }
+  .stats-total-player .p-wins {
+    font-size:32px; font-weight:bold; color:#fff;
+    text-shadow:0 0 15px rgba(255,255,255,0.4);
+  }
+  .stats-vs {
+    font-size:20px; color:#ffd54f;
+    padding:0 10px;
+    font-weight:bold;
+  }
+  .reset-stats-btn {
+    margin-top:10px;
+    padding:10px 26px;
+    background:transparent;
+    border:2px solid #ff5252;
+    color:#ff5252;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:bold;
+    cursor:pointer;
+    font-family:Arial, sans-serif;
+  }
+  .reset-stats-btn:active { background:#ff5252; color:#fff; }
 
   .game-screen { background:#0a0e1a; position:relative; z-index:1; }
   .top-bar {
@@ -393,11 +489,50 @@
     border-radius:14px;
     padding:8px 10px;
     border:2px solid #3d2d70;
+    transition:opacity .3s ease, border-color .3s ease, box-shadow .3s ease, transform .2s ease;
   }
-  .hand.active-p1 { border-color:#4fc3f7; box-shadow:0 0 25px rgba(79,195,247,0.7); }
-  .hand.active-p2 { border-color:#ba68c8; box-shadow:0 0 25px rgba(186,104,200,0.7); }
-  .hand.winner { border-color:#66bb6a !important; }
-  .hand.loser { opacity:0.4; }
+  /* Ход Игрока 1 */
+  .hand.active-p1 {
+    border-color:#4fc3f7;
+    box-shadow:0 0 30px rgba(79,195,247,0.9), inset 0 0 20px rgba(79,195,247,0.15);
+    animation:pulseP1 1.5s ease-in-out infinite alternate;
+  }
+  @keyframes pulseP1 {
+    from { box-shadow:0 0 20px rgba(79,195,247,0.6), inset 0 0 15px rgba(79,195,247,0.1); }
+    to   { box-shadow:0 0 40px rgba(79,195,247,1), inset 0 0 25px rgba(79,195,247,0.25); }
+  }
+  /* Ход Игрока 2 */
+  .hand.active-p2 {
+    border-color:#ba68c8;
+    box-shadow:0 0 30px rgba(186,104,200,0.9), inset 0 0 20px rgba(186,104,200,0.15);
+    animation:pulseP2 1.5s ease-in-out infinite alternate;
+  }
+  @keyframes pulseP2 {
+    from { box-shadow:0 0 20px rgba(186,104,200,0.6), inset 0 0 15px rgba(186,104,200,0.1); }
+    to   { box-shadow:0 0 40px rgba(186,104,200,1), inset 0 0 25px rgba(186,104,200,0.25); }
+  }
+  /* Ход дилера */
+  .hand.active-dealer {
+    border-color:#ff5252;
+    box-shadow:0 0 30px rgba(255,82,82,0.9), inset 0 0 20px rgba(255,82,82,0.15);
+    animation:pulseDealer 1.5s ease-in-out infinite alternate;
+  }
+  @keyframes pulseDealer {
+    from { box-shadow:0 0 20px rgba(255,82,82,0.6); }
+    to   { box-shadow:0 0 40px rgba(255,82,82,1); }
+  }
+  /* Приглушение неактивного */
+  .hand.dimmed {
+    opacity:0.45;
+    filter:grayscale(0.5);
+  }
+  .hand.winner {
+    border-color:#66bb6a !important;
+    box-shadow:0 0 30px rgba(102,187,106,0.8) !important;
+  }
+  .hand.loser {
+    opacity:0.4;
+  }
   .hand-title {
     font-size:12px; color:#a08cd0;
     margin-bottom:5px;
@@ -560,6 +695,11 @@
     </div>
   </div>
 
+  <button class="score-btn" id="openStatsBtn">
+    <span class="lbl">🏆 СЧЁТ СЕССИИ</span>
+    <span class="val" id="menuScoreVal">0 : 0</span>
+  </button>
+
   <div class="menu-balance">💰 <span id="menuBalance">100 000</span></div>
 
   <div class="menu-players">
@@ -608,7 +748,52 @@
     <div class="arrow">›</div>
   </div>
 
-  <div style="margin-top:12px; color:#555; font-size:11px;">v0.2 · для экспериментов ❤</div>
+  <div style="margin-top:12px; color:#555; font-size:11px;">v0.3 · для экспериментов ❤</div>
+</div>
+
+<!-- СТАТИСТИКА -->
+<div class="screen game-screen" id="statsScreen">
+  <div class="top-bar">
+    <button class="back-btn" data-back>◀ Меню</button>
+    <div class="game-title">🏆 Статистика сессии</div>
+    <div style="width:60px;"></div>
+  </div>
+  <div class="scroll-content">
+    <div class="stats-total">
+      <h3>🏆 Общий счёт за сессию</h3>
+      <div class="stats-total-row">
+        <div class="stats-total-player p1">
+          <div class="p-name" id="statsTotalName1">Игрок 1</div>
+          <div class="p-wins" id="statsTotalWins1">0</div>
+        </div>
+        <div class="stats-vs">VS</div>
+        <div class="stats-total-player p2">
+          <div class="p-name" id="statsTotalName2">Игрок 2</div>
+          <div class="p-wins" id="statsTotalWins2">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-block">
+      <h3>💎 20 ячеек</h3>
+      <div class="stats-row"><span class="name p1" id="statsLuckyName1">Игрок 1</span><span class="score" id="statsLuckyWins1">0</span></div>
+      <div class="stats-row"><span class="name p2" id="statsLuckyName2">Игрок 2</span><span class="score" id="statsLuckyWins2">0</span></div>
+    </div>
+
+    <div class="stats-block">
+      <h3>🃏 Блэкджек</h3>
+      <div class="stats-row"><span class="name p1" id="statsBJName1">Игрок 1</span><span class="score" id="statsBJWins1">0</span></div>
+      <div class="stats-row"><span class="name p2" id="statsBJName2">Игрок 2</span><span class="score" id="statsBJWins2">0</span></div>
+    </div>
+
+    <div class="stats-block">
+      <h3>🎲 Кости</h3>
+      <div class="stats-row"><span class="name p1" id="statsDiceName1">Игрок 1</span><span class="score" id="statsDiceWins1">0</span></div>
+      <div class="stats-row"><span class="name p2" id="statsDiceName2">Игрок 2</span><span class="score" id="statsDiceWins2">0</span></div>
+    </div>
+
+    <button class="reset-stats-btn" id="resetStatsBtn">🗑️ Сбросить статистику</button>
+  </div>
 </div>
 
 <!-- ИМЕНА -->
@@ -936,6 +1121,64 @@
 /* ================= ОБЩЕЕ ================= */
 function fmt(n) { return n.toLocaleString('ru-RU'); }
 
+/* ================= СТАТИСТИКА СЕССИИ ================= */
+var stats = {
+  lucky: { p1: 0, p2: 0 },
+  bj:    { p1: 0, p2: 0 },
+  dice:  { p1: 0, p2: 0 }
+};
+
+function addWin(game, player) {
+  if (!stats[game]) return;
+  if (player === 1) stats[game].p1++;
+  else if (player === 2) stats[game].p2++;
+  updateMenuScore();
+}
+
+function getTotalWins(player) {
+  var total = 0;
+  for (var g in stats) {
+    total += stats[g]['p' + player] || 0;
+  }
+  return total;
+}
+
+function updateMenuScore() {
+  var el = document.getElementById('menuScoreVal');
+  if (el) el.textContent = getTotalWins(1) + ' : ' + getTotalWins(2);
+}
+
+function renderStatsScreen() {
+  document.getElementById('statsTotalName1').textContent = player1Name;
+  document.getElementById('statsTotalName2').textContent = player2Name;
+  document.getElementById('statsTotalWins1').textContent = getTotalWins(1);
+  document.getElementById('statsTotalWins2').textContent = getTotalWins(2);
+
+  document.getElementById('statsLuckyName1').textContent = '🔵 ' + player1Name;
+  document.getElementById('statsLuckyName2').textContent = '🟣 ' + player2Name;
+  document.getElementById('statsLuckyWins1').textContent = stats.lucky.p1;
+  document.getElementById('statsLuckyWins2').textContent = stats.lucky.p2;
+
+  document.getElementById('statsBJName1').textContent = '🔵 ' + player1Name;
+  document.getElementById('statsBJName2').textContent = '🟣 ' + player2Name;
+  document.getElementById('statsBJWins1').textContent = stats.bj.p1;
+  document.getElementById('statsBJWins2').textContent = stats.bj.p2;
+
+  document.getElementById('statsDiceName1').textContent = '🔵 ' + player1Name;
+  document.getElementById('statsDiceName2').textContent = '🟣 ' + player2Name;
+  document.getElementById('statsDiceWins1').textContent = stats.dice.p1;
+  document.getElementById('statsDiceWins2').textContent = stats.dice.p2;
+}
+
+function resetStats() {
+  stats.lucky = { p1: 0, p2: 0 };
+  stats.bj = { p1: 0, p2: 0 };
+  stats.dice = { p1: 0, p2: 0 };
+  updateMenuScore();
+  renderStatsScreen();
+}
+
+/* ================= КОНФЕТТИ / МОНЕТЫ / ВСПЫШКА ================= */
 function spawnConfetti(count) {
   count = count || 60;
   var colors = ['#ffd54f', '#4fc3f7', '#66bb6a', '#ba68c8', '#ff5252', '#ffb74d', '#ffffff'];
@@ -1050,8 +1293,9 @@ function showScreen(id) {
     if (id === 'diceModeScreen')  updateDiceMenuBalances();
     if (id === 'rouletteGame')    { drawWheel(); updateCasinoBalanceUI(); }
     if (id === 'slotsGame')       updateCasinoBalanceUI();
-    if (id === 'menu')            { updateMenuBalance(); updateNamesUI(); }
+    if (id === 'menu')            { updateMenuBalance(); updateNamesUI(); updateMenuScore(); }
     if (id === 'nameScreen')      openNameScreen();
+    if (id === 'statsScreen')     renderStatsScreen();
   }, 30);
 }
 
@@ -1070,6 +1314,16 @@ document.querySelectorAll('.game-btn').forEach(function(b) {
 });
 document.querySelectorAll('[data-back]').forEach(function(b) {
   b.addEventListener('click', function() { showScreen('menu'); });
+});
+
+document.getElementById('openStatsBtn').addEventListener('click', function() {
+  renderStatsScreen();
+  showScreen('statsScreen');
+});
+document.getElementById('resetStatsBtn').addEventListener('click', function() {
+  if (!confirm('Сбросить статистику сессии?')) return;
+  resetStats();
+  showToast('Статистика сброшена');
 });
 
 function openNameScreen() {
@@ -1198,10 +1452,12 @@ var updateLuckyMenu = function(){};
       } else {
         if (turn === 1) {
           wins1++;
+          addWin('lucky', 1);
           document.getElementById('luckyMsg').className = 'msg p1';
           document.getElementById('luckyMsg').textContent = '🔵 ' + player1Name + ' нашёл алмаз и победил!';
         } else {
           wins2++;
+          addWin('lucky', 2);
           document.getElementById('luckyMsg').className = 'msg p2';
           document.getElementById('luckyMsg').textContent = '🟣 ' + player2Name + ' нашёл алмаз и победил!';
         }
@@ -1264,7 +1520,6 @@ var updateLuckyMenu = function(){};
   }
 
   function startLucky() {
-    // ЖЁСТКИЙ СБРОС: удаляем старый контейнер и создаём новый
     var oldGrid = document.getElementById('grid');
     var newGrid = document.createElement('div');
     newGrid.id = 'grid';
@@ -1285,7 +1540,6 @@ var updateLuckyMenu = function(){};
     document.getElementById('luckyRestart').classList.add('hidden');
   }
 
-  // Используем onclick вместо addEventListener — надёжнее
   document.getElementById('luckyRestart').onclick = function(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     startLucky();
@@ -1381,6 +1635,31 @@ var updateLuckyMenu = function(){};
     document.getElementById('bjBalP2').textContent = fmt(p2Balance);
   }
 
+  function renderBJHighlight() {
+    var p1Hand = document.getElementById('bjP1Hand');
+    var p2Hand = document.getElementById('bjP2Hand');
+    var dealerHand = document.getElementById('bjDealerHand');
+    if (!p1Hand || !p2Hand || !dealerHand) return;
+
+    p1Hand.classList.remove('active-p1', 'active-p2', 'active-dealer', 'dimmed');
+    p2Hand.classList.remove('active-p1', 'active-p2', 'active-dealer', 'dimmed');
+    dealerHand.classList.remove('active-p1', 'active-p2', 'active-dealer', 'dimmed');
+
+    if (state.phase === 'p1') {
+      p1Hand.classList.add('active-p1');
+      if (GAME_MODE === 2) p2Hand.classList.add('dimmed');
+      dealerHand.classList.add('dimmed');
+    } else if (state.phase === 'p2') {
+      p2Hand.classList.add('active-p2');
+      p1Hand.classList.add('dimmed');
+      dealerHand.classList.add('dimmed');
+    } else if (state.phase === 'dealer') {
+      dealerHand.classList.add('active-dealer');
+      p1Hand.classList.add('dimmed');
+      if (GAME_MODE === 2) p2Hand.classList.add('dimmed');
+    }
+  }
+
   function renderBJ() {
     var dEl = document.getElementById('bjDealerCards');
     dEl.innerHTML = '';
@@ -1401,8 +1680,7 @@ var updateLuckyMenu = function(){};
     for (var b = 0; b < state.p2.length; b++) p2El.appendChild(renderCard(state.p2[b]));
     document.getElementById('bjP2Score').textContent = handScore(state.p2);
 
-    document.getElementById('bjP1Hand').classList.toggle('active-p1', state.phase === 'p1');
-    document.getElementById('bjP2Hand').classList.toggle('active-p2', state.phase === 'p2');
+    renderBJHighlight();
   }
   function setBJMsg(text, cls) {
     var m = document.getElementById('bjMsg');
@@ -1442,6 +1720,7 @@ var updateLuckyMenu = function(){};
       newRoundBtn.style.display = 'inline-block';
     }
     updateBankBJ();
+    renderBJHighlight();
   }
   function updateBetBJUI() {
     document.getElementById('bjP1BetVal').textContent = state.p1Bet;
@@ -1502,12 +1781,9 @@ var updateLuckyMenu = function(){};
     state.p1.push(state.deck.pop(), state.deck.pop());
     if (GAME_MODE === 2) {
       state.p2.push(state.deck.pop(), state.deck.pop());
-      // Блэкджек считается ТОЛЬКО по первым 2 картам
       if (handScore(state.p1) === 21 && state.p1.length === 2) { state.p1Done = true; state.p1Blackjack = true; }
       if (handScore(state.p2) === 21 && state.p2.length === 2) { state.p2Done = true; state.p2Blackjack = true; }
       sndCardDeal(); renderBJ();
-
-      // ВАЖНО: НЕ завершаем раунд даже если у одного блэкджек — второй тоже играет
       if (state.p1Done) {
         setBJMsg('🔵 ' + player1Name + ': блэкджек! Ход ' + player2Name, 'p2');
         state.phase = 'p2';
@@ -1544,7 +1820,6 @@ var updateLuckyMenu = function(){};
       if (s > 21) {
         if (GAME_MODE === 2) {
           state.p1Done = true;
-          // НЕ завершаем — второй игрок всё равно ходит
           setBJMsg('🔵 ' + player1Name + ': перебор. Ход ' + player2Name, 'p2');
           state.phase = 'p2';
         } else {
@@ -1624,7 +1899,9 @@ var updateLuckyMenu = function(){};
 
   function dealerBJ() {
     state.holeHidden = false;
+    state.phase = 'dealer';
     renderBJ();
+    updateBJUI();
     function step() {
       if (handScore(state.dealer) < 17 && state.dealer.length < 8) {
         state.dealer.push(state.deck.pop());
@@ -1717,30 +1994,24 @@ var updateLuckyMenu = function(){};
     var bank = state.p1Bet + state.p2Bet;
     var result = '', reason = '';
 
-    // Оба перебрали → ничья
     if (b1 && b2) {
       result = 'push'; reason = 'Оба перебрали — ничья';
     }
-    // Оба блэкджека → ничья
     else if (bj1 && bj2) {
       result = 'push'; reason = 'У обоих блэкджек — ничья';
     }
-    // Блэкджек побеждает всё кроме блэкджека
     else if (bj1 && !bj2) {
       result = 'p1'; reason = '🔵 ' + player1Name + ': блэкджек!';
     }
     else if (bj2 && !bj1) {
       result = 'p2'; reason = '🟣 ' + player2Name + ': блэкджек!';
     }
-    // Игрок 1 перебрал, Игрок 2 не перебрал
     else if (b1) {
       result = 'p2'; reason = '🔵 ' + player1Name + ' перебрал (' + s1 + ')';
     }
-    // Игрок 2 перебрал, Игрок 1 не перебрал
     else if (b2) {
       result = 'p1'; reason = '🟣 ' + player2Name + ' перебрал (' + s2 + ')';
     }
-    // Оба не перебрали — сравниваем очки
     else if (s1 > s2) {
       result = 'p1'; reason = '🔵 ' + player1Name + ' выиграл: ' + s1 + ' > ' + s2;
     }
@@ -1753,6 +2024,7 @@ var updateLuckyMenu = function(){};
 
     if (result === 'p1') {
       p1Balance += bank;
+      addWin('bj', 1);
       document.getElementById('bjP1Hand').classList.add('winner');
       document.getElementById('bjP2Hand').classList.add('loser');
       document.getElementById('bjP1Badge').innerHTML = '<span class="badge win">ЗАБРАЛ ' + fmt(bank) + '</span>';
@@ -1762,6 +2034,7 @@ var updateLuckyMenu = function(){};
       flashScreen(); spawnConfetti(100); spawnCoins(12);
     } else if (result === 'p2') {
       p2Balance += bank;
+      addWin('bj', 2);
       document.getElementById('bjP2Hand').classList.add('winner');
       document.getElementById('bjP1Hand').classList.add('loser');
       document.getElementById('bjP2Badge').innerHTML = '<span class="badge win">ЗАБРАЛ ' + fmt(bank) + '</span>';
@@ -2040,10 +2313,12 @@ var updateLuckyMenu = function(){};
     var p2Net = p2Roll.payout - p2Bet;
     var msg = '';
     if (p1Net > p2Net) {
+      addWin('dice', 1);
       msg = '🔵 ' + player1Name + ' выиграл больше! (' + (p1Net>=0?'+':'') + fmt(p1Net) + ' vs ' + (p2Net>=0?'+':'') + fmt(p2Net) + ')';
       document.getElementById('diceMsg').className = 'msg-bar win';
       sndBig(); flashScreen(); spawnConfetti(80); spawnCoins(10);
     } else if (p2Net > p1Net) {
+      addWin('dice', 2);
       msg = '🟣 ' + player2Name + ' выиграл больше! (' + (p2Net>=0?'+':'') + fmt(p2Net) + ' vs ' + (p1Net>=0?'+':'') + fmt(p1Net) + ')';
       document.getElementById('diceMsg').className = 'msg-bar win';
       sndBig(); flashScreen(); spawnConfetti(80); spawnCoins(10);
@@ -2372,6 +2647,7 @@ function initTelegramBackButton() {
 /* СТАРТ */
 updateNamesUI();
 updateMenuBalance();
+updateMenuScore();
 initTelegram();
 initTelegramBackButton();
 </script>
