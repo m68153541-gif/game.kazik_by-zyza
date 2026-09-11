@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Мини-игры</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
@@ -12,10 +12,10 @@
     background:#0b1020;
     overflow:hidden;
     font-family:Arial, sans-serif;
-    touch-action:manipulation;
     user-select:none;
     color:#fff;
   }
+  /* ВАЖНО: разрешаем вертикальную прокрутку */
   .screen { position:fixed; inset:0; display:none; flex-direction:column; overflow:hidden; }
   .screen.active { display:flex; animation:screenIn .35s ease-out; }
   @keyframes screenIn {
@@ -33,21 +33,22 @@
       radial-gradient(circle at 50% 100%, rgba(186,104,200,0.08), transparent 60%);
     pointer-events:none;
     z-index:0;
-    animation:bgPulse 8s ease-in-out infinite;
-  }
-  @keyframes bgPulse {
-    0%, 100% { opacity:0.6; }
-    50% { opacity:1; }
   }
 
   /* ===== МЕНЮ ===== */
   #menu {
-    align-items:center; justify-content:flex-start;
-    padding:16px; gap:8px;
+    align-items:center;
+    justify-content:flex-start;
+    padding:16px 16px 32px;
+    gap:8px;
     overflow-y:auto;
+    overflow-x:hidden;
     -webkit-overflow-scrolling:touch;
-    position:relative; z-index:1;
+    touch-action:pan-y;
+    position:relative;
+    z-index:1;
   }
+  #menu::-webkit-scrollbar { width:0; }
   #menu h1 {
     font-size:28px; letter-spacing:3px;
     background:linear-gradient(90deg, #4fc3f7, #ffd54f, #ba68c8, #4fc3f7);
@@ -77,14 +78,9 @@
     padding:6px 18px 6px 6px;
     box-shadow:0 0 20px rgba(79,195,247,0.5);
     margin-bottom:6px;
-    animation:tgUserIn .5s cubic-bezier(0.34, 1.56, 0.64, 1);
     flex-shrink:0;
   }
   .tg-user.show { display:flex; }
-  @keyframes tgUserIn {
-    0% { transform:scale(0.5); opacity:0; }
-    100% { transform:scale(1); opacity:1; }
-  }
   .tg-user .avatar {
     width:44px; height:44px;
     border-radius:50%;
@@ -93,9 +89,7 @@
     font-size:22px; font-weight:bold;
     color:#0a0e1a;
     border:2px solid rgba(79,195,247,0.8);
-    box-shadow:
-      0 0 20px rgba(79,195,247,0.8),
-      inset 0 0 15px rgba(255,255,255,0.3);
+    box-shadow:0 0 20px rgba(79,195,247,0.8), inset 0 0 15px rgba(255,255,255,0.3);
     overflow:hidden;
     flex-shrink:0;
     position:relative;
@@ -109,29 +103,13 @@
     background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.45), transparent 60%);
     pointer-events:none;
   }
-  .tg-user .avatar img {
-    width:100%; height:100%;
-    object-fit:cover;
-    position:relative;
-    z-index:1;
-  }
-  .tg-user .info {
-    display:flex; flex-direction:column;
-    text-align:left;
-  }
-  .tg-user .info .greet {
-    font-size:10px; color:#7ba8d6;
-    font-weight:normal;
-    letter-spacing:0.5px;
-  }
+  .tg-user .avatar img { width:100%; height:100%; object-fit:cover; }
+  .tg-user .info { display:flex; flex-direction:column; text-align:left; }
+  .tg-user .info .greet { font-size:10px; color:#7ba8d6; font-weight:normal; letter-spacing:0.5px; }
   .tg-user .info .uname {
-    font-size:14px; font-weight:bold;
-    color:#4fc3f7;
+    font-size:14px; font-weight:bold; color:#4fc3f7;
     text-shadow:0 0 8px rgba(79,195,247,0.6);
-    max-width:160px;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
+    max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
 
   .menu-balance {
@@ -141,14 +119,9 @@
     border-radius:14px;
     padding:8px 22px;
     font-size:18px; font-weight:bold; color:#ffd54f;
-    box-shadow:0 0 20px rgba(255,213,79,0.5), inset 0 0 20px rgba(255,213,79,0.15);
+    box-shadow:0 0 20px rgba(255,213,79,0.5);
     margin-bottom:8px;
-    animation:balanceGlow 2s ease-in-out infinite alternate;
     flex-shrink:0;
-  }
-  @keyframes balanceGlow {
-    from { box-shadow:0 0 20px rgba(255,213,79,0.5), inset 0 0 20px rgba(255,213,79,0.15); }
-    to   { box-shadow:0 0 35px rgba(255,213,79,0.8), inset 0 0 30px rgba(255,213,79,0.25); }
   }
 
   .menu-players {
@@ -163,15 +136,11 @@
     border:2px solid;
     border-radius:12px;
     padding:6px 10px;
-    font-size:12px;
-    font-weight:bold;
-    text-align:center;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
+    font-size:12px; font-weight:bold; text-align:center;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  .menu-players .mp.p1 { border-color:#4fc3f7; color:#4fc3f7; box-shadow:0 0 12px rgba(79,195,247,0.3); }
-  .menu-players .mp.p2 { border-color:#ba68c8; color:#ba68c8; box-shadow:0 0 12px rgba(186,104,200,0.3); }
+  .menu-players .mp.p1 { border-color:#4fc3f7; color:#4fc3f7; }
+  .menu-players .mp.p2 { border-color:#ba68c8; color:#ba68c8; }
 
   .game-btn {
     width:100%; max-width:340px;
@@ -182,25 +151,12 @@
     font-size:16px; font-weight:bold; color:#fff;
     display:flex; align-items:center; gap:12px;
     cursor:pointer;
-    position:relative;
-    overflow:hidden;
     transition:transform .12s, box-shadow .25s, border-color .2s;
-    box-shadow:0 4px 14px rgba(0,0,0,0.4);
     font-family:Arial, sans-serif;
     flex-shrink:0;
   }
-  .game-btn::after {
-    content:'';
-    position:absolute;
-    top:0; left:-100%;
-    width:60%; height:100%;
-    background:linear-gradient(90deg, transparent, rgba(79,195,247,0.2), transparent);
-    transition:left .5s;
-  }
-  .game-btn:hover::after { left:150%; }
   .game-btn:active { transform:scale(0.97); }
-  .game-btn:hover { border-color:#4fc3f7; box-shadow:0 0 25px rgba(79,195,247,0.5); }
-  .game-btn .ico { font-size:26px; filter:drop-shadow(0 0 8px currentColor); }
+  .game-btn .ico { font-size:26px; }
   .game-btn .info { flex:1; text-align:left; }
   .game-btn .info .n { font-size:16px; color:#fff; }
   .game-btn .info .d { font-size:11px; color:#7ba8d6; font-weight:normal; margin-top:2px; }
@@ -214,7 +170,6 @@
     background:rgba(0,0,0,0.5);
     border-bottom:1px solid #1e2a4a;
     flex-shrink:0; z-index:100;
-    backdrop-filter:blur(8px);
   }
   .back-btn {
     padding:8px 16px;
@@ -224,33 +179,35 @@
     font-size:14px; font-weight:bold;
     cursor:pointer;
     font-family:Arial, sans-serif;
-    transition:transform .12s;
   }
   .back-btn:active { transform:scale(0.93); background:#4fc3f7; color:#0b1020; }
-  .game-title { flex:1; text-align:center; font-size:16px; font-weight:bold; color:#4fc3f7; text-shadow:0 0 10px rgba(79,195,247,0.5); }
+  .game-title { flex:1; text-align:center; font-size:16px; font-weight:bold; color:#4fc3f7; }
   .bal-mini {
     background:#1e2a4a; border:1px solid #ffd54f;
     border-radius:14px; padding:5px 10px;
     font-size:12px; font-weight:bold; color:#ffd54f;
-    box-shadow:0 0 12px rgba(255,213,79,0.3);
   }
 
-  /* ===== ВВОД ИМЁН ===== */
-  #nameScreen .content {
-    flex:1; display:flex; flex-direction:column;
-    align-items:center; justify-content:center;
-    padding:24px; gap:10px; overflow-y:auto;
+  /* ===== ЭКРАНЫ С ПРОКРУТКОЙ ===== */
+  .scroll-content {
+    flex:1;
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:20px;
+    gap:10px;
   }
-  #nameScreen h2 {
-    font-size:22px; color:#4fc3f7;
-    text-shadow:0 0 20px #4fc3f7;
-    text-align:center; margin-bottom:4px;
-  }
+  .scroll-content::-webkit-scrollbar { width:0; }
+
+  /* ВВОД ИМЁН */
+  #nameScreen .scroll-content { justify-content:flex-start; }
+  #nameScreen h2 { font-size:22px; color:#4fc3f7; text-align:center; margin-bottom:4px; margin-top:20px; }
   #nameScreen p { color:#aaa; font-size:12px; text-align:center; margin-bottom:8px; }
-  .name-label {
-    width:100%; max-width:340px;
-    font-size:13px; font-weight:bold; margin-bottom:-4px;
-  }
+  .name-label { width:100%; max-width:340px; font-size:13px; font-weight:bold; margin-bottom:-4px; }
   .name-label.p1 { color:#4fc3f7; }
   .name-label.p2 { color:#ba68c8; }
   .name-input {
@@ -262,57 +219,22 @@
     font-size:16px; font-weight:bold; color:#fff;
     outline:none;
     font-family:Arial, sans-serif;
-    transition:box-shadow .2s, border-color .2s;
   }
   .name-input.p1 { border-color:#4fc3f7; }
   .name-input.p2 { border-color:#ba68c8; }
   .name-input:focus { box-shadow:0 0 25px rgba(79,195,247,0.6); }
 
-  /* ===== ОНЛАЙН ===== */
-  #onlineScreen .content {
-    flex:1; display:flex; flex-direction:column;
-    align-items:center; justify-content:center;
-    padding:30px 24px; gap:14px;
-    text-align:center; overflow-y:auto;
-  }
-  #onlineScreen .big-icon {
-    font-size:80px;
-    filter:drop-shadow(0 0 30px #ffd54f);
-    animation:pulseIcon 2s ease-in-out infinite;
-  }
-  @keyframes pulseIcon {
-    0%, 100% { transform:scale(1) rotate(-5deg); }
-    50% { transform:scale(1.15) rotate(5deg); }
-  }
-  #onlineScreen h2 {
-    font-size:26px; color:#ffd54f;
-    text-shadow:0 0 25px #ffd54f;
-    letter-spacing:1px;
-  }
+  /* ОНЛАЙН */
+  #onlineScreen .big-icon { font-size:80px; margin-top:20px; filter:drop-shadow(0 0 30px #ffd54f); }
+  #onlineScreen h2 { font-size:26px; color:#ffd54f; text-align:center; }
   #onlineScreen .soon {
     font-size:13px; background:#ffd54f; color:#0a0e1a;
     padding:5px 14px; border-radius:14px;
     font-weight:bold; letter-spacing:2px;
-    animation:soonPulse 1.5s infinite;
   }
-  @keyframes soonPulse {
-    0%, 100% { box-shadow:0 0 15px rgba(255,213,79,0.5); }
-    50% { box-shadow:0 0 35px rgba(255,213,79,0.9); }
-  }
-  #onlineScreen p {
-    color:#ccc; font-size:14px; line-height:1.7;
-    max-width:360px;
-  }
+  #onlineScreen p { color:#ccc; font-size:14px; line-height:1.7; max-width:360px; text-align:center; }
   #onlineScreen .highlight { color:#ffd54f; font-weight:bold; }
-  #onlineScreen .support {
-    color:#81c784; font-size:13px; font-style:italic;
-    margin-top:6px;
-    animation:supportGlow 2s infinite alternate;
-  }
-  @keyframes supportGlow {
-    from { text-shadow:0 0 5px rgba(129,199,132,0.3); }
-    to   { text-shadow:0 0 15px rgba(129,199,132,0.8); }
-  }
+  #onlineScreen .support { color:#81c784; font-size:13px; font-style:italic; margin-top:6px; }
   #onlineScreen .btn-back-menu {
     margin-top:16px;
     padding:14px 40px;
@@ -322,20 +244,15 @@
     box-shadow:0 0 25px rgba(79,195,247,0.7);
     cursor:pointer;
     font-family:Arial, sans-serif;
-    transition:transform .12s;
-    animation:btnGlow 2s infinite alternate;
-  }
-  @keyframes btnGlow {
-    from { box-shadow:0 0 25px rgba(79,195,247,0.7); }
-    to   { box-shadow:0 0 40px rgba(79,195,247,1); }
   }
   #onlineScreen .btn-back-menu:active { transform:scale(0.95); }
 
-  /* ===== 20 ЯЧЕЕК ===== */
+  /* 20 ЯЧЕЕК */
   #luckyGame .wrap {
     flex:1; display:flex; flex-direction:column;
     align-items:center; justify-content:center;
     padding:14px; gap:10px; overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
   }
   #luckyGame .hud {
     display:flex; justify-content:space-between;
@@ -345,10 +262,7 @@
   #luckyGame .hud .left { color:#4fc3f7; }
   #luckyGame .hud .mid { color:#ffd54f; }
   #luckyGame .hud .right { color:#81c784; }
-  #luckyGame .title {
-    font-size:16px; font-weight:bold; text-align:center;
-    color:#4fc3f7; text-shadow:0 0 15px #4fc3f7; min-height:22px;
-  }
+  #luckyGame .title { font-size:16px; font-weight:bold; text-align:center; color:#4fc3f7; min-height:22px; }
   #luckyGame #grid {
     display:grid; grid-template-columns:repeat(5, 1fr);
     gap:8px; width:100%; max-width:440px; aspect-ratio:1 / 1;
@@ -359,49 +273,23 @@
     display:flex; align-items:center; justify-content:center;
     font-size:24px; font-weight:bold; color:#4fc3f7;
     cursor:pointer;
-    transition:transform .15s, background .3s, border-color .3s, box-shadow .3s;
-    box-shadow:0 3px 10px rgba(0,0,0,0.4), inset 0 0 10px rgba(79,195,247,0.1);
-    position:relative;
-    overflow:hidden;
+    transition:transform .15s, background .3s, border-color .3s;
   }
-  #luckyGame .cell::before {
-    content:'';
-    position:absolute;
-    inset:0;
-    background:radial-gradient(circle, rgba(79,195,247,0.25), transparent 70%);
-    opacity:0;
-    transition:opacity .3s;
-  }
-  #luckyGame .cell:hover::before { opacity:1; }
   #luckyGame .cell:active { transform:scale(0.9); }
-  #luckyGame .cell.p1-open {
-    background:linear-gradient(145deg, #1e3a6a, #152a4a) !important;
-    border-color:#4fc3f7 !important;
-    color:#4fc3f7;
-    box-shadow:0 0 15px rgba(79,195,247,0.6) !important;
-  }
-  #luckyGame .cell.p2-open {
-    background:linear-gradient(145deg, #4a2e5a, #2a1e3a) !important;
-    border-color:#ba68c8 !important;
-    color:#ba68c8;
-    box-shadow:0 0 15px rgba(186,104,200,0.6) !important;
-  }
+  #luckyGame .cell.p1-open { background:linear-gradient(145deg, #1e3a6a, #152a4a) !important; border-color:#4fc3f7 !important; color:#4fc3f7; }
+  #luckyGame .cell.p2-open { background:linear-gradient(145deg, #4a2e5a, #2a1e3a) !important; border-color:#ba68c8 !important; color:#ba68c8; }
   #luckyGame .cell.win {
     background:linear-gradient(145deg, #2e7d32, #1b5e20) !important;
     border-color:#66bb6a !important;
-    box-shadow:0 0 40px #66bb6a, inset 0 0 30px rgba(102,187,106,0.5) !important;
+    box-shadow:0 0 40px #66bb6a !important;
     animation:winnerPulse .6s infinite alternate;
-    transform:scale(1.05);
   }
   @keyframes winnerPulse {
-    from { box-shadow:0 0 20px #66bb6a, inset 0 0 20px rgba(102,187,106,0.4); transform:scale(1.02); }
-    to   { box-shadow:0 0 50px #66bb6a, inset 0 0 40px rgba(102,187,106,0.6); transform:scale(1.08); }
+    from { transform:scale(1.02); }
+    to   { transform:scale(1.08); }
   }
-  #luckyGame .msg {
-    font-size:14px; font-weight:bold; text-align:center; min-height:22px;
-    transition:color .2s;
-  }
-  #luckyGame .msg.win { color:#66bb6a; text-shadow:0 0 15px #66bb6a; }
+  #luckyGame .msg { font-size:14px; font-weight:bold; text-align:center; min-height:22px; }
+  #luckyGame .msg.win { color:#66bb6a; }
   #luckyGame .msg.lose { color:#ff5252; }
   #luckyGame .msg.info { color:#4fc3f7; }
   #luckyGame .msg.p1 { color:#4fc3f7; }
@@ -409,49 +297,31 @@
   #luckyGame .playBtn {
     padding:12px 36px; font-size:16px; font-weight:bold;
     background:linear-gradient(145deg, #4fc3f7, #2196f3);
-    color:#fff;
-    border:none; border-radius:30px;
+    color:#fff; border:none; border-radius:30px;
     box-shadow:0 0 25px #4fc3f7; cursor:pointer;
-    font-family:Arial, sans-serif;
-    transition:transform .12s;
   }
-  #luckyGame .playBtn:active { transform:scale(0.93); }
   #luckyGame .playBtn.hidden { display:none; }
 
-  /* ===== КАЗИНО ===== */
+  /* КАЗИНО */
   .casino-game { background:#0a0e1a; }
   .casino-game .area {
     flex:1; display:flex; flex-direction:column;
     align-items:center; justify-content:center;
     gap:14px; padding:14px; overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
   }
   .reels {
     display:flex; gap:10px;
     background:linear-gradient(145deg, #2a1e4d, #1a1035);
     padding:16px; border-radius:20px;
     border:3px solid #ffd54f;
-    box-shadow:0 0 30px rgba(255,213,79,0.5), inset 0 0 30px rgba(255,213,79,0.15);
-    position:relative;
-  }
-  .reels::after {
-    content:'';
-    position:absolute;
-    inset:-3px;
-    border-radius:20px;
-    border:3px solid #ffd54f;
-    animation:reelsRing 2s infinite alternate;
-    pointer-events:none;
-  }
-  @keyframes reelsRing {
-    from { box-shadow:0 0 20px rgba(255,213,79,0.4); }
-    to   { box-shadow:0 0 50px rgba(255,213,79,0.8); }
+    box-shadow:0 0 30px rgba(255,213,79,0.5);
   }
   .reel {
     width:64px; height:84px;
     background:#0a0e1a; border-radius:12px;
     display:flex; align-items:center; justify-content:center;
     font-size:44px; border:2px solid #3d2d70;
-    transition:border-color .2s;
   }
   .reel.spin { animation:spinAnim 0.1s linear infinite; border-color:#ffd54f; }
   @keyframes spinAnim {
@@ -469,10 +339,9 @@
     background:linear-gradient(145deg, #3d2d70, #2a1e4d);
     color:#fff; border:none;
     font-size:18px; font-weight:bold; cursor:pointer;
-    transition:transform .12s;
   }
   .bet-row button:active { background:#ffd54f; color:#0a0e1a; transform:scale(0.9); }
-  .bet-row .val { font-size:17px; font-weight:bold; color:#ffd54f; min-width:56px; text-align:center; text-shadow:0 0 10px rgba(255,213,79,0.5); }
+  .bet-row .val { font-size:17px; font-weight:bold; color:#ffd54f; min-width:56px; text-align:center; }
   .bet-row .lbl { font-size:12px; color:#a08cd0; }
 
   .big-btn {
@@ -483,73 +352,37 @@
     box-shadow:0 0 25px rgba(255,213,79,0.7);
     cursor:pointer;
     font-family:Arial, sans-serif;
-    transition:transform .12s, box-shadow .2s;
-    animation:btnGlow2 2s infinite alternate;
-  }
-  @keyframes btnGlow2 {
-    from { box-shadow:0 0 25px rgba(255,213,79,0.7); }
-    to   { box-shadow:0 0 45px rgba(255,213,79,1); }
   }
   .big-btn:active { transform:scale(0.95); }
-  .big-btn:disabled { background:#444; color:#888; box-shadow:none; cursor:not-allowed; animation:none; }
+  .big-btn:disabled { background:#444; color:#888; box-shadow:none; cursor:not-allowed; }
 
-  .result-msg {
-    font-size:17px; font-weight:bold; text-align:center; min-height:26px;
-    transition:color .2s, text-shadow .2s;
-  }
-  .result-msg.win { color:#66bb6a; text-shadow:0 0 15px #66bb6a; animation:msgPop .4s; }
-  .result-msg.lose { color:#ff5252; animation:msgShake .4s; }
+  .result-msg { font-size:17px; font-weight:bold; text-align:center; min-height:26px; }
+  .result-msg.win { color:#66bb6a; }
+  .result-msg.lose { color:#ff5252; }
   .result-msg.info { color:#4fc3f7; }
-  @keyframes msgPop {
-    0% { transform:scale(0.5); }
-    50% { transform:scale(1.2); }
-    100% { transform:scale(1); }
-  }
-  @keyframes msgShake {
-    0%, 100% { transform:translateX(0); }
-    25% { transform:translateX(-5px); }
-    75% { transform:translateX(5px); }
-  }
 
-  .wheel-box {
-    width:200px; height:200px; position:relative; margin:4px 0;
-  }
-  #wheelCanvas {
-    display:block; width:100%; height:100%;
-    filter:drop-shadow(0 0 20px rgba(255,213,79,0.4));
-  }
+  .wheel-box { width:200px; height:200px; position:relative; margin:4px 0; }
+  #wheelCanvas { display:block; width:100%; height:100%; }
   .wheel-pointer {
     position:absolute; top:-6px; left:50%;
     transform:translateX(-50%);
-    font-size:28px; color:#ffd54f;
-    text-shadow:0 0 15px #ffd54f;
-    z-index:5;
-    animation:pointerBounce 1s infinite alternate;
+    font-size:28px; color:#ffd54f; z-index:5;
   }
-  @keyframes pointerBounce {
-    from { transform:translateX(-50%) translateY(0); }
-    to { transform:translateX(-50%) translateY(-3px); }
-  }
-  .bet-options {
-    display:flex; flex-wrap:wrap; justify-content:center;
-    gap:6px; max-width:360px;
-  }
+  .bet-options { display:flex; flex-wrap:wrap; justify-content:center; gap:6px; max-width:360px; }
   .bet-opt {
     padding:8px 14px; border-radius:20px;
     border:2px solid #3d2d70; background:#241a48;
     color:#fff; font-size:13px; font-weight:bold; cursor:pointer;
-    transition:transform .12s, border-color .2s, box-shadow .2s;
-    font-family:Arial, sans-serif;
   }
-  .bet-opt:active { transform:scale(0.94); }
   .bet-opt.active { border-color:#ffd54f; background:#3d2d70; box-shadow:0 0 18px rgba(255,213,79,0.6); }
   .bet-opt.red { border-color:#ff5252; color:#ff5252; }
-  .bet-opt.red.active { background:#7f0000; color:#fff; border-color:#ff5252; box-shadow:0 0 18px rgba(255,82,82,0.6); }
+  .bet-opt.red.active { background:#7f0000; color:#fff; border-color:#ff5252; }
   .bet-opt.black { border-color:#666; color:#aaa; }
-  .bet-opt.black.active { background:#222; color:#fff; border-color:#fff; box-shadow:0 0 18px rgba(255,255,255,0.4); }
+  .bet-opt.black.active { background:#222; color:#fff; border-color:#fff; }
   .bet-opt.green { border-color:#66bb6a; color:#66bb6a; }
-  .bet-opt.green.active { background:#1b5e20; color:#fff; box-shadow:0 0 18px rgba(102,187,106,0.6); }
+  .bet-opt.green.active { background:#1b5e20; color:#fff; }
 
+  /* ВЫБОР РЕЖИМА */
   .bj-mode-btn {
     width:100%; max-width:340px;
     padding:14px 18px;
@@ -559,26 +392,16 @@
     font-size:16px; font-weight:bold; color:#fff;
     display:flex; align-items:center; gap:14px;
     cursor:pointer;
-    transition:transform .12s, box-shadow .2s, border-color .2s;
-    margin-top:10px;
     font-family:Arial, sans-serif;
+    flex-shrink:0;
   }
-  .bj-mode-btn:active { transform:scale(0.97); }
-  .bj-mode-btn:hover { border-color:#ffd54f; box-shadow:0 0 25px rgba(255,213,79,0.5); }
   .bj-mode-btn .ico { font-size:28px; }
   .bj-mode-btn .info { flex:1; text-align:left; }
   .bj-mode-btn .info .n { font-size:15px; }
   .bj-mode-btn .info .d { font-size:11px; color:#a08cd0; font-weight:normal; margin-top:2px; }
 
-  #bjModeScreen, #diceModeScreen, #luckyModeScreen {
-    align-items:center; justify-content:center;
-    padding:20px; gap:8px;
-    overflow-y:auto;
-  }
   #bjModeScreen h2, #diceModeScreen h2, #luckyModeScreen h2 {
-    font-size:20px; color:#ffd54f;
-    text-shadow:0 0 20px #ffd54f; text-align:center;
-    margin-top:10px;
+    font-size:20px; color:#ffd54f; text-align:center; margin-top:10px;
   }
   .players-balance {
     display:flex; gap:10px;
@@ -589,52 +412,33 @@
     background:linear-gradient(145deg, #2a1e4d, #1a1035);
     border:2px solid; border-radius:14px;
     padding:8px; text-align:center;
-    transition:box-shadow .2s;
   }
-  .player-bal.p1 { border-color:#4fc3f7; box-shadow:0 0 15px rgba(79,195,247,0.3); }
-  .player-bal.p2 { border-color:#ba68c8; box-shadow:0 0 15px rgba(186,104,200,0.3); }
+  .player-bal.p1 { border-color:#4fc3f7; }
+  .player-bal.p2 { border-color:#ba68c8; }
   .player-bal .who { font-size:11px; margin-bottom:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .player-bal.p1 .who { color:#4fc3f7; }
   .player-bal.p2 .who { color:#ba68c8; }
   .player-bal .amount { font-size:14px; font-weight:bold; color:#ffd54f; }
 
-  .balance-row {
-    display:flex; gap:6px;
-    padding:6px 10px; flex-shrink:0;
-  }
+  .balance-row { display:flex; gap:6px; padding:6px 10px; flex-shrink:0; }
   .balance-chip {
     flex:1; background:#1a1035;
     border:1px solid; border-radius:16px;
     padding:5px 10px; font-size:12px; font-weight:bold;
     display:flex; align-items:center; justify-content:space-between;
-    gap:4px;
-    overflow:hidden;
-    transition:box-shadow .3s;
+    gap:4px; overflow:hidden;
   }
-  .balance-chip.p1 { border-color:#4fc3f7; color:#4fc3f7; box-shadow:0 0 12px rgba(79,195,247,0.3); }
-  .balance-chip.p2 { border-color:#ba68c8; color:#ba68c8; box-shadow:0 0 12px rgba(186,104,200,0.3); }
+  .balance-chip.p1 { border-color:#4fc3f7; color:#4fc3f7; }
+  .balance-chip.p2 { border-color:#ba68c8; color:#ba68c8; }
   .balance-chip .name-part { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .balance-chip .v { color:#ffd54f; flex-shrink:0; transition:transform .3s; }
-  .balance-chip .v.bump { animation:numBump .5s; }
-  @keyframes numBump {
-    0% { transform:scale(1); }
-    50% { transform:scale(1.3); color:#66bb6a; }
-    100% { transform:scale(1); }
-  }
+  .balance-chip .v { color:#ffd54f; flex-shrink:0; }
 
   .bank-row {
     background:linear-gradient(90deg, #241a48, #3d2d70, #241a48);
-    background-size:200% 100%;
-    animation:bankFlow 3s linear infinite;
     padding:6px; text-align:center;
     font-size:13px; font-weight:bold; color:#ffd54f;
     border-bottom:1px solid #3d2d70;
     flex-shrink:0;
-    text-shadow:0 0 8px rgba(255,213,79,0.5);
-  }
-  @keyframes bankFlow {
-    0% { background-position:0% 50%; }
-    100% { background-position:200% 50%; }
   }
 
   .table {
@@ -642,6 +446,7 @@
     justify-content:space-evenly;
     padding:8px 10px; gap:8px;
     overflow-y:auto; min-height:0;
+    -webkit-overflow-scrolling:touch;
   }
 
   .hand {
@@ -649,70 +454,33 @@
     border-radius:14px;
     padding:8px 10px;
     border:2px solid #3d2d70;
-    transition:border-color .3s, box-shadow .3s, transform .15s;
   }
-  .hand.active-p1 {
-    border-color:#4fc3f7;
-    box-shadow:0 0 25px rgba(79,195,247,0.7);
-    animation:handActiveP1 1.5s ease-in-out infinite alternate;
-  }
-  @keyframes handActiveP1 {
-    from { box-shadow:0 0 20px rgba(79,195,247,0.5); }
-    to   { box-shadow:0 0 35px rgba(79,195,247,0.9); }
-  }
-  .hand.active-p2 {
-    border-color:#ba68c8;
-    box-shadow:0 0 25px rgba(186,104,200,0.7);
-    animation:handActiveP2 1.5s ease-in-out infinite alternate;
-  }
-  @keyframes handActiveP2 {
-    from { box-shadow:0 0 20px rgba(186,104,200,0.5); }
-    to   { box-shadow:0 0 35px rgba(186,104,200,0.9); }
-  }
-  .hand.winner {
-    border-color:#66bb6a !important;
-    box-shadow:0 0 35px rgba(102,187,106,0.9) !important;
-    animation:handWinner 1s ease-in-out infinite alternate !important;
-  }
-  @keyframes handWinner {
-    from { transform:scale(1); box-shadow:0 0 25px rgba(102,187,106,0.7); }
-    to   { transform:scale(1.02); box-shadow:0 0 45px rgba(102,187,106,1); }
-  }
+  .hand.active-p1 { border-color:#4fc3f7; box-shadow:0 0 25px rgba(79,195,247,0.7); }
+  .hand.active-p2 { border-color:#ba68c8; box-shadow:0 0 25px rgba(186,104,200,0.7); }
+  .hand.winner { border-color:#66bb6a !important; box-shadow:0 0 35px rgba(102,187,106,0.9) !important; }
   .hand.loser { opacity:0.4; }
   .hand-title {
     font-size:12px; color:#a08cd0;
     margin-bottom:5px;
-    display:flex; justify-content:space-between;
-    align-items:center; gap:6px;
+    display:flex; justify-content:space-between; align-items:center; gap:6px;
   }
   .hand-title .name { font-size:13px; font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .hand-title .score {
     color:#ffd54f; font-weight:bold; font-size:14px;
     background:#2a1e4d; padding:3px 10px;
-    border-radius:12px; min-width:38px; text-align:center;
-    flex-shrink:0;
-    transition:transform .3s;
+    border-radius:12px; min-width:38px; text-align:center; flex-shrink:0;
   }
-  .hand-title .score.bump { animation:numBump .5s; }
   .hand.p1 .hand-title .name { color:#4fc3f7; }
   .hand.p2 .hand-title .name { color:#ba68c8; }
   .hand.dealer .hand-title .name { color:#ff5252; }
 
-  .cards {
-    display:flex; gap:5px; flex-wrap:wrap;
-    min-height:56px; align-items:center;
-  }
+  .cards { display:flex; gap:5px; flex-wrap:wrap; min-height:56px; align-items:center; }
   .card {
     width:40px; height:56px;
     background:#fff; border-radius:5px;
     display:flex; align-items:center; justify-content:center;
     flex-direction:column; color:#000; font-weight:bold;
     box-shadow:0 2px 5px rgba(0,0,0,0.4);
-    animation:cardIn .4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  @keyframes cardIn {
-    0% { transform:translateY(-50px) rotateY(180deg) scale(0.3); opacity:0; }
-    100% { transform:translateY(0) rotateY(0) scale(1); opacity:1; }
   }
   .card.red { color:#d32f2f; }
   .card .r { font-size:14px; line-height:1; }
@@ -727,31 +495,22 @@
     padding:8px; min-height:34px; border-radius:10px;
     background:#150c2b; flex-shrink:0;
     display:flex; align-items:center; justify-content:center;
-    transition:color .2s, text-shadow .2s;
   }
   .msg-bar.info { color:#4fc3f7; }
-  .msg-bar.win { color:#66bb6a; text-shadow:0 0 15px #66bb6a; animation:msgPop .4s; }
-  .msg-bar.lose { color:#ff5252; animation:msgShake .4s; }
+  .msg-bar.win { color:#66bb6a; }
+  .msg-bar.lose { color:#ff5252; }
   .msg-bar.p1 { color:#4fc3f7; }
   .msg-bar.p2 { color:#ba68c8; }
 
-  .controls {
-    padding:6px 10px 12px;
-    display:flex; flex-direction:column;
-    gap:8px; flex-shrink:0;
-  }
-  .bet-panel {
-    display:flex; gap:8px;
-    justify-content:center; flex-wrap:wrap;
-  }
+  .controls { padding:6px 10px 12px; display:flex; flex-direction:column; gap:8px; flex-shrink:0; }
+  .bet-panel { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
   .bet-item {
     background:#1a1035; border-radius:16px;
     padding:6px 10px; border:1px solid #3d2d70;
     display:flex; align-items:center; gap:6px;
-    transition:box-shadow .2s;
   }
-  .bet-item.p1 { border-color:#4fc3f7; box-shadow:0 0 12px rgba(79,195,247,0.25); }
-  .bet-item.p2 { border-color:#ba68c8; box-shadow:0 0 12px rgba(186,104,200,0.25); }
+  .bet-item.p1 { border-color:#4fc3f7; }
+  .bet-item.p2 { border-color:#ba68c8; }
   .bet-item .lbl { font-size:11px; color:#a08cd0; font-weight:bold; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .bet-item.p1 .lbl { color:#4fc3f7; }
   .bet-item.p2 .lbl { color:#ba68c8; }
@@ -760,60 +519,34 @@
     background:linear-gradient(145deg, #3d2d70, #2a1e4d);
     color:#fff; border:none;
     font-size:16px; font-weight:bold; cursor:pointer;
-    transition:transform .12s;
   }
   .bet-item button:active { background:#ffd54f; color:#0a0e1a; transform:scale(0.9); }
   .bet-item .val { font-size:14px; font-weight:bold; color:#ffd54f; min-width:52px; text-align:center; }
 
-  .actions {
-    display:flex; gap:8px;
-    justify-content:center; flex-wrap:wrap;
-  }
+  .actions { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
   .actions button {
     padding:12px 22px; border-radius:24px;
     border:none; font-size:14px; font-weight:bold;
     cursor:pointer;
     font-family:Arial, sans-serif;
-    transition:transform .12s, opacity .2s, box-shadow .2s;
-    position:relative;
-    overflow:hidden;
   }
   .actions button:active:not(:disabled) { transform:scale(0.92); }
   .actions button:disabled { opacity:0.4; cursor:not-allowed; }
-  .btn-hit {
-    background:linear-gradient(145deg, #4fc3f7, #2196f3);
-    color:#0a0e1a;
-    box-shadow:0 0 15px rgba(79,195,247,0.5);
-  }
-  .btn-stand {
-    background:linear-gradient(145deg, #ff5252, #c62828);
-    color:#fff;
-    box-shadow:0 0 15px rgba(255,82,82,0.5);
-  }
-  .btn-double {
-    background:linear-gradient(145deg, #ffd54f, #ffb300);
-    color:#0a0e1a;
-    box-shadow:0 0 15px rgba(255,213,79,0.5);
-  }
+  .btn-hit { background:linear-gradient(145deg, #4fc3f7, #2196f3); color:#0a0e1a; }
+  .btn-stand { background:linear-gradient(145deg, #ff5252, #c62828); color:#fff; }
+  .btn-double { background:linear-gradient(145deg, #ffd54f, #ffb300); color:#0a0e1a; }
   .btn-deal {
     background:linear-gradient(145deg, #ffd54f, #ffb300);
     color:#0a0e1a; padding:14px 36px;
     font-size:16px; border-radius:30px;
-    box-shadow:0 0 25px rgba(255,213,79,0.7);
-    animation:btnGlow2 2s infinite alternate;
   }
 
   .badge {
     display:inline-block; padding:3px 10px;
     border-radius:10px; font-size:11px;
     font-weight:bold; margin-left:6px; vertical-align:middle;
-    animation:badgeIn .4s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
-  @keyframes badgeIn {
-    0% { transform:scale(0) rotate(-180deg); opacity:0; }
-    100% { transform:scale(1) rotate(0); opacity:1; }
-  }
-  .badge.win { background:#1b5e20; color:#81c784; box-shadow:0 0 12px rgba(102,187,106,0.6); }
+  .badge.win { background:#1b5e20; color:#81c784; }
   .badge.lose { background:#7f0000; color:#ff8a80; }
   .badge.push { background:#3d2d70; color:#ffd54f; }
 
@@ -824,59 +557,41 @@
     color:#0a0e1a; padding:12px 24px;
     border-radius:22px; font-weight:bold; font-size:14px;
     z-index:200; display:none;
-    box-shadow:0 0 35px rgba(255,213,79,0.9);
     max-width:90vw; text-align:center;
     border:2px solid #fff;
   }
-  .toast.show { display:block; animation:toastIn .4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-  @keyframes toastIn {
-    0% { transform:translate(-50%, -30px) scale(0.7); opacity:0; }
-    100% { transform:translate(-50%, 0) scale(1); opacity:1; }
-  }
+  .toast.show { display:block; }
 
   .dice-box {
     display:flex; gap:20px;
     font-size:64px; padding:18px 26px;
     background:linear-gradient(145deg, #2a1e4d, #1a1035);
     border:3px solid #ffd54f; border-radius:20px;
-    box-shadow:0 0 30px rgba(255,213,79,0.5), inset 0 0 30px rgba(255,213,79,0.15);
   }
-  .die { transition:transform .3s; filter:drop-shadow(0 0 10px rgba(255,213,79,0.5)); }
+  .die { transition:transform .3s; }
   .die.rolling { animation:rollAnim .3s linear infinite; }
   @keyframes rollAnim {
     0% { transform:rotate(0deg) scale(1); }
     50% { transform:rotate(180deg) scale(1.15); }
     100% { transform:rotate(360deg) scale(1); }
   }
-  .dice-bets {
-    display:flex; gap:6px; flex-wrap:wrap;
-    justify-content:center; max-width:340px;
-  }
+  .dice-bets { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; max-width:340px; }
   .dice-bets .bet-opt { padding:8px 12px; font-size:12px; }
 
   .confetti-container {
-    position:fixed;
-    inset:0;
+    position:fixed; inset:0;
     pointer-events:none;
-    z-index:150;
-    overflow:hidden;
+    z-index:150; overflow:hidden;
   }
   .confetti {
     position:absolute;
-    width:10px;
-    height:10px;
+    width:10px; height:10px;
     opacity:0;
     animation:confettiFall linear forwards;
   }
   @keyframes confettiFall {
-    0% {
-      opacity:1;
-      transform:translateY(-100vh) rotate(0deg);
-    }
-    100% {
-      opacity:0.8;
-      transform:translateY(100vh) rotate(720deg);
-    }
+    0% { opacity:1; transform:translateY(-100vh) rotate(0deg); }
+    100% { opacity:0.8; transform:translateY(100vh) rotate(720deg); }
   }
 
   .coin-fly {
@@ -884,34 +599,21 @@
     font-size:36px;
     pointer-events:none;
     z-index:160;
-    animation:coinFly 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    filter:drop-shadow(0 0 15px #ffd54f);
+    animation:coinFly 1.2s ease-out forwards;
   }
   @keyframes coinFly {
-    0% {
-      transform:translate(0,0) scale(0.5) rotate(0);
-      opacity:1;
-    }
-    50% {
-      opacity:1;
-    }
-    100% {
-      transform:translate(var(--dx), -150px) scale(1.5) rotate(360deg);
-      opacity:0;
-    }
+    0% { transform:translate(0,0) scale(0.5); opacity:1; }
+    100% { transform:translate(var(--dx), -150px) scale(1.5); opacity:0; }
   }
 
   .flash {
-    position:fixed;
-    inset:0;
+    position:fixed; inset:0;
     background:white;
     pointer-events:none;
     opacity:0;
     z-index:145;
   }
-  .flash.flash-in {
-    animation:flashIn .5s ease-out;
-  }
+  .flash.flash-in { animation:flashIn .5s ease-out; }
   @keyframes flashIn {
     0% { opacity:0.7; }
     100% { opacity:0; }
@@ -992,7 +694,7 @@
     <div class="arrow">›</div>
   </div>
 
-  <div style="margin-top:12px; color:#555; font-size:11px;">v5.1 · для экспериментов ❤</div>
+  <div style="margin-top:12px; color:#555; font-size:11px;">v5.2 · для экспериментов ❤</div>
 </div>
 
 <!-- ============ ВВОД ИМЁН ============ -->
@@ -1002,7 +704,7 @@
     <div class="game-title">✏️ Имена игроков</div>
     <div style="width:60px;"></div>
   </div>
-  <div class="content">
+  <div class="scroll-content">
     <h2>Введи имена игроков</h2>
     <p>Эти имена будут использоваться во всех играх</p>
     <div class="name-label p1">🔵 Игрок 1</div>
@@ -1013,52 +715,40 @@
   </div>
 </div>
 
-<!-- ============ ОНЛАЙН - СКОРО ============ -->
+<!-- ============ ОНЛАЙН ============ -->
 <div class="screen game-screen" id="onlineScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
     <div class="game-title">🌐 Онлайн</div>
     <div style="width:60px;"></div>
   </div>
-  <div class="content">
+  <div class="scroll-content">
     <div class="big-icon">🌐</div>
     <h2>Онлайн-режим</h2>
     <div class="soon">СКОРО</div>
-    <p>
-      Мы работаем над <span class="highlight">сетевым режимом</span> — 
-      ты сможешь играть с друзьями на разных устройствах через интернет!
-    </p>
-    <p>
-      Играть можно будет в <span class="highlight">Блэкджек, Кости и 20 ячеек</span> 
-      против реальных людей.
-    </p>
-    <p class="support">
-      💚 Разработчик старается! Поддержи проект — просто играй и делись с друзьями.
-    </p>
+    <p>Мы работаем над <span class="highlight">сетевым режимом</span> — ты сможешь играть с друзьями на разных устройствах через интернет!</p>
+    <p>Играть можно будет в <span class="highlight">Блэкджек, Кости и 20 ячеек</span> против реальных людей.</p>
+    <p class="support">💚 Разработчик старается! Поддержи проект — просто играй и делись с друзьями.</p>
     <button class="btn-back-menu" data-back>← Назад в офлайн-меню</button>
   </div>
 </div>
 
-<!-- ============ 20 ЯЧЕЕК: ВЫБОР РЕЖИМА ============ -->
+<!-- ============ 20 ЯЧЕЕК: ВЫБОР ============ -->
 <div class="screen game-screen" id="luckyModeScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
     <div class="game-title">💎 20 ячеек</div>
     <div style="width:60px;"></div>
   </div>
-  <h2>Выбери режим</h2>
-  <div class="bj-mode-btn" id="luckyMode1">
-    <div class="ico">👤</div>
-    <div class="info">
-      <div class="n">Один игрок</div>
-      <div class="d">3 попытки · найди алмаз</div>
+  <div class="scroll-content" style="justify-content:center;">
+    <h2>Выбери режим</h2>
+    <div class="bj-mode-btn" id="luckyMode1">
+      <div class="ico">👤</div>
+      <div class="info"><div class="n">Один игрок</div><div class="d">3 попытки · найди алмаз</div></div>
     </div>
-  </div>
-  <div class="bj-mode-btn" id="luckyMode2">
-    <div class="ico">👥</div>
-    <div class="info">
-      <div class="n">Два игрока</div>
-      <div class="d">Ходят по очереди · кто первый найдёт</div>
+    <div class="bj-mode-btn" id="luckyMode2">
+      <div class="ico">👥</div>
+      <div class="info"><div class="n">Два игрока</div><div class="d">Ходят по очереди · кто первый найдёт</div></div>
     </div>
   </div>
 </div>
@@ -1090,29 +780,25 @@
     <div class="game-title">🃏 Блэкджек</div>
     <div style="width:60px;"></div>
   </div>
-  <h2>Выбери режим</h2>
-  <div class="bj-mode-btn" id="bjMode1">
-    <div class="ico">👤</div>
-    <div class="info">
-      <div class="n">Один игрок</div>
-      <div class="d">Против дилера</div>
+  <div class="scroll-content" style="justify-content:center;">
+    <h2>Выбери режим</h2>
+    <div class="bj-mode-btn" id="bjMode1">
+      <div class="ico">👤</div>
+      <div class="info"><div class="n">Один игрок</div><div class="d">Против дилера</div></div>
     </div>
-  </div>
-  <div class="bj-mode-btn" id="bjMode2">
-    <div class="ico">👥</div>
-    <div class="info">
-      <div class="n">Два игрока</div>
-      <div class="d">1 на 1 на одном устройстве</div>
+    <div class="bj-mode-btn" id="bjMode2">
+      <div class="ico">👥</div>
+      <div class="info"><div class="n">Два игрока</div><div class="d">1 на 1 на одном устройстве</div></div>
     </div>
-  </div>
-  <div class="players-balance">
-    <div class="player-bal p1">
-      <div class="who" id="bjMenuName1">🔵 Игрок 1</div>
-      <div class="amount" id="bjMenuP1">100 000</div>
-    </div>
-    <div class="player-bal p2">
-      <div class="who" id="bjMenuName2">🟣 Игрок 2</div>
-      <div class="amount" id="bjMenuP2">100 000</div>
+    <div class="players-balance">
+      <div class="player-bal p1">
+        <div class="who" id="bjMenuName1">🔵 Игрок 1</div>
+        <div class="amount" id="bjMenuP1">100 000</div>
+      </div>
+      <div class="player-bal p2">
+        <div class="who" id="bjMenuName2">🟣 Игрок 2</div>
+        <div class="amount" id="bjMenuP2">100 000</div>
+      </div>
     </div>
   </div>
 </div>
@@ -1131,24 +817,15 @@
   <div class="bank-row" id="bjBankRow">💰 Банк: 0</div>
   <div class="table">
     <div class="hand dealer" id="bjDealerHand" style="display:none">
-      <div class="hand-title">
-        <span class="name">🔴 Дилер <span id="bjDealerBadge"></span></span>
-        <span class="score" id="bjDealerScore">0</span>
-      </div>
+      <div class="hand-title"><span class="name">🔴 Дилер <span id="bjDealerBadge"></span></span><span class="score" id="bjDealerScore">0</span></div>
       <div class="cards" id="bjDealerCards"></div>
     </div>
     <div class="hand p1" id="bjP1Hand">
-      <div class="hand-title">
-        <span class="name" id="bjP1Name">🔵 Игрок 1 <span id="bjP1Badge"></span></span>
-        <span class="score" id="bjP1Score">0</span>
-      </div>
+      <div class="hand-title"><span class="name" id="bjP1Name">🔵 Игрок 1 <span id="bjP1Badge"></span></span><span class="score" id="bjP1Score">0</span></div>
       <div class="cards" id="bjP1Cards"></div>
     </div>
     <div class="hand p2" id="bjP2Hand" style="display:none">
-      <div class="hand-title">
-        <span class="name" id="bjP2Name">🟣 Игрок 2 <span id="bjP2Badge"></span></span>
-        <span class="score" id="bjP2Score">0</span>
-      </div>
+      <div class="hand-title"><span class="name" id="bjP2Name">🟣 Игрок 2 <span id="bjP2Badge"></span></span><span class="score" id="bjP2Score">0</span></div>
       <div class="cards" id="bjP2Cards"></div>
     </div>
   </div>
@@ -1185,29 +862,25 @@
     <div class="game-title">🎲 Кости</div>
     <div style="width:60px;"></div>
   </div>
-  <h2>Выбери режим</h2>
-  <div class="bj-mode-btn" id="diceMode1">
-    <div class="ico">👤</div>
-    <div class="info">
-      <div class="n">Один игрок</div>
-      <div class="d">Играешь против казино</div>
+  <div class="scroll-content" style="justify-content:center;">
+    <h2>Выбери режим</h2>
+    <div class="bj-mode-btn" id="diceMode1">
+      <div class="ico">👤</div>
+      <div class="info"><div class="n">Один игрок</div><div class="d">Играешь против казино</div></div>
     </div>
-  </div>
-  <div class="bj-mode-btn" id="diceMode2">
-    <div class="ico">👥</div>
-    <div class="info">
-      <div class="n">Два игрока</div>
-      <div class="d">Кто больше выиграет монет</div>
+    <div class="bj-mode-btn" id="diceMode2">
+      <div class="ico">👥</div>
+      <div class="info"><div class="n">Два игрока</div><div class="d">Кто больше выиграет монет</div></div>
     </div>
-  </div>
-  <div class="players-balance">
-    <div class="player-bal p1">
-      <div class="who" id="diceMenuName1">🔵 Игрок 1</div>
-      <div class="amount" id="diceMenuP1">100 000</div>
-    </div>
-    <div class="player-bal p2">
-      <div class="who" id="diceMenuName2">🟣 Игрок 2</div>
-      <div class="amount" id="diceMenuP2">100 000</div>
+    <div class="players-balance">
+      <div class="player-bal p1">
+        <div class="who" id="diceMenuName1">🔵 Игрок 1</div>
+        <div class="amount" id="diceMenuP1">100 000</div>
+      </div>
+      <div class="player-bal p2">
+        <div class="who" id="diceMenuName2">🟣 Игрок 2</div>
+        <div class="amount" id="diceMenuP2">100 000</div>
+      </div>
     </div>
   </div>
 </div>
@@ -1303,9 +976,6 @@
     </div>
     <button class="big-btn" id="slotSpin">🎰 Крутить</button>
     <div class="result-msg info" id="slotMsg">Нажми «Крутить»</div>
-    <div style="font-size:11px; color:#888; text-align:center; max-width:280px; line-height:1.5;">
-      🍒🍒🍒 ×10 · 🍋🍋🍋 ×8 · 🍇🍇🍇 ×6 · ⭐⭐⭐ ×15 · 💎💎💎 ×25 · пара ×2
-    </div>
   </div>
 </div>
 
@@ -1352,10 +1022,9 @@
 /* ================= ОБЩЕЕ ================= */
 function fmt(n) { return n.toLocaleString('ru-RU'); }
 
-/* ================= КОНФЕТТИ ================= */
-var confettiColors = ['#ffd54f', '#4fc3f7', '#66bb6a', '#ba68c8', '#ff5252', '#ffb74d', '#ffffff'];
 function spawnConfetti(count) {
   count = count || 60;
+  var colors = ['#ffd54f', '#4fc3f7', '#66bb6a', '#ba68c8', '#ff5252', '#ffb74d', '#ffffff'];
   var box = document.getElementById('confettiBox');
   for (var i = 0; i < count; i++) {
     (function(idx) {
@@ -1363,12 +1032,11 @@ function spawnConfetti(count) {
         var c = document.createElement('div');
         c.className = 'confetti';
         c.style.left = Math.random() * 100 + '%';
-        c.style.background = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+        c.style.background = colors[Math.floor(Math.random() * colors.length)];
         c.style.width = (5 + Math.random() * 10) + 'px';
         c.style.height = (5 + Math.random() * 10) + 'px';
         c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
         c.style.animationDuration = (1.8 + Math.random() * 1.5) + 's';
-        c.style.animationDelay = (Math.random() * 0.3) + 's';
         box.appendChild(c);
         setTimeout(function() { if (c.parentNode) c.parentNode.removeChild(c); }, 3500);
       }, idx * 15);
@@ -1453,7 +1121,6 @@ function updateNamesUI() {
   if (dBetLbl2) dBetLbl2.textContent = player2Name.substring(0, 8);
 }
 
-/* ================= БАЛАНС В МЕНЮ ================= */
 function updateMenuBalance() {
   var el = document.getElementById('menuBalance');
   if (!el) return;
@@ -1461,19 +1128,11 @@ function updateMenuBalance() {
   el.textContent = fmt(casinoBal);
 }
 
-function bumpElement(el) {
-  if (!el) return;
-  el.classList.remove('bump');
-  void el.offsetWidth;
-  el.classList.add('bump');
-}
-
 /* ================= НАВИГАЦИЯ ================= */
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
   setTimeout(function() {
-    if (id === 'luckyModeScreen') updateLuckyMenu();
     if (id === 'bjModeScreen')    updateBJMenuBalances();
     if (id === 'diceModeScreen')  updateDiceMenuBalances();
     if (id === 'rouletteGame')    drawWheel();
@@ -1561,9 +1220,7 @@ function sndBig()    {
   setTimeout(function(){beep(659,0.1,'square',0.14);},80);
   setTimeout(function(){beep(784,0.15,'square',0.14);},160);
   setTimeout(function(){beep(1047,0.25,'square',0.14);},240);
-  setTimeout(function(){beep(1318,0.35,'square',0.14);},340);
 }
-function sndCoin()   { beep(1200, 0.05, 'sine', 0.15); setTimeout(function(){beep(1600,0.08,'sine',0.15);},40); }
 function sndTick()   { beep(500,0.04,'square',0.08); }
 function sndCardDeal() { beep(500, 0.04, 'sine', 0.05); setTimeout(function(){beep(700,0.05,'sine',0.05);},30); }
 function vib(ms)     { if (navigator.vibrate) navigator.vibrate(ms); }
@@ -1879,26 +1536,22 @@ var updateLuckyMenu = function(){};
   document.getElementById('bjP1BetUp').addEventListener('click', function() {
     if (state.phase !== 'bet') return;
     state.p1Bet = Math.min(state.p1Bet + 100, 10000);
-    sndClick();
-    updateBetBJUI();
+    sndClick(); updateBetBJUI();
   });
   document.getElementById('bjP1BetDown').addEventListener('click', function() {
     if (state.phase !== 'bet') return;
     state.p1Bet = Math.max(state.p1Bet - 100, 100);
-    sndClick();
-    updateBetBJUI();
+    sndClick(); updateBetBJUI();
   });
   document.getElementById('bjP2BetUp').addEventListener('click', function() {
     if (state.phase !== 'bet') return;
     state.p2Bet = Math.min(state.p2Bet + 100, 10000);
-    sndClick();
-    updateBetBJUI();
+    sndClick(); updateBetBJUI();
   });
   document.getElementById('bjP2BetDown').addEventListener('click', function() {
     if (state.phase !== 'bet') return;
     state.p2Bet = Math.max(state.p2Bet - 100, 100);
-    sndClick();
-    updateBetBJUI();
+    sndClick(); updateBetBJUI();
   });
 
   document.getElementById('bjDealBtn').addEventListener('click', dealBJ);
@@ -2144,7 +1797,6 @@ var updateLuckyMenu = function(){};
       spawnConfetti(isBigWin ? 100 : 50);
       spawnCoins(isBigWin ? 12 : 6);
       if (isBigWin) flashScreen();
-      bumpElement(document.getElementById('bjBalP1'));
     } else if (cls === 'lose') {
       vib(80);
     }
@@ -2173,7 +1825,6 @@ var updateLuckyMenu = function(){};
       setBJMsg(reason + ' · +' + fmt(bank - state.p1Bet), 'win');
       sndBig(); vibPattern([60,40,60,40,120]);
       flashScreen(); spawnConfetti(100); spawnCoins(12);
-      bumpElement(document.getElementById('bjBalP1'));
     } else if (result === 'p2') {
       p2Balance += bank;
       document.getElementById('bjP2Hand').classList.add('winner');
@@ -2183,7 +1834,6 @@ var updateLuckyMenu = function(){};
       setBJMsg(reason + ' · +' + fmt(bank - state.p2Bet), 'win');
       sndBig(); vibPattern([60,40,60,40,120]);
       flashScreen(); spawnConfetti(100); spawnCoins(12);
-      bumpElement(document.getElementById('bjBalP2'));
     } else {
       p1Balance += state.p1Bet; p2Balance += state.p2Bet;
       document.getElementById('bjP1Badge').innerHTML = '<span class="badge push">НИЧЬЯ</span>';
@@ -2325,18 +1975,12 @@ var updateLuckyMenu = function(){};
   document.getElementById('diceMode1').addEventListener('click', function() {
     MODE = 1;
     showScreen('diceGame');
-    setupMode();
-    resetDice();
-    updateDiceBalancesUI();
-    updateNamesUI();
+    setupMode(); resetDice(); updateDiceBalancesUI(); updateNamesUI();
   });
   document.getElementById('diceMode2').addEventListener('click', function() {
     MODE = 2;
     showScreen('diceGame');
-    setupMode();
-    resetDice();
-    updateDiceBalancesUI();
-    updateNamesUI();
+    setupMode(); resetDice(); updateDiceBalancesUI(); updateNamesUI();
   });
   document.getElementById('diceMenuBtn').addEventListener('click', function() {
     showScreen('diceModeScreen');
@@ -2411,10 +2055,7 @@ var updateLuckyMenu = function(){};
       document.getElementById('diceMsg').className = 'msg-bar win';
       document.getElementById('diceMsg').textContent = '🎉 Ты выиграл ' + fmt(payout);
       sndBig(); vibPattern([60,40,60,40,120]);
-      flashScreen();
-      spawnConfetti(payout >= 2000 ? 80 : 40);
-      spawnCoins(8);
-      bumpElement(document.getElementById('diceBalP1'));
+      flashScreen(); spawnConfetti(80); spawnCoins(8);
     } else {
       document.getElementById('diceResultOne').textContent = '❌ ' + a + '+' + b + '=' + sum + ' — проигрыш';
       document.getElementById('diceResultOne').style.color = '#ff5252';
@@ -2455,8 +2096,7 @@ var updateLuckyMenu = function(){};
       p1Roll = { a:a, b:b, sum:sum, payout:payout, win:win };
       document.getElementById('diceP1Result').textContent = (win ? '✅ ' : '❌ ') + a + '+' + b + '=' + sum + (win ? ' +' + fmt(payout) : '');
       document.getElementById('diceP1Result').style.color = win ? '#66bb6a' : '#ff5252';
-      turn = 2;
-      rolling = false;
+      turn = 2; rolling = false;
       document.getElementById('diceP2Block').style.opacity = '1';
       document.getElementById('diceP1Block').style.opacity = '0.6';
       document.getElementById('diceMsg').className = 'msg-bar p2';
@@ -2479,19 +2119,11 @@ var updateLuckyMenu = function(){};
     if (p1Net > p2Net) {
       msg = '🔵 ' + player1Name + ' выиграл больше! (' + (p1Net>=0?'+':'') + fmt(p1Net) + ' vs ' + (p2Net>=0?'+':'') + fmt(p2Net) + ')';
       document.getElementById('diceMsg').className = 'msg-bar win';
-      sndBig();
-      flashScreen();
-      spawnConfetti(80);
-      spawnCoins(10);
-      bumpElement(document.getElementById('diceBalP1'));
+      sndBig(); flashScreen(); spawnConfetti(80); spawnCoins(10);
     } else if (p2Net > p1Net) {
       msg = '🟣 ' + player2Name + ' выиграл больше! (' + (p2Net>=0?'+':'') + fmt(p2Net) + ' vs ' + (p1Net>=0?'+':'') + fmt(p1Net) + ')';
       document.getElementById('diceMsg').className = 'msg-bar win';
-      sndBig();
-      flashScreen();
-      spawnConfetti(80);
-      spawnCoins(10);
-      bumpElement(document.getElementById('diceBalP2'));
+      sndBig(); flashScreen(); spawnConfetti(80); spawnCoins(10);
     } else {
       msg = 'Ничья по выигрышу: ' + (p1Net>=0?'+':'') + fmt(p1Net);
       document.getElementById('diceMsg').className = 'msg-bar info';
@@ -2499,8 +2131,7 @@ var updateLuckyMenu = function(){};
     }
     document.getElementById('diceMsg').textContent = msg;
     vibPattern([60,40,60,40,120]);
-    rolling = false;
-    turn = 1;
+    rolling = false; turn = 1;
     setTimeout(function() {
       if (document.getElementById('diceGame').classList.contains('active')) resetDice();
     }, 3000);
@@ -2509,7 +2140,7 @@ var updateLuckyMenu = function(){};
 
 
 /* =========================================================
-   КАЗИНО: СЛОТЫ + РУЛЕТКА
+   КАЗИНО
    ========================================================= */
 (function() {
   var BAL_KEY = 'casinoBalance_v2';
@@ -2525,7 +2156,7 @@ var updateLuckyMenu = function(){};
   };
   updateCasinoBalanceUI();
 
-  /* ----- СЛОТЫ ----- */
+  /* СЛОТЫ */
   var SYMBOLS = ['🍒','🍋','🍇','⭐','💎','7️⃣'];
   var slotBet = 500;
   var r1 = document.getElementById('r1');
@@ -2548,18 +2179,10 @@ var updateLuckyMenu = function(){};
   resetSlots();
 
   document.querySelectorAll('#slotsGame [data-bet-up]').forEach(function(b){
-    b.addEventListener('click', function() {
-      slotBet = Math.min(slotBet + 100, 5000);
-      sndClick();
-      document.getElementById('slotBet').textContent = slotBet;
-    });
+    b.addEventListener('click', function() { slotBet = Math.min(slotBet + 100, 5000); sndClick(); document.getElementById('slotBet').textContent = slotBet; });
   });
   document.querySelectorAll('#slotsGame [data-bet-down]').forEach(function(b){
-    b.addEventListener('click', function() {
-      slotBet = Math.max(slotBet - 100, 100);
-      sndClick();
-      document.getElementById('slotBet').textContent = slotBet;
-    });
+    b.addEventListener('click', function() { slotBet = Math.max(slotBet - 100, 100); sndClick(); document.getElementById('slotBet').textContent = slotBet; });
   });
 
   slotSpinBtn.addEventListener('click', function() {
@@ -2603,16 +2226,8 @@ var updateLuckyMenu = function(){};
       casinoBalance += win; saveCasino(); updateCasinoBalanceUI();
       slotMsg.className = 'result-msg win';
       slotMsg.textContent = label + '  +' + fmt(win);
-      if (mult >= 6) {
-        sndBig();
-        flashScreen();
-        spawnConfetti(120);
-        spawnCoins(15);
-      } else {
-        sndWin();
-        spawnConfetti(50);
-        spawnCoins(6);
-      }
+      if (mult >= 6) { sndBig(); flashScreen(); spawnConfetti(120); spawnCoins(15); }
+      else { sndWin(); spawnConfetti(50); spawnCoins(6); }
       vibPattern([60,40,60,40,120]);
     } else {
       slotMsg.className = 'result-msg lose';
@@ -2623,7 +2238,7 @@ var updateLuckyMenu = function(){};
     slotSpinBtn.disabled = false;
   }
 
-  /* ----- РУЛЕТКА ----- */
+  /* РУЛЕТКА */
   var canvas = document.getElementById('wheelCanvas');
   var ctx = canvas.getContext('2d');
   var rouletteBet = 500;
@@ -2728,18 +2343,10 @@ var updateLuckyMenu = function(){};
   });
 
   document.querySelectorAll('#rouletteGame [data-bet-up]').forEach(function(b){
-    b.addEventListener('click', function() {
-      rouletteBet = Math.min(rouletteBet + 100, 5000);
-      sndClick();
-      document.getElementById('rouletteBet').textContent = rouletteBet;
-    });
+    b.addEventListener('click', function() { rouletteBet = Math.min(rouletteBet + 100, 5000); sndClick(); document.getElementById('rouletteBet').textContent = rouletteBet; });
   });
   document.querySelectorAll('#rouletteGame [data-bet-down]').forEach(function(b){
-    b.addEventListener('click', function() {
-      rouletteBet = Math.max(rouletteBet - 100, 100);
-      sndClick();
-      document.getElementById('rouletteBet').textContent = rouletteBet;
-    });
+    b.addEventListener('click', function() { rouletteBet = Math.max(rouletteBet - 100, 100); sndClick(); document.getElementById('rouletteBet').textContent = rouletteBet; });
   });
 
   rouletteSpinBtn.addEventListener('click', function() {
@@ -2788,16 +2395,8 @@ var updateLuckyMenu = function(){};
       casinoBalance += win; saveCasino(); updateCasinoBalanceUI();
       rouletteMsg.className = 'result-msg win';
       rouletteMsg.textContent = colorEmoji + ' ' + n + ' — ' + label + ' +' + fmt(win);
-      if (win >= rouletteBet*10) {
-        sndBig();
-        flashScreen();
-        spawnConfetti(120);
-        spawnCoins(15);
-      } else {
-        sndWin();
-        spawnConfetti(50);
-        spawnCoins(6);
-      }
+      if (win >= rouletteBet*10) { sndBig(); flashScreen(); spawnConfetti(120); spawnCoins(15); }
+      else { sndWin(); spawnConfetti(50); spawnCoins(6); }
       vibPattern([60,40,60,40,120]);
     } else {
       rouletteMsg.className = 'result-msg lose';
@@ -2808,33 +2407,19 @@ var updateLuckyMenu = function(){};
 })();
 
 /* ================= TELEGRAM ================= */
-var tgUser = null;
-
 function initTelegram() {
   if (typeof window.Telegram === 'undefined' || !window.Telegram.WebApp) {
-    console.log('Открыто не в Telegram — работает обычный режим');
+    console.log('Не в Telegram');
     return;
   }
-
   var tg = window.Telegram.WebApp;
-
   try { tg.ready(); } catch(e) {}
   try { tg.expand(); } catch(e) {}
-  try {
-    tg.setHeaderColor('#0b1020');
-    tg.setBackgroundColor('#0b1020');
-  } catch(e) {}
-  // Разрешаем вертикальные свайпы для прокрутки меню
+  try { tg.setHeaderColor('#0b1020'); tg.setBackgroundColor('#0b1020'); } catch(e) {}
   try { tg.enableVerticalSwipes && tg.enableVerticalSwipes(); } catch(e) {}
 
   var user = tg.initDataUnsafe && tg.initDataUnsafe.user;
-  if (!user) {
-    console.log('Нет данных пользователя Telegram');
-    return;
-  }
-
-  tgUser = user;
-  console.log('Telegram user:', user);
+  if (!user) return;
 
   var displayName = user.first_name || 'Пользователь';
   if (user.last_name) displayName += ' ' + user.last_name;
@@ -2844,23 +2429,7 @@ function initTelegram() {
   var nameEl = document.getElementById('tgUsername');
 
   nameEl.textContent = displayName;
-
-  if (user.photo_url) {
-    // Аватарка из Telegram (если вдруг придёт)
-    var img = document.createElement('img');
-    img.src = user.photo_url;
-    img.alt = 'avatar';
-    img.onerror = function() {
-      avatarEl.innerHTML = '';
-      avatarEl.textContent = displayName.charAt(0).toUpperCase();
-    };
-    avatarEl.innerHTML = '';
-    avatarEl.appendChild(img);
-  } else {
-    // Красивая буква-заглушка
-    avatarEl.textContent = displayName.charAt(0).toUpperCase();
-  }
-
+  avatarEl.textContent = displayName.charAt(0).toUpperCase();
   box.classList.add('show');
 
   if (player1Name === defaultName1 && user.first_name) {
@@ -2883,7 +2452,7 @@ function initTelegramBackButton() {
   });
 }
 
-/* ================= СТАРТ ================= */
+/* СТАРТ */
 updateNamesUI();
 updateMenuBalance();
 initTelegram();
