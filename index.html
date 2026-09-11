@@ -8,49 +8,30 @@
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html {
-    width:100%;
-    height:100vh;
-    height:100dvh;
-    background:#0b1020;
-    overflow:hidden;
+    width:100%; height:100vh; height:100dvh;
+    background:#0b1020; overflow:hidden;
   }
   body {
-    width:100%;
-    height:100vh;
-    height:100dvh;
-    background:#0b1020;
-    overflow:hidden;
+    width:100%; height:100vh; height:100dvh;
+    background:#0b1020; overflow:hidden;
     font-family:Arial, sans-serif;
-    user-select:none;
-    color:#fff;
-    position:relative;
+    user-select:none; color:#fff; position:relative;
   }
-
-  /* ЭКРАНЫ */
   .screen {
-    position:absolute;
-    top:0; left:0; right:0; bottom:0;
-    display:none;
-    flex-direction:column;
-    overflow:hidden;
-    height:100%;
+    position:absolute; top:0; left:0; right:0; bottom:0;
+    display:none; flex-direction:column;
+    overflow:hidden; height:100%;
   }
   .screen.active { display:flex; }
 
-  /* МЕНЮ — со скроллом */
   #menu {
-    align-items:center;
-    justify-content:flex-start;
-    padding:16px 16px 60px;
-    gap:8px;
-    overflow-y:scroll !important;
-    overflow-x:hidden;
+    align-items:center; justify-content:flex-start;
+    padding:16px 16px 60px; gap:8px;
+    overflow-y:scroll !important; overflow-x:hidden;
     -webkit-overflow-scrolling:touch;
     overscroll-behavior:contain;
     touch-action:pan-y !important;
-    position:relative;
-    z-index:1;
-    height:100%;
+    position:relative; z-index:1; height:100%;
   }
   #menu::-webkit-scrollbar { width:0; height:0; display:none; }
   #menu::-webkit-scrollbar-thumb { background:transparent; }
@@ -59,10 +40,8 @@
     font-size:28px; letter-spacing:3px;
     background:linear-gradient(90deg, #4fc3f7, #ffd54f, #ba68c8, #4fc3f7);
     background-size:300% 100%;
-    -webkit-background-clip:text;
-    background-clip:text;
-    color:transparent;
-    font-weight:bold;
+    -webkit-background-clip:text; background-clip:text;
+    color:transparent; font-weight:bold;
     margin-bottom:2px;
     filter:drop-shadow(0 0 20px rgba(79,195,247,0.5));
     flex-shrink:0;
@@ -70,36 +49,26 @@
   #menu .sub { color:#888; font-size:12px; margin-bottom:6px; flex-shrink:0; }
 
   .tg-user {
-    display:none;
-    align-items:center; gap:10px;
+    display:none; align-items:center; gap:10px;
     background:linear-gradient(145deg, #1e2a4a, #16213e);
-    border:2px solid #4fc3f7;
-    border-radius:50px;
+    border:2px solid #4fc3f7; border-radius:50px;
     padding:6px 18px 6px 6px;
     box-shadow:0 0 20px rgba(79,195,247,0.5);
-    margin-bottom:6px;
-    flex-shrink:0;
+    margin-bottom:6px; flex-shrink:0;
   }
   .tg-user.show { display:flex; }
   .tg-user .avatar {
-    width:44px; height:44px;
-    border-radius:50%;
+    width:44px; height:44px; border-radius:50%;
     background:linear-gradient(135deg, #4fc3f7 0%, #2196f3 50%, #ba68c8 100%);
     display:flex; align-items:center; justify-content:center;
-    font-size:22px; font-weight:bold;
-    color:#0a0e1a;
+    font-size:22px; font-weight:bold; color:#0a0e1a;
     border:2px solid rgba(79,195,247,0.8);
     box-shadow:0 0 20px rgba(79,195,247,0.8), inset 0 0 15px rgba(255,255,255,0.3);
-    overflow:hidden;
-    flex-shrink:0;
-    position:relative;
+    overflow:hidden; flex-shrink:0; position:relative;
     text-shadow:0 0 10px rgba(255,255,255,0.7);
   }
   .tg-user .avatar::after {
-    content:'';
-    position:absolute;
-    inset:2px;
-    border-radius:50%;
+    content:''; position:absolute; inset:2px; border-radius:50%;
     background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.45), transparent 60%);
     pointer-events:none;
   }
@@ -115,28 +84,20 @@
   .menu-balance {
     display:flex; align-items:center; gap:8px;
     background:linear-gradient(145deg, #2a1e4d, #1a1035);
-    border:2px solid #ffd54f;
-    border-radius:14px;
-    padding:8px 22px;
-    font-size:18px; font-weight:bold; color:#ffd54f;
+    border:2px solid #ffd54f; border-radius:14px;
+    padding:8px 22px; font-size:18px; font-weight:bold; color:#ffd54f;
     box-shadow:0 0 20px rgba(255,213,79,0.5);
-    margin-bottom:8px;
-    flex-shrink:0;
+    margin-bottom:8px; flex-shrink:0;
   }
 
   .menu-players {
     display:flex; gap:8px;
     width:100%; max-width:340px;
-    margin-bottom:6px;
-    flex-shrink:0;
+    margin-bottom:6px; flex-shrink:0;
   }
   .menu-players .mp {
-    flex:1;
-    background:#1a1035;
-    border:2px solid;
-    border-radius:12px;
-    padding:6px 10px;
-    font-size:12px; font-weight:bold; text-align:center;
+    flex:1; background:#1a1035; border:2px solid; border-radius:12px;
+    padding:6px 10px; font-size:12px; font-weight:bold; text-align:center;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   .menu-players .mp.p1 { border-color:#4fc3f7; color:#4fc3f7; }
@@ -146,12 +107,10 @@
     width:100%; max-width:340px;
     padding:12px 16px;
     background:linear-gradient(145deg, #1e2a4a, #16213e);
-    border:2px solid #2d4070;
-    border-radius:14px;
+    border:2px solid #2d4070; border-radius:14px;
     font-size:16px; font-weight:bold; color:#fff;
     display:flex; align-items:center; gap:12px;
-    cursor:pointer;
-    font-family:Arial, sans-serif;
+    cursor:pointer; font-family:Arial, sans-serif;
     flex-shrink:0;
   }
   .game-btn:active { transform:scale(0.97); }
@@ -161,12 +120,7 @@
   .game-btn .info .d { font-size:11px; color:#7ba8d6; font-weight:normal; margin-top:2px; }
   .game-btn .arrow { color:#4fc3f7; font-size:20px; }
 
-  /* ЭКРАНЫ ИГР */
-  .game-screen {
-    background:#0a0e1a;
-    position:relative;
-    z-index:1;
-  }
+  .game-screen { background:#0a0e1a; position:relative; z-index:1; }
   .top-bar {
     display:flex; align-items:center;
     padding:10px 14px; gap:10px;
@@ -177,10 +131,8 @@
   .back-btn {
     padding:8px 16px;
     background:linear-gradient(145deg, #2d4070, #1e2a4a);
-    color:#fff;
-    border:none; border-radius:20px;
-    font-size:14px; font-weight:bold;
-    cursor:pointer;
+    color:#fff; border:none; border-radius:20px;
+    font-size:14px; font-weight:bold; cursor:pointer;
     font-family:Arial, sans-serif;
   }
   .back-btn:active { transform:scale(0.93); background:#4fc3f7; color:#0b1020; }
@@ -191,25 +143,18 @@
     font-size:12px; font-weight:bold; color:#ffd54f;
   }
 
-  /* КОНТЕНТ С ПРОКРУТКОЙ */
   .scroll-content {
     flex:1;
-    overflow-y:scroll !important;
-    overflow-x:hidden;
+    overflow-y:scroll !important; overflow-x:hidden;
     -webkit-overflow-scrolling:touch;
     overscroll-behavior:contain;
     touch-action:pan-y !important;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    padding:20px 20px 60px;
-    gap:10px;
-    height:0;
-    min-height:0;
+    display:flex; flex-direction:column; align-items:center;
+    padding:20px 20px 60px; gap:10px;
+    height:0; min-height:0;
   }
   .scroll-content::-webkit-scrollbar { width:0; height:0; display:none; }
 
-  /* ВВОД ИМЁН */
   #nameScreen h2 { font-size:22px; color:#4fc3f7; text-align:center; margin-bottom:4px; margin-top:20px; }
   #nameScreen p { color:#aaa; font-size:12px; text-align:center; margin-bottom:8px; }
   .name-label { width:100%; max-width:340px; font-size:13px; font-weight:bold; margin-bottom:-4px; }
@@ -218,18 +163,14 @@
   .name-input {
     width:100%; max-width:340px;
     padding:12px 18px;
-    background:#1a1035;
-    border:2px solid #3d2d70;
-    border-radius:14px;
-    font-size:16px; font-weight:bold; color:#fff;
-    outline:none;
-    font-family:Arial, sans-serif;
+    background:#1a1035; border:2px solid #3d2d70;
+    border-radius:14px; font-size:16px; font-weight:bold; color:#fff;
+    outline:none; font-family:Arial, sans-serif;
   }
   .name-input.p1 { border-color:#4fc3f7; }
   .name-input.p2 { border-color:#ba68c8; }
   .name-input:focus { box-shadow:0 0 25px rgba(79,195,247,0.6); }
 
-  /* ОНЛАЙН */
   #onlineScreen .big-icon { font-size:80px; margin-top:20px; filter:drop-shadow(0 0 30px #ffd54f); }
   #onlineScreen h2 { font-size:26px; color:#ffd54f; text-align:center; }
   #onlineScreen .soon {
@@ -241,17 +182,14 @@
   #onlineScreen .highlight { color:#ffd54f; font-weight:bold; }
   #onlineScreen .support { color:#81c784; font-size:13px; font-style:italic; margin-top:6px; }
   #onlineScreen .btn-back-menu {
-    margin-top:16px;
-    padding:14px 40px;
+    margin-top:16px; padding:14px 40px;
     background:linear-gradient(145deg, #4fc3f7, #2196f3);
     color:#fff; border:none; border-radius:30px;
-    font-size:17px; font-weight:bold;
-    cursor:pointer;
+    font-size:17px; font-weight:bold; cursor:pointer;
     font-family:Arial, sans-serif;
   }
   #onlineScreen .btn-back-menu:active { transform:scale(0.95); }
 
-  /* 20 ЯЧЕЕК */
   #luckyGame .wrap {
     flex:1; display:flex; flex-direction:column;
     align-items:center; justify-content:center;
@@ -260,8 +198,7 @@
     -webkit-overflow-scrolling:touch;
     overscroll-behavior:contain;
     touch-action:pan-y !important;
-    height:0;
-    min-height:0;
+    height:0; min-height:0;
   }
   #luckyGame .wrap::-webkit-scrollbar { width:0; display:none; }
   #luckyGame .hud {
@@ -303,11 +240,10 @@
     padding:12px 36px; font-size:16px; font-weight:bold;
     background:linear-gradient(145deg, #4fc3f7, #2196f3);
     color:#fff; border:none; border-radius:30px;
-    cursor:pointer;
+    cursor:pointer; font-family:Arial, sans-serif;
   }
   #luckyGame .playBtn.hidden { display:none; }
 
-  /* КАЗИНО */
   .casino-game { background:#0a0e1a; }
   .casino-game .area {
     flex:1; display:flex; flex-direction:column;
@@ -317,8 +253,7 @@
     -webkit-overflow-scrolling:touch;
     overscroll-behavior:contain;
     touch-action:pan-y !important;
-    height:0;
-    min-height:0;
+    height:0; min-height:0;
   }
   .casino-game .area::-webkit-scrollbar { width:0; display:none; }
   .reels {
@@ -358,10 +293,8 @@
   .big-btn {
     padding:14px 40px; font-size:18px; font-weight:bold;
     background:linear-gradient(145deg, #ffd54f, #ffb300);
-    color:#0a0e1a;
-    border:none; border-radius:30px;
-    cursor:pointer;
-    font-family:Arial, sans-serif;
+    color:#0a0e1a; border:none; border-radius:30px;
+    cursor:pointer; font-family:Arial, sans-serif;
   }
   .big-btn:active { transform:scale(0.95); }
   .big-btn:disabled { background:#444; color:#888; cursor:not-allowed; }
@@ -392,17 +325,14 @@
   .bet-opt.green { border-color:#66bb6a; color:#66bb6a; }
   .bet-opt.green.active { background:#1b5e20; color:#fff; }
 
-  /* ВЫБОР РЕЖИМА */
   .bj-mode-btn {
     width:100%; max-width:340px;
     padding:14px 18px;
     background:linear-gradient(145deg, #241a48, #1a1035);
-    border:2px solid #3d2d70;
-    border-radius:16px;
+    border:2px solid #3d2d70; border-radius:16px;
     font-size:16px; font-weight:bold; color:#fff;
     display:flex; align-items:center; gap:14px;
-    cursor:pointer;
-    font-family:Arial, sans-serif;
+    cursor:pointer; font-family:Arial, sans-serif;
     flex-shrink:0;
   }
   .bj-mode-btn .ico { font-size:28px; }
@@ -459,8 +389,7 @@
     -webkit-overflow-scrolling:touch;
     overscroll-behavior:contain;
     touch-action:pan-y !important;
-    height:0;
-    min-height:0;
+    height:0; min-height:0;
   }
   .table::-webkit-scrollbar { width:0; display:none; }
 
@@ -542,8 +471,7 @@
   .actions button {
     padding:12px 22px; border-radius:24px;
     border:none; font-size:14px; font-weight:bold;
-    cursor:pointer;
-    font-family:Arial, sans-serif;
+    cursor:pointer; font-family:Arial, sans-serif;
   }
   .actions button:active:not(:disabled) { transform:scale(0.92); }
   .actions button:disabled { opacity:0.4; cursor:not-allowed; }
@@ -593,27 +521,16 @@
   .dice-bets { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; max-width:340px; }
   .dice-bets .bet-opt { padding:8px 12px; font-size:12px; }
 
-  .confetti-container {
-    position:fixed; inset:0;
-    pointer-events:none;
-    z-index:150; overflow:hidden;
-  }
-  .confetti {
-    position:absolute;
-    width:10px; height:10px;
-    opacity:0;
-    animation:confettiFall linear forwards;
-  }
+  .confetti-container { position:fixed; inset:0; pointer-events:none; z-index:150; overflow:hidden; }
+  .confetti { position:absolute; width:10px; height:10px; opacity:0; animation:confettiFall linear forwards; }
   @keyframes confettiFall {
     0% { opacity:1; transform:translateY(-100vh) rotate(0deg); }
     100% { opacity:0.8; transform:translateY(100vh) rotate(720deg); }
   }
 
   .coin-fly {
-    position:fixed;
-    font-size:36px;
-    pointer-events:none;
-    z-index:160;
+    position:fixed; font-size:36px;
+    pointer-events:none; z-index:160;
     animation:coinFly 1.2s ease-out forwards;
   }
   @keyframes coinFly {
@@ -621,13 +538,7 @@
     100% { transform:translate(var(--dx), -150px) scale(1.5); opacity:0; }
   }
 
-  .flash {
-    position:fixed; inset:0;
-    background:white;
-    pointer-events:none;
-    opacity:0;
-    z-index:145;
-  }
+  .flash { position:fixed; inset:0; background:white; pointer-events:none; opacity:0; z-index:145; }
   .flash.flash-in { animation:flashIn .5s ease-out; }
   @keyframes flashIn {
     0% { opacity:0.7; }
@@ -702,7 +613,7 @@
     <div class="arrow">›</div>
   </div>
 
-  <div style="margin-top:12px; color:#555; font-size:11px;">v6.0 · для экспериментов ❤</div>
+  <div style="margin-top:12px; color:#555; font-size:11px;">v1.0.2 · для экспериментов ❤</div>
 </div>
 
 <!-- ИМЕНА -->
@@ -1136,7 +1047,6 @@ function updateMenuBalance() {
   el.textContent = fmt(casinoBal);
 }
 
-/* НАВИГАЦИЯ */
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
@@ -1233,7 +1143,7 @@ function sndCardDeal() { beep(500, 0.04, 'sine', 0.05); setTimeout(function(){be
 function vib(ms)     { if (navigator.vibrate) navigator.vibrate(ms); }
 function vibPattern(p) { if (navigator.vibrate) navigator.vibrate(p); }
 
-/* 20 ЯЧЕЕК */
+/* ==================== 20 ЯЧЕЕК ==================== */
 var updateLuckyMenu = function(){};
 (function() {
   var WINS1_KEY = 'lucky_wins1_v1';
@@ -1247,7 +1157,6 @@ var updateLuckyMenu = function(){};
   var turn = 1;
   var wins1 = parseInt(localStorage.getItem(WINS1_KEY) || '0');
   var wins2 = parseInt(localStorage.getItem(WINS2_KEY) || '0');
-  var cells = [], built = false;
 
   function saveWins() {
     localStorage.setItem(WINS1_KEY, wins1);
@@ -1256,8 +1165,8 @@ var updateLuckyMenu = function(){};
 
   function buildGrid() {
     var gridEl = document.getElementById('grid');
+    // Полная очистка контейнера и обработчиков
     gridEl.innerHTML = '';
-    cells = [];
     for (var i = 0; i < TOTAL; i++) {
       var c = document.createElement('div');
       c.className = 'cell';
@@ -1265,7 +1174,6 @@ var updateLuckyMenu = function(){};
       c.textContent = '?';
       c.addEventListener('click', onCellClick);
       gridEl.appendChild(c);
-      cells.push(c);
     }
   }
 
@@ -1306,8 +1214,6 @@ var updateLuckyMenu = function(){};
         saveWins();
         document.getElementById('luckyTitle').textContent = '🎉 Победа!';
       }
-      document.getElementById('luckyWins1').textContent = wins1;
-      document.getElementById('luckyWins2').textContent = wins2;
       document.getElementById('luckyRestart').classList.remove('hidden');
       return;
     }
@@ -1325,8 +1231,12 @@ var updateLuckyMenu = function(){};
         document.getElementById('luckyTitle').textContent = '💀 Проигрыш...';
         document.getElementById('luckyMsg').className = 'msg lose';
         document.getElementById('luckyMsg').textContent = 'Алмаз был в другой ячейке';
-        cells[winIndex].classList.add('win');
-        cells[winIndex].textContent = '💎';
+        // Показываем где был алмаз
+        var winCell = document.querySelector('#grid .cell[data-index="' + winIndex + '"]');
+        if (winCell) {
+          winCell.classList.add('win');
+          winCell.textContent = '💎';
+        }
         document.getElementById('luckyRestart').classList.remove('hidden');
       } else {
         document.getElementById('luckyMsg').className = 'msg info';
@@ -1348,51 +1258,57 @@ var updateLuckyMenu = function(){};
     t.style.color = turn === 1 ? '#4fc3f7' : '#ba68c8';
   }
 
-  window.startLucky = function() {
-    if (!built) { buildGrid(); built = true; }
+  function updateHUD() {
+    if (MODE === 1) {
+      document.getElementById('luckyLeft').innerHTML = '🎯 Попытки: <span id="luckyTries">' + triesLeft + '</span>';
+      document.getElementById('luckyMid').style.display = '';
+      document.getElementById('luckyRight').style.display = 'none';
+    } else {
+      document.getElementById('luckyLeft').innerHTML = '🏆 ' + player1Name.substring(0,6) + ': <span>' + wins1 + '</span> · ' + player2Name.substring(0,6) + ': <span>' + wins2 + '</span>';
+      document.getElementById('luckyMid').style.display = 'none';
+      document.getElementById('luckyRight').style.display = '';
+    }
+  }
+
+  function startLucky() {
+    // Всегда полностью пересобираем сетку — никаких остатков от прошлого раунда
+    buildGrid();
+
     winIndex = Math.floor(Math.random() * TOTAL);
     triesLeft = MAX_TRIES_1P;
     gameOver = false;
     turn = 1;
-    document.getElementById('luckyTries').textContent = MAX_TRIES_1P;
-    document.getElementById('luckyWins1').textContent = wins1;
-    document.getElementById('luckyWins2').textContent = wins2;
+
+    updateHUD();
+    updateTurnUI();
+
     document.getElementById('luckyTitle').textContent = 'Найди 💎 среди 20 ячеек!';
     document.getElementById('luckyMsg').className = 'msg info';
     document.getElementById('luckyMsg').textContent = MODE === 1 ? 'Выбери ячейку. У тебя 3 попытки.' : 'Ход ' + player1Name + ' — выбери ячейку';
     document.getElementById('luckyRestart').classList.add('hidden');
-    updateTurnUI();
-    for (var i = 0; i < cells.length; i++) {
-      cells[i].className = 'cell';
-      cells[i].textContent = '?';
-    }
-  };
+  }
 
-  document.getElementById('luckyRestart').addEventListener('click', function() { startLucky(); });
-  document.getElementById('luckyMenuBtn').addEventListener('click', function() { showScreen('luckyModeScreen'); });
+  document.getElementById('luckyRestart').addEventListener('click', function() {
+    startLucky();
+  });
+  document.getElementById('luckyMenuBtn').addEventListener('click', function() {
+    showScreen('luckyModeScreen');
+  });
   document.getElementById('luckyMode1').addEventListener('click', function() {
     MODE = 1;
     showScreen('luckyGame');
     document.getElementById('luckyGameTitle').textContent = '💎 20 ячеек · 1 игрок';
-    document.getElementById('luckyLeft').innerHTML = '🎯 Попытки: <span id="luckyTries">3</span>';
-    document.getElementById('luckyMid').style.display = '';
-    document.getElementById('luckyRight').style.display = 'none';
     startLucky();
   });
   document.getElementById('luckyMode2').addEventListener('click', function() {
     MODE = 2;
     showScreen('luckyGame');
     document.getElementById('luckyGameTitle').textContent = '💎 20 ячеек · 2 игрока';
-    document.getElementById('luckyLeft').innerHTML = '🏆 ' + player1Name.substring(0,6) + ': <span id="luckyWins1">0</span> · ' + player2Name.substring(0,6) + ': <span id="luckyWins2">0</span>';
-    document.getElementById('luckyMid').style.display = 'none';
-    document.getElementById('luckyRight').style.display = '';
-    document.getElementById('luckyWins1').textContent = wins1;
-    document.getElementById('luckyWins2').textContent = wins2;
     startLucky();
   });
 })();
 
-/* БЛЭКДЖЕК */
+/* ==================== БЛЭКДЖЕК ==================== */
 (function() {
   var BAL1_KEY = 'bj_p1_v3';
   var BAL2_KEY = 'bj_p2_v3';
@@ -1859,7 +1775,7 @@ var updateLuckyMenu = function(){};
   updateBJBalancesUI();
 })();
 
-/* КОСТИ */
+/* ==================== КОСТИ ==================== */
 (function() {
   var BAL1_KEY = 'dice_p1_v3';
   var BAL2_KEY = 'dice_p2_v3';
@@ -2111,7 +2027,7 @@ var updateLuckyMenu = function(){};
   }
 })();
 
-/* КАЗИНО */
+/* ==================== КАЗИНО ==================== */
 (function() {
   var BAL_KEY = 'casinoBalance_v2';
   var START_BALANCE = 100000;
@@ -2384,12 +2300,7 @@ function initTelegram() {
   try { tg.expand(); } catch(e) {}
   try { tg.setHeaderColor('#0b1020'); tg.setBackgroundColor('#0b1020'); } catch(e) {}
 
-  // Принудительно разрешаем вертикальные свайпы для скролла
-  try {
-    if (tg.enableVerticalSwipes) {
-      tg.enableVerticalSwipes();
-    }
-  } catch(e) {}
+  try { if (tg.enableVerticalSwipes) tg.enableVerticalSwipes(); } catch(e) {}
 
   var user = tg.initDataUnsafe && tg.initDataUnsafe.user;
   if (!user) return;
