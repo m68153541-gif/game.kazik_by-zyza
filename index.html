@@ -7,10 +7,7 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html {
-    width:100%; height:100vh; height:100dvh;
-    background:#0b1020; overflow:hidden;
-  }
+  html { width:100%; height:100vh; height:100dvh; background:#0b1020; overflow:hidden; }
   body {
     width:100%; height:100vh; height:100dvh;
     background:#0b1020; overflow:hidden;
@@ -34,7 +31,6 @@
     position:relative; z-index:1; height:100%;
   }
   #menu::-webkit-scrollbar { width:0; height:0; display:none; }
-  #menu::-webkit-scrollbar-thumb { background:transparent; }
 
   #menu h1 {
     font-size:28px; letter-spacing:3px;
@@ -144,8 +140,7 @@
   }
 
   .scroll-content {
-    flex:1;
-    overflow-y:scroll !important; overflow-x:hidden;
+    flex:1; overflow-y:scroll !important; overflow-x:hidden;
     -webkit-overflow-scrolling:touch;
     overscroll-behavior:contain;
     touch-action:pan-y !important;
@@ -613,7 +608,7 @@
     <div class="arrow">›</div>
   </div>
 
-  <div style="margin-top:12px; color:#555; font-size:11px;">v1.0.2 · для экспериментов ❤</div>
+  <div style="margin-top:12px; color:#555; font-size:11px;">v0.2 · для экспериментов ❤</div>
 </div>
 
 <!-- ИМЕНА -->
@@ -1151,7 +1146,7 @@ var updateLuckyMenu = function(){};
   var TOTAL = 20;
   var MAX_TRIES_1P = 3;
   var MODE = 1;
-  var winIndex;
+  var winIndex = -1;
   var triesLeft = MAX_TRIES_1P;
   var gameOver = false;
   var turn = 1;
@@ -1165,12 +1160,11 @@ var updateLuckyMenu = function(){};
 
   function buildGrid() {
     var gridEl = document.getElementById('grid');
-    // Полная очистка контейнера и обработчиков
     gridEl.innerHTML = '';
     for (var i = 0; i < TOTAL; i++) {
       var c = document.createElement('div');
       c.className = 'cell';
-      c.dataset.index = i;
+      c.setAttribute('data-index', i);
       c.textContent = '?';
       c.addEventListener('click', onCellClick);
       gridEl.appendChild(c);
@@ -1184,7 +1178,7 @@ var updateLuckyMenu = function(){};
   }
 
   function openCell(cell) {
-    var idx = parseInt(cell.dataset.index);
+    var idx = parseInt(cell.getAttribute('data-index'));
     if (idx === winIndex) {
       cell.classList.add('win');
       cell.textContent = '💎';
@@ -1231,7 +1225,6 @@ var updateLuckyMenu = function(){};
         document.getElementById('luckyTitle').textContent = '💀 Проигрыш...';
         document.getElementById('luckyMsg').className = 'msg lose';
         document.getElementById('luckyMsg').textContent = 'Алмаз был в другой ячейке';
-        // Показываем где был алмаз
         var winCell = document.querySelector('#grid .cell[data-index="' + winIndex + '"]');
         if (winCell) {
           winCell.classList.add('win');
@@ -1264,21 +1257,25 @@ var updateLuckyMenu = function(){};
       document.getElementById('luckyMid').style.display = '';
       document.getElementById('luckyRight').style.display = 'none';
     } else {
-      document.getElementById('luckyLeft').innerHTML = '🏆 ' + player1Name.substring(0,6) + ': <span>' + wins1 + '</span> · ' + player2Name.substring(0,6) + ': <span>' + wins2 + '</span>';
+      document.getElementById('luckyLeft').innerHTML = '🏆 ' + player1Name.substring(0,6) + ': ' + wins1 + ' · ' + player2Name.substring(0,6) + ': ' + wins2;
       document.getElementById('luckyMid').style.display = 'none';
       document.getElementById('luckyRight').style.display = '';
     }
   }
 
   function startLucky() {
-    // Всегда полностью пересобираем сетку — никаких остатков от прошлого раунда
-    buildGrid();
+    // ЖЁСТКИЙ СБРОС: удаляем старый контейнер и создаём новый
+    var oldGrid = document.getElementById('grid');
+    var newGrid = document.createElement('div');
+    newGrid.id = 'grid';
+    oldGrid.parentNode.replaceChild(newGrid, oldGrid);
 
     winIndex = Math.floor(Math.random() * TOTAL);
     triesLeft = MAX_TRIES_1P;
     gameOver = false;
     turn = 1;
 
+    buildGrid();
     updateHUD();
     updateTurnUI();
 
@@ -1288,24 +1285,32 @@ var updateLuckyMenu = function(){};
     document.getElementById('luckyRestart').classList.add('hidden');
   }
 
-  document.getElementById('luckyRestart').addEventListener('click', function() {
+  // Используем onclick вместо addEventListener — надёжнее
+  document.getElementById('luckyRestart').onclick = function(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
     startLucky();
-  });
-  document.getElementById('luckyMenuBtn').addEventListener('click', function() {
+  };
+
+  document.getElementById('luckyMenuBtn').onclick = function(e) {
+    if (e) e.preventDefault();
     showScreen('luckyModeScreen');
-  });
-  document.getElementById('luckyMode1').addEventListener('click', function() {
+  };
+
+  document.getElementById('luckyMode1').onclick = function(e) {
+    if (e) e.preventDefault();
     MODE = 1;
     showScreen('luckyGame');
     document.getElementById('luckyGameTitle').textContent = '💎 20 ячеек · 1 игрок';
     startLucky();
-  });
-  document.getElementById('luckyMode2').addEventListener('click', function() {
+  };
+
+  document.getElementById('luckyMode2').onclick = function(e) {
+    if (e) e.preventDefault();
     MODE = 2;
     showScreen('luckyGame');
     document.getElementById('luckyGameTitle').textContent = '💎 20 ячеек · 2 игрока';
     startLucky();
-  });
+  };
 })();
 
 /* ==================== БЛЭКДЖЕК ==================== */
@@ -1497,14 +1502,13 @@ var updateLuckyMenu = function(){};
     state.p1.push(state.deck.pop(), state.deck.pop());
     if (GAME_MODE === 2) {
       state.p2.push(state.deck.pop(), state.deck.pop());
-      if (handScore(state.p1) === 21) { state.p1Done = true; state.p1Blackjack = true; }
-      if (handScore(state.p2) === 21) { state.p2Done = true; state.p2Blackjack = true; }
+      // Блэкджек считается ТОЛЬКО по первым 2 картам
+      if (handScore(state.p1) === 21 && state.p1.length === 2) { state.p1Done = true; state.p1Blackjack = true; }
+      if (handScore(state.p2) === 21 && state.p2.length === 2) { state.p2Done = true; state.p2Blackjack = true; }
       sndCardDeal(); renderBJ();
-      if (state.p1Done && state.p2Done) {
-        setBJMsg('У обоих блэкджек! Считаем...', 'info');
-        state.phase = 'done';
-        setTimeout(finishBJ, 700);
-      } else if (state.p1Done) {
+
+      // ВАЖНО: НЕ завершаем раунд даже если у одного блэкджек — второй тоже играет
+      if (state.p1Done) {
         setBJMsg('🔵 ' + player1Name + ': блэкджек! Ход ' + player2Name, 'p2');
         state.phase = 'p2';
       } else {
@@ -1515,7 +1519,7 @@ var updateLuckyMenu = function(){};
     } else {
       state.dealer.push(state.deck.pop(), state.deck.pop());
       state.holeHidden = true;
-      if (handScore(state.p1) === 21) {
+      if (handScore(state.p1) === 21 && state.p1.length === 2) {
         state.p1Blackjack = true;
         state.p1Done = true;
         state.holeHidden = false;
@@ -1540,6 +1544,7 @@ var updateLuckyMenu = function(){};
       if (s > 21) {
         if (GAME_MODE === 2) {
           state.p1Done = true;
+          // НЕ завершаем — второй игрок всё равно ходит
           setBJMsg('🔵 ' + player1Name + ': перебор. Ход ' + player2Name, 'p2');
           state.phase = 'p2';
         } else {
@@ -1638,7 +1643,7 @@ var updateLuckyMenu = function(){};
   function finishBJ1() {
     var p = handScore(state.p1), d = handScore(state.dealer), bet = state.p1Bet;
     var dealerBJ2 = (d === 21 && state.dealer.length === 2);
-    var playerBJ = (p === 21 && state.p1.length === 2);
+    var playerBJ = state.p1Blackjack;
     var payout = 0, badge = '', msg = '', cls = '';
     var isBigWin = false;
 
@@ -1708,14 +1713,43 @@ var updateLuckyMenu = function(){};
   function finishBJ2() {
     var s1 = handScore(state.p1), s2 = handScore(state.p2);
     var b1 = s1 > 21, b2 = s2 > 21;
+    var bj1 = state.p1Blackjack, bj2 = state.p2Blackjack;
     var bank = state.p1Bet + state.p2Bet;
     var result = '', reason = '';
-    if (b1 && b2)      { result = 'push'; reason = 'Оба перебрали — ничья'; }
-    else if (b1)       { result = 'p2';   reason = '🔵 ' + player1Name + ' перебрал'; }
-    else if (b2)       { result = 'p1';   reason = '🟣 ' + player2Name + ' перебрал'; }
-    else if (s1 > s2)  { result = 'p1';   reason = '🔵 ' + player1Name + ' выиграл: ' + s1 + ' > ' + s2; }
-    else if (s2 > s1)  { result = 'p2';   reason = '🟣 ' + player2Name + ' выиграл: ' + s2 + ' > ' + s1; }
-    else               { result = 'push'; reason = 'Равные очки (' + s1 + ':' + s2 + ') — ничья'; }
+
+    // Оба перебрали → ничья
+    if (b1 && b2) {
+      result = 'push'; reason = 'Оба перебрали — ничья';
+    }
+    // Оба блэкджека → ничья
+    else if (bj1 && bj2) {
+      result = 'push'; reason = 'У обоих блэкджек — ничья';
+    }
+    // Блэкджек побеждает всё кроме блэкджека
+    else if (bj1 && !bj2) {
+      result = 'p1'; reason = '🔵 ' + player1Name + ': блэкджек!';
+    }
+    else if (bj2 && !bj1) {
+      result = 'p2'; reason = '🟣 ' + player2Name + ': блэкджек!';
+    }
+    // Игрок 1 перебрал, Игрок 2 не перебрал
+    else if (b1) {
+      result = 'p2'; reason = '🔵 ' + player1Name + ' перебрал (' + s1 + ')';
+    }
+    // Игрок 2 перебрал, Игрок 1 не перебрал
+    else if (b2) {
+      result = 'p1'; reason = '🟣 ' + player2Name + ' перебрал (' + s2 + ')';
+    }
+    // Оба не перебрали — сравниваем очки
+    else if (s1 > s2) {
+      result = 'p1'; reason = '🔵 ' + player1Name + ' выиграл: ' + s1 + ' > ' + s2;
+    }
+    else if (s2 > s1) {
+      result = 'p2'; reason = '🟣 ' + player2Name + ' выиграл: ' + s2 + ' > ' + s1;
+    }
+    else {
+      result = 'push'; reason = 'Равные очки (' + s1 + ':' + s2 + ') — ничья';
+    }
 
     if (result === 'p1') {
       p1Balance += bank;
@@ -2299,7 +2333,6 @@ function initTelegram() {
   try { tg.ready(); } catch(e) {}
   try { tg.expand(); } catch(e) {}
   try { tg.setHeaderColor('#0b1020'); tg.setBackgroundColor('#0b1020'); } catch(e) {}
-
   try { if (tg.enableVerticalSwipes) tg.enableVerticalSwipes(); } catch(e) {}
 
   var user = tg.initDataUnsafe && tg.initDataUnsafe.user;
