@@ -42,9 +42,10 @@
 
   /* ===== МЕНЮ ===== */
   #menu {
-    align-items:center; justify-content:center;
+    align-items:center; justify-content:flex-start;
     padding:16px; gap:8px;
     overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
     position:relative; z-index:1;
   }
   #menu h1 {
@@ -58,12 +59,13 @@
     font-weight:bold;
     margin-bottom:2px;
     filter:drop-shadow(0 0 20px rgba(79,195,247,0.5));
+    flex-shrink:0;
   }
   @keyframes titleShine {
     0% { background-position:0% 50%; }
     100% { background-position:300% 50%; }
   }
-  #menu .sub { color:#888; font-size:12px; margin-bottom:6px; }
+  #menu .sub { color:#888; font-size:12px; margin-bottom:6px; flex-shrink:0; }
 
   /* БЛОК ПОЛЬЗОВАТЕЛЯ ИЗ TELEGRAM */
   .tg-user {
@@ -72,10 +74,11 @@
     background:linear-gradient(145deg, #1e2a4a, #16213e);
     border:2px solid #4fc3f7;
     border-radius:50px;
-    padding:6px 16px 6px 6px;
+    padding:6px 18px 6px 6px;
     box-shadow:0 0 20px rgba(79,195,247,0.5);
     margin-bottom:6px;
     animation:tgUserIn .5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    flex-shrink:0;
   }
   .tg-user.show { display:flex; }
   @keyframes tgUserIn {
@@ -83,20 +86,34 @@
     100% { transform:scale(1); opacity:1; }
   }
   .tg-user .avatar {
-    width:42px; height:42px;
+    width:44px; height:44px;
     border-radius:50%;
-    background:linear-gradient(145deg, #4fc3f7, #2196f3);
+    background:linear-gradient(135deg, #4fc3f7 0%, #2196f3 50%, #ba68c8 100%);
     display:flex; align-items:center; justify-content:center;
     font-size:22px; font-weight:bold;
     color:#0a0e1a;
-    border:2px solid #4fc3f7;
-    box-shadow:0 0 15px rgba(79,195,247,0.7);
+    border:2px solid rgba(79,195,247,0.8);
+    box-shadow:
+      0 0 20px rgba(79,195,247,0.8),
+      inset 0 0 15px rgba(255,255,255,0.3);
     overflow:hidden;
     flex-shrink:0;
+    position:relative;
+    text-shadow:0 0 10px rgba(255,255,255,0.7);
+  }
+  .tg-user .avatar::after {
+    content:'';
+    position:absolute;
+    inset:2px;
+    border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.45), transparent 60%);
+    pointer-events:none;
   }
   .tg-user .avatar img {
     width:100%; height:100%;
     object-fit:cover;
+    position:relative;
+    z-index:1;
   }
   .tg-user .info {
     display:flex; flex-direction:column;
@@ -127,6 +144,7 @@
     box-shadow:0 0 20px rgba(255,213,79,0.5), inset 0 0 20px rgba(255,213,79,0.15);
     margin-bottom:8px;
     animation:balanceGlow 2s ease-in-out infinite alternate;
+    flex-shrink:0;
   }
   @keyframes balanceGlow {
     from { box-shadow:0 0 20px rgba(255,213,79,0.5), inset 0 0 20px rgba(255,213,79,0.15); }
@@ -137,6 +155,7 @@
     display:flex; gap:8px;
     width:100%; max-width:340px;
     margin-bottom:6px;
+    flex-shrink:0;
   }
   .menu-players .mp {
     flex:1;
@@ -168,6 +187,7 @@
     transition:transform .12s, box-shadow .25s, border-color .2s;
     box-shadow:0 4px 14px rgba(0,0,0,0.4);
     font-family:Arial, sans-serif;
+    flex-shrink:0;
   }
   .game-btn::after {
     content:'';
@@ -972,7 +992,7 @@
     <div class="arrow">›</div>
   </div>
 
-  <div style="margin-top:12px; color:#555; font-size:11px;">v5.0 · для экспериментов ❤</div>
+  <div style="margin-top:12px; color:#555; font-size:11px;">v5.1 · для экспериментов ❤</div>
 </div>
 
 <!-- ============ ВВОД ИМЁН ============ -->
@@ -2804,7 +2824,8 @@ function initTelegram() {
     tg.setHeaderColor('#0b1020');
     tg.setBackgroundColor('#0b1020');
   } catch(e) {}
-  try { tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch(e) {}
+  // Разрешаем вертикальные свайпы для прокрутки меню
+  try { tg.enableVerticalSwipes && tg.enableVerticalSwipes(); } catch(e) {}
 
   var user = tg.initDataUnsafe && tg.initDataUnsafe.user;
   if (!user) {
@@ -2825,8 +2846,18 @@ function initTelegram() {
   nameEl.textContent = displayName;
 
   if (user.photo_url) {
-    avatarEl.innerHTML = '<img src="' + user.photo_url + '" alt="avatar" onerror="this.parentNode.textContent=\'👤\'">';
+    // Аватарка из Telegram (если вдруг придёт)
+    var img = document.createElement('img');
+    img.src = user.photo_url;
+    img.alt = 'avatar';
+    img.onerror = function() {
+      avatarEl.innerHTML = '';
+      avatarEl.textContent = displayName.charAt(0).toUpperCase();
+    };
+    avatarEl.innerHTML = '';
+    avatarEl.appendChild(img);
   } else {
+    // Красивая буква-заглушка
     avatarEl.textContent = displayName.charAt(0).toUpperCase();
   }
 
