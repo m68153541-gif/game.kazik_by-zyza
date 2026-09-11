@@ -77,7 +77,6 @@
     max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
 
-  /* КНОПКА СЧЁТА — кликабельная */
   .score-btn {
     display:flex; align-items:center; justify-content:center; gap:8px;
     background:linear-gradient(145deg, #4a2e5a, #2a1e3a);
@@ -134,7 +133,6 @@
   .game-btn .info .d { font-size:11px; color:#7ba8d6; font-weight:normal; margin-top:2px; }
   .game-btn .arrow { color:#4fc3f7; font-size:20px; }
 
-  /* ЭКРАН СТАТИСТИКИ */
   #statsScreen .scroll-content { padding-top:24px; }
   .stats-block {
     width:100%; max-width:400px;
@@ -160,12 +158,6 @@
   .stats-row .name.p1 { color:#4fc3f7; }
   .stats-row .name.p2 { color:#ba68c8; }
   .stats-row .score { font-size:16px; font-weight:bold; color:#fff; }
-  .stats-row .score.win { color:#66bb6a; }
-  .stats-row .score.lose { color:#888; }
-  .stats-empty {
-    text-align:center; color:#666; font-size:13px;
-    padding:14px;
-  }
   .stats-total {
     width:100%; max-width:400px;
     background:linear-gradient(145deg, #2a1e4d, #1a1035);
@@ -177,15 +169,12 @@
   }
   .stats-total h3 {
     font-size:15px; color:#ffd54f;
-    text-align:center;
-    margin-bottom:12px;
+    text-align:center; margin-bottom:12px;
   }
   .stats-total-row {
     display:flex; justify-content:space-around; align-items:center;
   }
-  .stats-total-player {
-    text-align:center; flex:1;
-  }
+  .stats-total-player { text-align:center; flex:1; }
   .stats-total-player .p-name { font-size:12px; font-weight:bold; margin-bottom:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .stats-total-player.p1 .p-name { color:#4fc3f7; }
   .stats-total-player.p2 .p-name { color:#ba68c8; }
@@ -195,19 +184,13 @@
   }
   .stats-vs {
     font-size:20px; color:#ffd54f;
-    padding:0 10px;
-    font-weight:bold;
+    padding:0 10px; font-weight:bold;
   }
   .reset-stats-btn {
-    margin-top:10px;
-    padding:10px 26px;
-    background:transparent;
-    border:2px solid #ff5252;
-    color:#ff5252;
-    border-radius:20px;
-    font-size:13px;
-    font-weight:bold;
-    cursor:pointer;
+    margin-top:10px; padding:10px 26px;
+    background:transparent; border:2px solid #ff5252;
+    color:#ff5252; border-radius:20px;
+    font-size:13px; font-weight:bold; cursor:pointer;
     font-family:Arial, sans-serif;
   }
   .reset-stats-btn:active { background:#ff5252; color:#fff; }
@@ -229,6 +212,24 @@
   }
   .back-btn:active { transform:scale(0.93); background:#4fc3f7; color:#0b1020; }
   .game-title { flex:1; text-align:center; font-size:16px; font-weight:bold; color:#4fc3f7; }
+
+  /* Кнопка счёта в top-bar */
+  .top-score-btn {
+    background:linear-gradient(145deg, #4a2e5a, #2a1e3a);
+    border:2px solid #ba68c8;
+    border-radius:20px;
+    padding:5px 12px;
+    font-size:12px; font-weight:bold;
+    cursor:pointer;
+    font-family:Arial, sans-serif;
+    box-shadow:0 0 12px rgba(186,104,200,0.4);
+    color:#fff;
+    flex-shrink:0;
+    transition:transform .12s;
+  }
+  .top-score-btn:active { transform:scale(0.93); }
+  .top-score-btn .lbl { color:#ba68c8; }
+  .top-score-btn .val { color:#fff; }
   .bal-mini {
     background:#1e2a4a; border:1px solid #ffd54f;
     border-radius:14px; padding:5px 10px;
@@ -491,7 +492,6 @@
     border:2px solid #3d2d70;
     transition:opacity .3s ease, border-color .3s ease, box-shadow .3s ease, transform .2s ease;
   }
-  /* Ход Игрока 1 */
   .hand.active-p1 {
     border-color:#4fc3f7;
     box-shadow:0 0 30px rgba(79,195,247,0.9), inset 0 0 20px rgba(79,195,247,0.15);
@@ -501,7 +501,6 @@
     from { box-shadow:0 0 20px rgba(79,195,247,0.6), inset 0 0 15px rgba(79,195,247,0.1); }
     to   { box-shadow:0 0 40px rgba(79,195,247,1), inset 0 0 25px rgba(79,195,247,0.25); }
   }
-  /* Ход Игрока 2 */
   .hand.active-p2 {
     border-color:#ba68c8;
     box-shadow:0 0 30px rgba(186,104,200,0.9), inset 0 0 20px rgba(186,104,200,0.15);
@@ -511,7 +510,6 @@
     from { box-shadow:0 0 20px rgba(186,104,200,0.6), inset 0 0 15px rgba(186,104,200,0.1); }
     to   { box-shadow:0 0 40px rgba(186,104,200,1), inset 0 0 25px rgba(186,104,200,0.25); }
   }
-  /* Ход дилера */
   .hand.active-dealer {
     border-color:#ff5252;
     box-shadow:0 0 30px rgba(255,82,82,0.9), inset 0 0 20px rgba(255,82,82,0.15);
@@ -521,7 +519,6 @@
     from { box-shadow:0 0 20px rgba(255,82,82,0.6); }
     to   { box-shadow:0 0 40px rgba(255,82,82,1); }
   }
-  /* Приглушение неактивного */
   .hand.dimmed {
     opacity:0.45;
     filter:grayscale(0.5);
@@ -748,7 +745,7 @@
     <div class="arrow">›</div>
   </div>
 
-  <div style="margin-top:12px; color:#555; font-size:11px;">v0.3 · для экспериментов ❤</div>
+  <div style="margin-top:12px; color:#555; font-size:11px;">v0.4 · для экспериментов ❤</div>
 </div>
 
 <!-- СТАТИСТИКА -->
@@ -807,7 +804,7 @@
     <h2>Введи имена игроков</h2>
     <p>Эти имена будут использоваться во всех играх</p>
     <div class="name-label p1">🔵 Игрок 1</div>
-    <input class="name-input p1" id="inputName1" maxlength="14" placeholder="Например: Аня">
+    <input class="name-input p1" id="inputName1" maxlength="14" placeholder="Например: Лера">
     <div class="name-label p2" style="margin-top:10px;">🟣 Игрок 2</div>
     <input class="name-input p2" id="inputName2" maxlength="14" placeholder="Например: Максим">
     <button class="btn-deal" id="saveNamesBtn" style="margin-top:14px;">💾 Сохранить</button>
@@ -837,7 +834,7 @@
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
     <div class="game-title">💎 20 ячеек</div>
-    <div style="width:60px;"></div>
+    <button class="top-score-btn" id="luckyModeScoreBtn"><span class="lbl">🏆 </span><span class="val top-score-val">0 : 0</span></button>
   </div>
   <div class="scroll-content" style="justify-content:center;">
     <h2>Выбери режим</h2>
@@ -857,7 +854,7 @@
   <div class="top-bar">
     <button class="back-btn" id="luckyMenuBtn">◀ Режим</button>
     <div class="game-title" id="luckyGameTitle">💎 20 ячеек</div>
-    <div style="width:60px;"></div>
+    <button class="top-score-btn" id="luckyGameScoreBtn"><span class="lbl">🏆 </span><span class="val top-score-val">0 : 0</span></button>
   </div>
   <div class="wrap">
     <div class="hud">
@@ -877,7 +874,7 @@
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
     <div class="game-title">🃏 Блэкджек</div>
-    <div style="width:60px;"></div>
+    <button class="top-score-btn" id="bjModeScoreBtn"><span class="lbl">🏆 </span><span class="val top-score-val">0 : 0</span></button>
   </div>
   <div class="scroll-content" style="justify-content:center;">
     <h2>Выбери режим</h2>
@@ -907,7 +904,7 @@
   <div class="top-bar">
     <button class="back-btn" id="bjMenuBtn">◀ Режим</button>
     <div class="game-title" id="bjGameTitle">🃏 Игра</div>
-    <div style="width:60px;"></div>
+    <button class="top-score-btn" id="bjGameScoreBtn"><span class="lbl">🏆 </span><span class="val top-score-val">0 : 0</span></button>
   </div>
   <div class="balance-row">
     <div class="balance-chip p1" id="bjChipP1"><span class="name-part">🔵 Игрок 1</span> <span class="v" id="bjBalP1">100 000</span></div>
@@ -959,7 +956,7 @@
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
     <div class="game-title">🎲 Кости</div>
-    <div style="width:60px;"></div>
+    <button class="top-score-btn" id="diceModeScoreBtn"><span class="lbl">🏆 </span><span class="val top-score-val">0 : 0</span></button>
   </div>
   <div class="scroll-content" style="justify-content:center;">
     <h2>Выбери режим</h2>
@@ -989,7 +986,7 @@
   <div class="top-bar">
     <button class="back-btn" id="diceMenuBtn">◀ Режим</button>
     <div class="game-title" id="diceGameTitle">🎲 Кости</div>
-    <div style="width:60px;"></div>
+    <button class="top-score-btn" id="diceGameScoreBtn"><span class="lbl">🏆 </span><span class="val top-score-val">0 : 0</span></button>
   </div>
   <div class="balance-row" id="diceBalanceRow">
     <div class="balance-chip p1" id="diceChipP1"><span class="name-part">🔵 Игрок 1</span> <span class="v" id="diceBalP1">100 000</span></div>
@@ -1144,8 +1141,14 @@ function getTotalWins(player) {
 }
 
 function updateMenuScore() {
+  var v = getTotalWins(1) + ' : ' + getTotalWins(2);
+  // Главное меню
   var el = document.getElementById('menuScoreVal');
-  if (el) el.textContent = getTotalWins(1) + ' : ' + getTotalWins(2);
+  if (el) el.textContent = v;
+  // Все кнопки в top-bar
+  document.querySelectorAll('.top-score-val').forEach(function(x) {
+    x.textContent = v;
+  });
 }
 
 function renderStatsScreen() {
@@ -1296,6 +1299,7 @@ function showScreen(id) {
     if (id === 'menu')            { updateMenuBalance(); updateNamesUI(); updateMenuScore(); }
     if (id === 'nameScreen')      openNameScreen();
     if (id === 'statsScreen')     renderStatsScreen();
+    updateMenuScore();
   }, 30);
 }
 
@@ -1320,6 +1324,15 @@ document.getElementById('openStatsBtn').addEventListener('click', function() {
   renderStatsScreen();
   showScreen('statsScreen');
 });
+
+// Все кнопки со счётом в top-bar открывают статистику
+document.querySelectorAll('.top-score-btn').forEach(function(b) {
+  b.addEventListener('click', function() {
+    renderStatsScreen();
+    showScreen('statsScreen');
+  });
+});
+
 document.getElementById('resetStatsBtn').addEventListener('click', function() {
   if (!confirm('Сбросить статистику сессии?')) return;
   resetStats();
