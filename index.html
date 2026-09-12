@@ -210,9 +210,9 @@
     margin-bottom:8px; flex-shrink:0;
     box-shadow:0 0 20px rgba(186,104,200,0.45);
     font-family:Arial, sans-serif;
-    transition:transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .3s ease;
+    transition:transform .25s cubic-bezier(.34,1.56,.64,1);
   }
-  .score-btn:active { transform:scale(0.94); box-shadow:0 0 34px rgba(186,104,200,0.9); }
+  .score-btn:active { transform:scale(0.94); }
   .score-btn .lbl { color:#ba68c8; font-size:11px; }
   .score-btn .val { color:#fff; font-size:16px; }
   .menu-balance {
@@ -490,31 +490,24 @@
     font-size:11px; color:#7ba8d6;
     letter-spacing:1px; margin-bottom:2px;
   }
-  #onlineScreen .big-icon { font-size:90px; margin-top:20px; filter:drop-shadow(0 0 34px #ffd54f); animation:corePulse 2s ease-in-out infinite alternate; }
-  #onlineScreen h2 { font-size:28px; color:#ffd54f; text-align:center; text-shadow:0 0 18px rgba(255,213,79,0.6); }
-  #onlineScreen .soon {
-    font-size:13px; background:linear-gradient(145deg,#ffd54f,#ffb300); color:#0a0e1a;
-    padding:6px 16px; border-radius:16px;
-    font-weight:bold; letter-spacing:2px;
-    box-shadow:0 0 22px rgba(255,213,79,0.6);
+  .tech-btn {
+    position:fixed; bottom:12px; right:12px;
+    z-index:300;
+    padding:8px 14px;
+    background:rgba(26,16,53,0.85);
+    border:1px solid #3d2d70;
+    border-radius:14px;
+    color:#7ba8d6; font-size:11px; font-weight:bold;
+    cursor:pointer; font-family:Arial, sans-serif;
+    opacity:0.5;
+    transition:opacity .3s ease, transform .2s ease;
   }
-  #onlineScreen p { color:#ccc; font-size:14px; line-height:1.7; max-width:360px; text-align:center; }
-  #onlineScreen .highlight { color:#ffd54f; font-weight:bold; }
-  #onlineScreen .support { color:#81c784; font-size:13px; font-style:italic; margin-top:6px; }
-  #onlineScreen .btn-back-menu {
-    margin-top:16px; padding:14px 40px;
-    background:linear-gradient(145deg, #4fc3f7, #2196f3);
-    color:#fff; border:none; border-radius:30px;
-    font-size:17px; font-weight:bold; cursor:pointer;
-    font-family:Arial, sans-serif;
-    box-shadow:0 0 26px rgba(79,195,247,0.6);
-  }
+  .tech-btn:hover, .tech-btn:active { opacity:1; transform:scale(0.96); }
   #luckyGame .wrap {
     flex:1; display:flex; flex-direction:column;
     align-items:center; justify-content:center;
     padding:14px; gap:12px;
     overflow-y:scroll !important;
-    -webkit-overflow-scrolling:touch;
     touch-action:pan-y !important;
     height:0; min-height:0;
   }
@@ -571,7 +564,6 @@
     background:linear-gradient(145deg, #4fc3f7, #2196f3);
     color:#fff; border:none; border-radius:30px;
     cursor:pointer; font-family:Arial, sans-serif;
-    box-shadow:0 0 24px rgba(79,195,247,0.6);
   }
   #luckyGame .playBtn:active { transform:scale(0.93); }
   #luckyGame .playBtn.hidden { display:none; }
@@ -581,7 +573,6 @@
     align-items:center; justify-content:center;
     gap:16px; padding:14px;
     overflow-y:scroll !important;
-    -webkit-overflow-scrolling:touch;
     touch-action:pan-y !important;
     height:0; min-height:0;
   }
@@ -620,7 +611,6 @@
     background:linear-gradient(145deg, #3d2d70, #2a1e4d);
     color:#fff; border:none;
     font-size:18px; font-weight:bold; cursor:pointer;
-    transition:transform .25s cubic-bezier(.34,1.56,.64,1);
   }
   .bet-row button:active { background:#ffd54f; color:#0a0e1a; transform:scale(0.88); }
   .bet-row .val { font-size:17px; font-weight:bold; color:#ffd54f; min-width:56px; text-align:center; }
@@ -635,7 +625,7 @@
   .big-btn:active { transform:scale(0.95); }
   .big-btn:disabled { background:#444; color:#888; cursor:not-allowed; }
   .result-msg { font-size:17px; font-weight:bold; text-align:center; min-height:26px; }
-  .result-msg.win { color:#66bb6a; text-shadow:0 0 12px rgba(102,187,106,0.6); }
+  .result-msg.win { color:#66bb6a; }
   .result-msg.lose { color:#ff5252; }
   .result-msg.info { color:#4fc3f7; }
   .wheel-box { width:220px; height:220px; position:relative; margin:6px 0; }
@@ -644,7 +634,6 @@
     position:absolute; top:-8px; left:50%;
     transform:translateX(-50%);
     font-size:30px; color:#ffd54f; z-index:5;
-    text-shadow:0 0 12px rgba(255,213,79,0.9);
     animation:pointerBob 1.2s ease-in-out infinite alternate;
   }
   @keyframes pointerBob {
@@ -656,7 +645,7 @@
     padding:9px 15px; border-radius:22px;
     border:2px solid #3d2d70; background:#241a48;
     color:#fff; font-size:13px; font-weight:bold; cursor:pointer;
-    transition:transform .25s ease, box-shadow .3s ease, border-color .3s ease, background .3s ease;
+    transition:transform .25s ease, border-color .3s ease, background .3s ease;
   }
   .bet-opt:active { transform:scale(0.9); }
   .bet-opt.active { border-color:#ffd54f; background:#3d2d70; box-shadow:0 0 18px rgba(255,213,79,0.6); }
@@ -676,7 +665,7 @@
     display:flex; align-items:center; gap:16px;
     cursor:pointer; font-family:Arial, sans-serif;
     flex-shrink:0;
-    transition:transform .3s cubic-bezier(.34,1.56,.64,1), border-color .3s ease, box-shadow .3s ease, background .3s ease;
+    transition:transform .3s cubic-bezier(.34,1.56,.64,1), border-color .3s ease, box-shadow .3s ease;
     animation:blockIn .5s cubic-bezier(.22,.9,.35,1) both;
   }
   .bj-mode-btn:active {
@@ -684,8 +673,7 @@
     border-color:#ffd54f;
     box-shadow:0 0 26px rgba(255,213,79,0.55);
   }
-  .bj-mode-btn .ico { font-size:32px; filter:drop-shadow(0 0 10px rgba(79,195,247,0.4)); transition:transform .35s cubic-bezier(.34,1.56,.64,1); }
-  .bj-mode-btn:active .ico { transform:scale(1.18) rotate(-6deg); }
+  .bj-mode-btn .ico { font-size:32px; }
   .bj-mode-btn .info { flex:1; text-align:left; }
   .bj-mode-btn .info .n { font-size:15px; }
   .bj-mode-btn .info .d { font-size:11px; color:#a08cd0; font-weight:normal; margin-top:2px; }
@@ -694,19 +682,6 @@
     text-shadow:0 0 16px rgba(255,213,79,0.5);
     animation:blockIn .45s cubic-bezier(.22,.9,.35,1) both;
   }
-  .balance-row { display:flex; gap:6px; padding:8px 12px; flex-shrink:0; }
-  .balance-chip {
-    flex:1; background:rgba(26,16,53,0.9);
-    border:1px solid; border-radius:18px;
-    padding:6px 12px; font-size:12px; font-weight:bold;
-    display:flex; align-items:center; justify-content:space-between;
-    gap:4px; overflow:hidden;
-    backdrop-filter:blur(6px);
-  }
-  .balance-chip.p1 { border-color:#4fc3f7; color:#4fc3f7; }
-  .balance-chip.p2 { border-color:#ba68c8; color:#ba68c8; }
-  .balance-chip .name-part { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .balance-chip .v { color:#ffd54f; flex-shrink:0; }
   .bank-row {
     background:linear-gradient(90deg, rgba(36,26,72,0.9), rgba(61,45,112,0.9), rgba(36,26,72,0.9));
     padding:7px; text-align:center;
@@ -806,7 +781,6 @@
     padding:13px 24px; border-radius:26px;
     border:none; font-size:14px; font-weight:bold;
     cursor:pointer; font-family:Arial, sans-serif;
-    transition:transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
   }
   .actions button:active:not(:disabled) { transform:scale(0.92); }
   .actions button:disabled { opacity:0.4; cursor:not-allowed; }
@@ -876,7 +850,7 @@
     color:#fff; font-size:34px; line-height:1;
     cursor:pointer; font-family:Arial, sans-serif;
     display:flex; flex-direction:column; align-items:center; gap:6px;
-    transition:transform .3s cubic-bezier(.34,1.56,.64,1), border-color .3s ease, box-shadow .3s ease, background .3s ease;
+    transition:transform .3s cubic-bezier(.34,1.56,.64,1), border-color .3s ease, box-shadow .3s ease;
   }
   .rps-choice span { font-size:11px; font-weight:bold; color:#a08cd0; }
   .rps-choice:active { transform:scale(0.92); border-color:#ffd54f; box-shadow:0 0 22px rgba(255,213,79,0.7); }
@@ -1028,6 +1002,19 @@
   </div>
 </div>
 
+<!-- МОДАЛКА ТЕХ ВХОДА -->
+<div class="modal-overlay" id="techModal">
+  <div class="modal" id="techModalBox">
+    <h3>🔧 Технический вход</h3>
+    <p>Введите пароль для входа в онлайн</p>
+    <input type="password" id="techInput" inputmode="numeric" maxlength="10" placeholder="••" autocomplete="off">
+    <div class="modal-actions">
+      <button class="m-cancel" id="techCancel">Отмена</button>
+      <button class="m-ok" id="techOk" style="background:linear-gradient(145deg,#4fc3f7,#2196f3);">Войти</button>
+    </div>
+  </div>
+</div>
+
 <!-- МЕНЮ -->
 <div class="screen active" id="menu">
   <h1>🎰 КАЗИК</h1>
@@ -1099,7 +1086,7 @@
     <div class="arrow">›</div>
   </div>
 
-  <div style="margin-top:14px; color:#555; font-size:11px;">версия 0.3</div>
+  <div style="margin-top:14px; color:#555; font-size:11px;">версия 0.4</div>
 </div>
 
 <!-- СТАТИСТИКА -->
@@ -1124,31 +1111,26 @@
         </div>
       </div>
     </div>
-
     <div class="stats-block">
       <h3>💎 20 ячеек</h3>
       <div class="stats-row"><span class="name p1" id="statsLuckyName1">Игрок 1</span><span class="score" id="statsLuckyWins1">0</span></div>
       <div class="stats-row"><span class="name p2" id="statsLuckyName2">Игрок 2</span><span class="score" id="statsLuckyWins2">0</span></div>
     </div>
-
     <div class="stats-block">
       <h3>🃏 Блэкджек</h3>
       <div class="stats-row"><span class="name p1" id="statsBJName1">Игрок 1</span><span class="score" id="statsBJWins1">0</span></div>
       <div class="stats-row"><span class="name p2" id="statsBJName2">Игрок 2</span><span class="score" id="statsBJWins2">0</span></div>
     </div>
-
     <div class="stats-block">
       <h3>🎲 Кости</h3>
       <div class="stats-row"><span class="name p1" id="statsDiceName1">Игрок 1</span><span class="score" id="statsDiceWins1">0</span></div>
       <div class="stats-row"><span class="name p2" id="statsDiceName2">Игрок 2</span><span class="score" id="statsDiceWins2">0</span></div>
     </div>
-
     <div class="stats-block">
       <h3>✊ Камень-Ножницы-Бумага</h3>
       <div class="stats-row"><span class="name p1" id="statsRpsName1">Игрок 1</span><span class="score" id="statsRpsWins1">0</span></div>
       <div class="stats-row"><span class="name p2" id="statsRpsName2">Игрок 2</span><span class="score" id="statsRpsWins2">0</span></div>
     </div>
-
     <button class="reset-stats-btn" id="resetStatsBtn">🗑️ Сбросить статистику</button>
   </div>
 </div>
@@ -1172,14 +1154,12 @@
         <button class="toggle-btn" id="toggleVib">ВКЛ</button>
       </div>
     </div>
-
     <div class="settings-card">
       <div class="settings-title">✏️ Имена игроков</div>
       <input class="name-input p1" id="setInputName1" maxlength="14" placeholder="Игрок 1" style="margin-bottom:8px;">
       <input class="name-input p2" id="setInputName2" maxlength="14" placeholder="Игрок 2">
       <button class="btn-deal" id="setSaveNames" style="margin-top:12px;font-size:14px;padding:12px 24px;width:100%;">💾 Сохранить имена</button>
     </div>
-
     <div class="settings-card" style="border-color:#ff5252;">
       <div class="settings-title" style="color:#ff5252;">⚠️ Опасная зона</div>
       <button class="reset-stats-btn" id="resetBalBtn" style="width:100%;">🔄 Сбросить баланс</button>
@@ -1198,24 +1178,20 @@
     <div class="about-card">
       <div class="about-icon">🎰</div>
       <h2>КАЗИК</h2>
-      <p class="about-version">версия 0.3 · by zyza</p>
+      <p class="about-version">версия 0.4 · by zyza</p>
     </div>
-
     <div class="about-block">
       <h3>🎯 Что это?</h3>
       <p>Мини-казино прямо внутри Telegram. Играй в разные мини-игры, соревнуйся с друзьями и ботом, зарабатывай монеты.</p>
     </div>
-
     <div class="about-block">
       <h3>💰 Как играть?</h3>
       <p>У тебя один общий баланс на все игры. Делай ставки — если повезёт, забирай выигрыш. Всё бесплатно, монеты виртуальные.</p>
     </div>
-
     <div class="about-block">
       <h3>🌐 Онлайн</h3>
-      <p>Зарегистрируйся в онлайне, получи свой <b>6-значный ID</b> и приглашай друзей по нему. Скоро — совместные игры по сети!</p>
+      <p>Зарегистрируйся в онлайне, получи свой <b>6-значный ID</b> и приглашай друзей по нему. Работает и в Telegram, и в браузере.</p>
     </div>
-
     <div class="about-block">
       <h3>🎮 Режимы</h3>
       <p>• <b>20 ячеек</b> — найди алмаз<br>
@@ -1225,7 +1201,6 @@
          • <b>Слоты</b> — лови 3 в ряд<br>
          • <b>Рулетка</b> — красное, чёрное или число</p>
     </div>
-
     <div class="about-block" style="border-color:#66bb6a;">
       <p style="color:#66bb6a;text-align:center;">💚 Спасибо что играешь!</p>
     </div>
@@ -1242,11 +1217,13 @@
   <div class="scroll-content" style="justify-content:center;">
     <div class="big-icon" style="font-size:70px;filter:drop-shadow(0 0 30px #4fc3f7);">🌐</div>
     <h2>Вход в онлайн</h2>
-    <p>Введи имя, под которым тебя увидят другие игроки. Тебе будет присвоен уникальный ID.</p>
+    <p id="onlineRegHint">Введи имя, под которым тебя увидят другие игроки. Тебе будет присвоен уникальный ID.</p>
     <input class="name-input p1" id="onlineNameInput" maxlength="20" placeholder="Например: Вася" style="margin-top:14px;max-width:340px;">
     <button class="btn-deal" id="onlineRegisterBtn" style="margin-top:14px;max-width:340px;width:100%;">🚀 Начать</button>
     <div id="onlineRegError" style="color:#ff5252;font-size:12px;margin-top:8px;min-height:16px;text-align:center;"></div>
   </div>
+
+  <button class="tech-btn" id="techEnterBtn">🔧 Тех. вход</button>
 </div>
 
 <!-- ОНЛАЙН: ГЛАВНОЕ МЕНЮ -->
@@ -1268,17 +1245,14 @@
       <div class="ico">➕</div>
       <div class="info"><div class="n">Создать лобби</div><div class="d">Пригласи друга по ID</div></div>
     </div>
-
     <div class="bj-mode-btn" id="joinLobbyBtn">
       <div class="ico">🔗</div>
       <div class="info"><div class="n">Войти по ID</div><div class="d">Введи ID лобби друга</div></div>
     </div>
-
     <div class="bj-mode-btn" id="friendsBtn">
       <div class="ico">👥</div>
       <div class="info"><div class="n">Друзья</div><div class="d">Список друзей и добавление</div></div>
     </div>
-
     <div class="bj-mode-btn" id="onlinePlayOfflineBtn" style="border-color:#666;">
       <div class="ico">🎮</div>
       <div class="info"><div class="n">Играть офлайн</div><div class="d">Вернуться в обычное меню</div></div>
@@ -1508,7 +1482,6 @@
     <button class="top-score-btn" id="rpsGameScoreBtn"><span class="lbl">🏆 </span><span class="val top-score-val">0 : 0</span></button>
   </div>
   <div class="bank-row" id="rpsBankRow">💰 Банк: 0</div>
-
   <div class="table" style="justify-content:space-around;">
     <div style="display:flex;gap:10px;justify-content:center;">
       <div class="rps-score-box p1">
@@ -1520,7 +1493,6 @@
         <div class="rps-score-val" id="rpsRound2">0</div>
       </div>
     </div>
-
     <div class="rps-arena">
       <div class="rps-hand" id="rpsHand1">
         <div class="rps-emoji" id="rpsEmoji1">❔</div>
@@ -1532,10 +1504,8 @@
         <div class="rps-label" id="rpsLabel2">Игрок 2</div>
       </div>
     </div>
-
     <div class="msg-bar info" id="rpsMsg" style="min-height:44px;">Выбери ход</div>
   </div>
-
   <div class="controls">
     <div class="bet-panel" id="rpsBetPanel">
       <div class="bet-item p1" id="rpsBetItemP1">
@@ -1545,13 +1515,11 @@
         <button id="rpsBetUp" type="button">+</button>
       </div>
     </div>
-
     <div class="rps-choices" id="rpsChoices">
       <button class="rps-choice" data-choice="rock">✊<span>Камень</span></button>
       <button class="rps-choice" data-choice="paper">✋<span>Бумага</span></button>
       <button class="rps-choice" data-choice="scissors">✌️<span>Ножницы</span></button>
     </div>
-
     <div class="actions">
       <button class="btn-deal" id="rpsNewRoundBtn" style="display:none;">🔄 Новый раунд</button>
     </div>
@@ -1642,8 +1610,7 @@ function setWallet(v) {
 }
 function updateWalletUI() {
   var b = getWallet();
-  var els = ['menuBalance', 'slotsBal', 'rouletteBal'];
-  els.forEach(function(id) {
+  ['menuBalance', 'slotsBal', 'rouletteBal'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.textContent = fmt(b);
   });
@@ -1719,7 +1686,6 @@ function renderStatsScreen() {
   document.getElementById('statsTotalName2').textContent = player2Name;
   document.getElementById('statsTotalWins1').textContent = getTotalWins(1);
   document.getElementById('statsTotalWins2').textContent = getTotalWins(2);
-
   ['Lucky','BJ','Dice','Rps'].forEach(function(key) {
     var g = key === 'Lucky' ? 'lucky' : (key === 'BJ' ? 'bj' : (key === 'Dice' ? 'dice' : 'rps'));
     document.getElementById('stats' + key + 'Name1').textContent = '🔵 ' + player1Name;
@@ -1900,7 +1866,7 @@ document.getElementById('setSaveNames').addEventListener('click', function() {
   showToast('Имена сохранены');
 });
 
-/* ============ ПАРОЛЬ ============ */
+/* ============ ПАРОЛЬ БАЛАНСА ============ */
 var PASS_CODE = '12345';
 function openPassModal() {
   var ov = document.getElementById('passModal');
@@ -1942,6 +1908,49 @@ function tryPass() {
   }
 }
 document.getElementById('resetBalBtn').addEventListener('click', openPassModal);
+
+/* ============ ПАРОЛЬ ТЕХ ВХОДА ============ */
+var TECH_PASS = '2';
+var techUnlocked = false;
+
+function openTechModal() {
+  var ov = document.getElementById('techModal');
+  var inp = document.getElementById('techInput');
+  inp.value = ''; inp.classList.remove('error');
+  ov.classList.add('show');
+  setTimeout(function() { inp.focus(); }, 300);
+}
+function closeTechModal() {
+  document.getElementById('techModal').classList.remove('show');
+  document.getElementById('techInput').value = '';
+  document.getElementById('techInput').classList.remove('error');
+  document.getElementById('techModalBox').classList.remove('shake');
+}
+document.getElementById('techEnterBtn').addEventListener('click', openTechModal);
+document.getElementById('techCancel').addEventListener('click', closeTechModal);
+document.getElementById('techModal').addEventListener('click', function(e) {
+  if (e.target === this) closeTechModal();
+});
+document.getElementById('techOk').addEventListener('click', tryTechPass);
+document.getElementById('techInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') tryTechPass();
+});
+function tryTechPass() {
+  var inp = document.getElementById('techInput');
+  if (inp.value.trim() === TECH_PASS) {
+    techUnlocked = true;
+    closeTechModal();
+    showToast('Тех вход разрешён');
+    sndBig();
+    spawnConfetti(40);
+  } else {
+    inp.classList.add('error');
+    var box = document.getElementById('techModalBox');
+    box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake');
+    vib(80);
+    setTimeout(function() { inp.classList.remove('error'); }, 900);
+  }
+}
 
 function showToast(text) {
   var t = document.getElementById('toast');
@@ -1985,6 +1994,7 @@ function vibPattern(p) { if (settings.vib && navigator.vibrate) navigator.vibrat
 (function() {
   var API_URL = 'https://game-kazik-by-zyza.onrender.com';
   var ONLINE_KEY = 'kazik_online_profile_v1';
+  var GUEST_KEY = 'kazik_guest_id';
 
   var onlineProfile = null;
   try { onlineProfile = JSON.parse(localStorage.getItem(ONLINE_KEY) || 'null'); } catch(e) {}
@@ -1997,18 +2007,42 @@ function vibPattern(p) { if (settings.vib && navigator.vibrate) navigator.vibrat
     } catch(e) {}
     return '';
   }
-
+  function getGuestId() {
+    var gid = localStorage.getItem(GUEST_KEY);
+    if (!gid || gid.length < 8) {
+      var chars = 'abcdef0123456789';
+      gid = '';
+      for (var i = 0; i < 16; i++) gid += chars[Math.floor(Math.random() * chars.length)];
+      localStorage.setItem(GUEST_KEY, gid);
+    }
+    return gid;
+  }
   function saveOnlineProfile(p) {
     onlineProfile = p;
     localStorage.setItem(ONLINE_KEY, JSON.stringify(p));
   }
 
   window.openOnline = function() {
+    // тех вход — если не разблокирован, показать модалку
+    if (!techUnlocked) {
+      openTechModal();
+      return;
+    }
     if (onlineProfile && onlineProfile.game_id) {
       showOnlineMenu();
     } else {
       showScreen('onlineRegisterScreen');
       document.getElementById('onlineRegError').textContent = '';
+
+      var hint = document.getElementById('onlineRegHint');
+      if (!getInitData()) {
+        hint.textContent = 'Ты зашёл через браузер. Играть можно, но привязка будет только к этому устройству. Для сохранения — открывай через Telegram.';
+        hint.style.color = '#ffd54f';
+      } else {
+        hint.textContent = 'Введи имя, под которым тебя увидят другие игроки. Тебе будет присвоен уникальный ID.';
+        hint.style.color = '#7ba8d6';
+      }
+
       var tgName = '';
       try {
         if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
@@ -2022,7 +2056,6 @@ function vibPattern(p) { if (settings.vib && navigator.vibrate) navigator.vibrat
 
   function showOnlineMenu() {
     document.getElementById('onlineMenuName').textContent = onlineProfile.name;
-    // форматируем ID с пробелом: 123 456
     var gid = String(onlineProfile.game_id);
     var formatted = gid.length === 6 ? gid.slice(0,3) + ' ' + gid.slice(3) : gid;
     document.getElementById('onlineMenuId').textContent = formatted;
@@ -2030,6 +2063,8 @@ function vibPattern(p) { if (settings.vib && navigator.vibrate) navigator.vibrat
   }
 
   document.getElementById('onlineRegisterBtn').addEventListener('click', function() {
+    if (!techUnlocked) { openTechModal(); return; }
+
     var name = document.getElementById('onlineNameInput').value.trim();
     if (name.length < 2) {
       document.getElementById('onlineRegError').textContent = 'Имя минимум 2 символа';
@@ -2040,10 +2075,16 @@ function vibPattern(p) { if (settings.vib && navigator.vibrate) navigator.vibrat
     errEl.textContent = 'Отправляем...';
     this.disabled = true;
 
+    var payload = {
+      initData: getInitData(),
+      name: name,
+      guest_id: getGuestId()
+    };
+
     fetch(API_URL + '/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData: getInitData(), name: name })
+      body: JSON.stringify(payload)
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {
@@ -2054,6 +2095,7 @@ function vibPattern(p) { if (settings.vib && navigator.vibrate) navigator.vibrat
         return;
       }
       saveOnlineProfile(data.player);
+      if (data.guest_id) localStorage.setItem(GUEST_KEY, data.guest_id);
       sndBig();
       spawnConfetti(60);
       showOnlineMenu();
@@ -2233,14 +2275,12 @@ function vibPattern(p) { if (settings.vib && navigator.vibrate) navigator.vibrat
   };
   document.getElementById('luckyMenuBtn').onclick = function() { showScreen('luckyModeScreen'); };
   document.getElementById('luckyMode1').onclick = function() {
-    MODE = 1;
-    showScreen('luckyGame');
+    MODE = 1; showScreen('luckyGame');
     document.getElementById('luckyGameTitle').textContent = '💎 20 ячеек · 1 игрок';
     startLucky();
   };
   document.getElementById('luckyMode2').onclick = function() {
-    MODE = 2;
-    showScreen('luckyGame');
+    MODE = 2; showScreen('luckyGame');
     document.getElementById('luckyGameTitle').textContent = '💎 20 ячеек · 2 игрока';
     startLucky();
   };
@@ -3138,7 +3178,6 @@ function vibPattern(p) { if (settings.vib && navigator.vibrate) navigator.vibrat
 
 /* ==================== КАЗИНО ==================== */
 (function() {
-  /* СЛОТЫ */
   var SYMBOLS = ['🍒','🍋','🍇','⭐','💎','7️⃣'];
   var slotBet = 500;
   var windows = [
