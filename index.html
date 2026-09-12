@@ -264,6 +264,7 @@
   .game-btn:nth-of-type(6) { animation-delay:.24s; }
   .game-btn:nth-of-type(7) { animation-delay:.28s; }
   .game-btn:nth-of-type(8) { animation-delay:.32s; }
+  .game-btn:nth-of-type(9) { animation-delay:.36s; }
   @keyframes btnSlide {
     0%   { opacity:0; transform:translateX(-28px) scale(0.96); }
     100% { opacity:1; transform:translateX(0) scale(1); }
@@ -362,11 +363,7 @@
     from { opacity:0; transform:translateY(20px) scale(0.97); }
     to   { opacity:1; transform:translateY(0) scale(1); }
   }
-  .stats-block h3 {
-    font-size:15px; color:#ffd54f;
-    margin-bottom:12px;
-    display:flex; align-items:center; gap:8px;
-  }
+  .stats-block h3 { font-size:15px; color:#ffd54f; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
   .stats-row {
     display:flex; justify-content:space-between; align-items:center;
     padding:9px 0;
@@ -453,6 +450,46 @@
   .name-input.p1 { border-color:#4fc3f7; }
   .name-input.p2 { border-color:#ba68c8; }
   .name-input:focus { box-shadow:0 0 28px rgba(79,195,247,0.6); }
+  #onlineRegisterScreen .big-icon {
+    text-align:center;
+    animation:corePulse 2s ease-in-out infinite alternate;
+  }
+  #onlineRegisterScreen h2 {
+    text-align:center; font-size:22px;
+    color:#4fc3f7; text-shadow:0 0 14px rgba(79,195,247,0.6);
+  }
+  #onlineRegisterScreen p {
+    text-align:center; color:#7ba8d6;
+    font-size:13px; max-width:340px;
+    line-height:1.5;
+  }
+  #onlineRegisterScreen .name-input { max-width:340px; }
+  #onlineRegisterScreen .btn-deal { max-width:340px; width:100%; }
+  .online-id-big {
+    font-size:32px; font-weight:bold; color:#ffd54f;
+    letter-spacing:4px; text-shadow:0 0 18px rgba(255,213,79,0.7);
+    margin:6px 0;
+  }
+  .profile-card {
+    width:100%; max-width:400px;
+    background:linear-gradient(145deg, rgba(42,30,77,0.95), rgba(26,16,53,0.95));
+    border:2px solid #4fc3f7;
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:14px;
+    text-align:center;
+    box-shadow:0 0 28px rgba(79,195,247,0.5);
+    animation:blockIn .55s cubic-bezier(.22,.9,.35,1) both;
+  }
+  .profile-card .p-name {
+    font-size:22px; font-weight:bold;
+    color:#fff; margin-bottom:6px;
+    text-shadow:0 0 12px rgba(255,255,255,0.4);
+  }
+  .profile-card .p-label {
+    font-size:11px; color:#7ba8d6;
+    letter-spacing:1px; margin-bottom:2px;
+  }
   #onlineScreen .big-icon { font-size:90px; margin-top:20px; filter:drop-shadow(0 0 34px #ffd54f); animation:corePulse 2s ease-in-out infinite alternate; }
   #onlineScreen h2 { font-size:28px; color:#ffd54f; text-align:center; text-shadow:0 0 18px rgba(255,213,79,0.6); }
   #onlineScreen .soon {
@@ -1048,7 +1085,7 @@
   </div>
   <div class="game-btn" data-game="online">
     <div class="ico">🌐</div>
-    <div class="info"><div class="n">Онлайн</div><div class="d">Скоро · игра с друзьями по сети</div></div>
+    <div class="info"><div class="n">Онлайн</div><div class="d">Играй с друзьями по сети</div></div>
     <div class="arrow">›</div>
   </div>
   <div class="game-btn" data-game="settings">
@@ -1062,7 +1099,7 @@
     <div class="arrow">›</div>
   </div>
 
-  <div style="margin-top:14px; color:#555; font-size:11px;">версия 0.2</div>
+  <div style="margin-top:14px; color:#555; font-size:11px;">версия 0.3</div>
 </div>
 
 <!-- СТАТИСТИКА -->
@@ -1161,7 +1198,7 @@
     <div class="about-card">
       <div class="about-icon">🎰</div>
       <h2>КАЗИК</h2>
-      <p class="about-version">версия 0.2 · by zyza</p>
+      <p class="about-version">версия 0.3 · by zyza</p>
     </div>
 
     <div class="about-block">
@@ -1175,6 +1212,11 @@
     </div>
 
     <div class="about-block">
+      <h3>🌐 Онлайн</h3>
+      <p>Зарегистрируйся в онлайне, получи свой <b>6-значный ID</b> и приглашай друзей по нему. Скоро — совместные игры по сети!</p>
+    </div>
+
+    <div class="about-block">
       <h3>🎮 Режимы</h3>
       <p>• <b>20 ячеек</b> — найди алмаз<br>
          • <b>Блэкджек</b> — набери 21 очко<br>
@@ -1184,32 +1226,63 @@
          • <b>Рулетка</b> — красное, чёрное или число</p>
     </div>
 
-    <div class="about-block">
-      <h3>🚀 Что дальше?</h3>
-      <p>Онлайн-режим, новые игры, бонусы и достижения. Следи за обновлениями!</p>
-    </div>
-
     <div class="about-block" style="border-color:#66bb6a;">
       <p style="color:#66bb6a;text-align:center;">💚 Спасибо что играешь!</p>
     </div>
   </div>
 </div>
 
-<!-- ОНЛАЙН -->
-<div class="screen game-screen" id="onlineScreen">
+<!-- ОНЛАЙН: РЕГИСТРАЦИЯ -->
+<div class="screen game-screen" id="onlineRegisterScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
+    <div class="game-title">🌐 Онлайн · Регистрация</div>
+    <div style="width:60px;"></div>
+  </div>
+  <div class="scroll-content" style="justify-content:center;">
+    <div class="big-icon" style="font-size:70px;filter:drop-shadow(0 0 30px #4fc3f7);">🌐</div>
+    <h2>Вход в онлайн</h2>
+    <p>Введи имя, под которым тебя увидят другие игроки. Тебе будет присвоен уникальный ID.</p>
+    <input class="name-input p1" id="onlineNameInput" maxlength="20" placeholder="Например: Вася" style="margin-top:14px;max-width:340px;">
+    <button class="btn-deal" id="onlineRegisterBtn" style="margin-top:14px;max-width:340px;width:100%;">🚀 Начать</button>
+    <div id="onlineRegError" style="color:#ff5252;font-size:12px;margin-top:8px;min-height:16px;text-align:center;"></div>
+  </div>
+</div>
+
+<!-- ОНЛАЙН: ГЛАВНОЕ МЕНЮ -->
+<div class="screen game-screen" id="onlineMenuScreen">
+  <div class="top-bar">
+    <button class="back-btn" id="onlineBackToOffline">◀ Офлайн</button>
     <div class="game-title">🌐 Онлайн</div>
     <div style="width:60px;"></div>
   </div>
-  <div class="scroll-content" style="justify-content:flex-start;">
-    <div class="big-icon">🌐</div>
-    <h2>Онлайн-режим</h2>
-    <div class="soon">СКОРО</div>
-    <p>Мы работаем над <span class="highlight">сетевым режимом</span> — ты сможешь играть с друзьями на разных устройствах через интернет!</p>
-    <p>Играть можно будет в <span class="highlight">Блэкджек, Кости и 20 ячеек</span> против реальных людей.</p>
-    <p class="support">💚 Разработчик старается! Поддержи проект — просто играй и делись с друзьями.</p>
-    <button class="btn-back-menu" data-back>← Назад в офлайн-меню</button>
+  <div class="scroll-content">
+    <div class="profile-card">
+      <div class="p-name" id="onlineMenuName">—</div>
+      <div class="p-label">Твой ID</div>
+      <div class="online-id-big" id="onlineMenuId">000 000</div>
+      <button class="toggle-btn" id="copyIdBtn" style="margin-top:6px;">📋 Скопировать ID</button>
+    </div>
+
+    <div class="bj-mode-btn" id="createLobbyBtn">
+      <div class="ico">➕</div>
+      <div class="info"><div class="n">Создать лобби</div><div class="d">Пригласи друга по ID</div></div>
+    </div>
+
+    <div class="bj-mode-btn" id="joinLobbyBtn">
+      <div class="ico">🔗</div>
+      <div class="info"><div class="n">Войти по ID</div><div class="d">Введи ID лобби друга</div></div>
+    </div>
+
+    <div class="bj-mode-btn" id="friendsBtn">
+      <div class="ico">👥</div>
+      <div class="info"><div class="n">Друзья</div><div class="d">Список друзей и добавление</div></div>
+    </div>
+
+    <div class="bj-mode-btn" id="onlinePlayOfflineBtn" style="border-color:#666;">
+      <div class="ico">🎮</div>
+      <div class="info"><div class="n">Играть офлайн</div><div class="d">Вернуться в обычное меню</div></div>
+    </div>
   </div>
 </div>
 
@@ -1774,7 +1847,7 @@ document.querySelectorAll('.game-btn').forEach(function(b) {
     if (g === 'rps')      showScreen('rpsModeScreen');
     if (g === 'slots')    showScreen('slotsGame');
     if (g === 'roulette') showScreen('rouletteGame');
-    if (g === 'online')   showScreen('onlineScreen');
+    if (g === 'online')   openOnline();
     if (g === 'settings') showScreen('settingsScreen');
     if (g === 'about')    showScreen('aboutScreen');
   });
@@ -1908,6 +1981,129 @@ function sndCardDeal() { beep(500, 0.04, 'sine', 0.05); setTimeout(function(){be
 function vib(ms)     { if (settings.vib && navigator.vibrate) navigator.vibrate(ms); }
 function vibPattern(p) { if (settings.vib && navigator.vibrate) navigator.vibrate(p); }
 
+/* ==================== ОНЛАЙН ==================== */
+(function() {
+  var API_URL = 'https://game-kazik-by-zyza.onrender.com';
+  var ONLINE_KEY = 'kazik_online_profile_v1';
+
+  var onlineProfile = null;
+  try { onlineProfile = JSON.parse(localStorage.getItem(ONLINE_KEY) || 'null'); } catch(e) {}
+
+  function getInitData() {
+    try {
+      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+        return window.Telegram.WebApp.initData;
+      }
+    } catch(e) {}
+    return '';
+  }
+
+  function saveOnlineProfile(p) {
+    onlineProfile = p;
+    localStorage.setItem(ONLINE_KEY, JSON.stringify(p));
+  }
+
+  window.openOnline = function() {
+    if (onlineProfile && onlineProfile.game_id) {
+      showOnlineMenu();
+    } else {
+      showScreen('onlineRegisterScreen');
+      document.getElementById('onlineRegError').textContent = '';
+      var tgName = '';
+      try {
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
+          tgName = window.Telegram.WebApp.initDataUnsafe.user.first_name || '';
+        }
+      } catch(e) {}
+      if (!tgName) tgName = player1Name === defaultName1 ? '' : player1Name;
+      document.getElementById('onlineNameInput').value = tgName;
+    }
+  };
+
+  function showOnlineMenu() {
+    document.getElementById('onlineMenuName').textContent = onlineProfile.name;
+    // форматируем ID с пробелом: 123 456
+    var gid = String(onlineProfile.game_id);
+    var formatted = gid.length === 6 ? gid.slice(0,3) + ' ' + gid.slice(3) : gid;
+    document.getElementById('onlineMenuId').textContent = formatted;
+    showScreen('onlineMenuScreen');
+  }
+
+  document.getElementById('onlineRegisterBtn').addEventListener('click', function() {
+    var name = document.getElementById('onlineNameInput').value.trim();
+    if (name.length < 2) {
+      document.getElementById('onlineRegError').textContent = 'Имя минимум 2 символа';
+      return;
+    }
+    var errEl = document.getElementById('onlineRegError');
+    errEl.style.color = '#7ba8d6';
+    errEl.textContent = 'Отправляем...';
+    this.disabled = true;
+
+    fetch(API_URL + '/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData: getInitData(), name: name })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      document.getElementById('onlineRegisterBtn').disabled = false;
+      errEl.style.color = '#ff5252';
+      if (data.error) {
+        errEl.textContent = 'Ошибка: ' + data.error;
+        return;
+      }
+      saveOnlineProfile(data.player);
+      sndBig();
+      spawnConfetti(60);
+      showOnlineMenu();
+      showToast('Добро пожаловать, ' + data.player.name + '!');
+    })
+    .catch(function(err) {
+      document.getElementById('onlineRegisterBtn').disabled = false;
+      errEl.style.color = '#ff5252';
+      errEl.textContent = 'Сервер не отвечает. Попробуй позже.';
+      console.error(err);
+    });
+  });
+
+  document.getElementById('onlineBackToOffline').addEventListener('click', function() {
+    showScreen('menu');
+  });
+  document.getElementById('onlinePlayOfflineBtn').addEventListener('click', function() {
+    showScreen('menu');
+  });
+
+  document.getElementById('copyIdBtn').addEventListener('click', function() {
+    if (!onlineProfile) return;
+    var id = String(onlineProfile.game_id);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(id).then(function() {
+        showToast('ID скопирован: ' + id);
+      }).catch(function() {
+        showToast('ID: ' + id);
+      });
+    } else {
+      var t = document.createElement('textarea');
+      t.value = id; document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); } catch(e) {}
+      t.remove();
+      showToast('ID скопирован: ' + id);
+    }
+    sndClick();
+  });
+
+  document.getElementById('createLobbyBtn').addEventListener('click', function() {
+    showToast('Лобби — следующий этап!');
+  });
+  document.getElementById('joinLobbyBtn').addEventListener('click', function() {
+    showToast('Присоединение — следующий этап!');
+  });
+  document.getElementById('friendsBtn').addEventListener('click', function() {
+    showToast('Друзья — следующий этап!');
+  });
+})();
+
 /* ==================== 20 ЯЧЕЕК ==================== */
 (function() {
   var TOTAL = 20;
@@ -1924,7 +2120,6 @@ function vibPattern(p) { if (settings.vib && navigator.vibrate) navigator.vibrat
     localStorage.setItem('lucky_wins1_v1', wins1);
     localStorage.setItem('lucky_wins2_v1', wins2);
   }
-
   function buildGrid() {
     var gridEl = document.getElementById('grid');
     gridEl.innerHTML = '';
@@ -2943,7 +3138,7 @@ function vibPattern(p) { if (settings.vib && navigator.vibrate) navigator.vibrat
 
 /* ==================== КАЗИНО ==================== */
 (function() {
-  /* СЛОТЫ с реалистичной прокруткой */
+  /* СЛОТЫ */
   var SYMBOLS = ['🍒','🍋','🍇','⭐','💎','7️⃣'];
   var slotBet = 500;
   var windows = [
@@ -2955,12 +3150,10 @@ function vibPattern(p) { if (settings.vib && navigator.vibrate) navigator.vibrat
   var slotSpinBtn = document.getElementById('slotSpin');
   var spinningSlots = false;
 
-  // инициализируем ленты барабанов
   function initReel(win) {
     win.innerHTML = '';
     var strip = document.createElement('div');
     strip.className = 'reel-strip';
-    // много символов для плавной прокрутки
     for (var i = 0; i < 20; i++) {
       var cell = document.createElement('div');
       cell.className = 'reel-cell';
@@ -2995,32 +3188,24 @@ function vibPattern(p) { if (settings.vib && navigator.vibrate) navigator.vibrat
         win.classList.add('spinning');
         var cellH = 88;
         var strip_len = strip.children.length;
-        // длина проезда в пикселях (несколько оборотов + финальная позиция)
         var totalScroll = cellH * (strip_len + 10);
         var start = performance.now();
         var lastTickTime = 0;
 
         function frame(now) {
           var t = Math.min(1, (now - start) / duration);
-          // ease-out cubic
           var ease = 1 - Math.pow(1 - t, 3);
           var y = -ease * totalScroll;
-          // зацикливаем позицию
           var offset = y % (cellH * strip_len);
           strip.style.transform = 'translateY(' + offset + 'px)';
-
-          // тик-звук
           if (now - lastTickTime > 60 && t < 0.9) {
             sndTick();
             lastTickTime = now;
           }
-
           if (t < 1) {
             requestAnimationFrame(frame);
           } else {
-            // финальная установка
             strip.children[strip_len - 1].textContent = finalSymbol;
-            // прокрутим ровно на последнюю ячейку
             strip.style.transform = 'translateY(-' + (cellH * (strip_len - 1)) + 'px)';
             win.classList.remove('spinning');
             sndCard();
@@ -3041,12 +3226,10 @@ function vibPattern(p) { if (settings.vib && navigator.vibrate) navigator.vibrat
     slotMsg.className = 'result-msg info';
     slotMsg.textContent = 'Крутим...';
 
-    // финальный результат
     var finalA = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
     var finalB = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
     var finalC = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
 
-    // сброс ленты перед прокруткой
     strips.forEach(function(strip) {
       strip.innerHTML = '';
       for (var i = 0; i < 20; i++) {
