@@ -27,13 +27,15 @@
     0%,100% { transform:translate(0,0) scale(1); }
     50%     { transform:translate(40px,-30px) scale(1.15); }
   }
+
+  /* ============ ЗАГРУЗКА ============ */
   #loader {
     position:fixed; inset:0; z-index:9999;
     background:radial-gradient(circle at 50% 40%, #16213e 0%, #0b1020 70%);
     display:flex; flex-direction:column;
     align-items:center; justify-content:center;
     gap:22px; overflow:hidden;
-    transition:opacity .7s cubic-bezier(.6,.2,.2,1), visibility .7s cubic-bezier(.6,.2,.2,1);
+    transition:opacity .7s ease, visibility .7s ease;
   }
   #loader.hide { opacity:0; visibility:hidden; }
   .loader-particles { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
@@ -119,6 +121,8 @@
     from { transform:scale(0.85); box-shadow:0 0 18px rgba(79,195,247,0.7); }
     to   { transform:scale(1.1);  box-shadow:0 0 34px rgba(186,104,200,1); }
   }
+
+  /* ============ ЭКРАНЫ ============ */
   .screen {
     position:absolute; top:0; left:0; right:0; bottom:0;
     display:none; flex-direction:column;
@@ -127,176 +131,207 @@
   }
   .screen.active {
     display:flex;
-    animation:screenIn .5s cubic-bezier(.22,.9,.35,1) both;
+    animation:screenIn .45s cubic-bezier(.22,.9,.35,1) both;
   }
   @keyframes screenIn {
-    0%   { opacity:0; transform:translateY(24px) scale(0.965); filter:blur(6px); }
-    60%  { filter:blur(0); }
-    100% { opacity:1; transform:translateY(0) scale(1); filter:blur(0); }
+    0%   { opacity:0; transform:translateY(20px) scale(0.97); }
+    100% { opacity:1; transform:translateY(0) scale(1); }
   }
+
+  /* ============ ГЛАВНОЕ МЕНЮ (НОВОЕ) ============ */
   #menu {
-    align-items:center; justify-content:flex-start;
-    padding:16px 16px 70px; gap:10px;
-    overflow-y:scroll !important; overflow-x:hidden;
-    -webkit-overflow-scrolling:touch;
-    overscroll-behavior:contain;
-    touch-action:pan-y !important;
-    position:relative; height:100%;
+    padding:0;
+    gap:0;
+    overflow:hidden;
   }
-  #menu::-webkit-scrollbar { width:0; height:0; display:none; }
-  #menu h1 {
-    font-size:32px; letter-spacing:3px;
+  .menu-header {
+    padding:16px 16px 10px;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    flex-shrink:0;
+    background:linear-gradient(180deg, rgba(20,28,54,0.5), transparent);
+  }
+  .menu-header h1 {
+    font-size:26px; letter-spacing:3px;
     background:linear-gradient(90deg, #4fc3f7, #ffd54f, #ba68c8, #4fc3f7);
     background-size:300% 100%;
     -webkit-background-clip:text; background-clip:text;
     color:transparent; font-weight:bold;
-    margin-bottom:2px;
+    animation:logoShift 4s linear infinite;
     filter:drop-shadow(0 0 20px rgba(79,195,247,0.5));
+  }
+  .menu-header .profile-row {
+    display:flex; gap:8px; width:100%; max-width:440px;
+    align-items:center;
+  }
+  .menu-header .balance-mini {
+    flex:1;
+    background:linear-gradient(145deg, rgba(42,30,77,0.9), rgba(26,16,53,0.9));
+    border:2px solid #ffd54f; border-radius:14px;
+    padding:8px 12px;
+    font-size:14px; font-weight:bold; color:#ffd54f;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    box-shadow:0 0 16px rgba(255,213,79,0.4);
+    transition:transform .25s ease;
+  }
+  .menu-header .balance-mini:active { transform:scale(0.97); }
+  .menu-header .score-mini {
+    flex:1;
+    background:linear-gradient(145deg, rgba(74,46,90,0.9), rgba(42,30,58,0.9));
+    border:2px solid #ba68c8; border-radius:14px;
+    padding:8px 12px;
+    font-size:14px; font-weight:bold; color:#fff;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    box-shadow:0 0 16px rgba(186,104,200,0.4);
+    cursor:pointer;
+    transition:transform .25s ease;
+  }
+  .menu-header .score-mini:active { transform:scale(0.97); }
+  .menu-header .score-mini .lbl { color:#ba68c8; font-size:10px; }
+  .menu-header .score-mini .val { color:#fff; font-size:13px; }
+
+  /* Имя игрока */
+  .player-names-row {
+    display:flex; gap:8px; width:100%; max-width:440px;
+    margin-top:2px;
+  }
+  .player-names-row .pn {
+    flex:1;
+    font-size:11px; font-weight:bold;
+    padding:5px 10px; border-radius:10px;
+    background:rgba(26,16,53,0.85);
+    border:1.5px solid; text-align:center;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .player-names-row .pn.p1 { border-color:#4fc3f7; color:#4fc3f7; }
+  .player-names-row .pn.p2 { border-color:#ba68c8; color:#ba68c8; }
+
+  /* Вкладки */
+  .tabs {
+    display:flex; gap:6px;
+    padding:8px 16px 10px;
     flex-shrink:0;
-    animation:logoShift 4s linear infinite, menuTitleIn .7s cubic-bezier(.22,.9,.35,1) both;
+    max-width:440px; width:100%; margin:0 auto;
   }
-  @keyframes menuTitleIn {
-    from { opacity:0; transform:translateY(-16px) scale(0.9); }
-    to   { opacity:1; transform:translateY(0) scale(1); }
+  .tab-btn {
+    flex:1; padding:10px 8px;
+    background:rgba(26,16,53,0.7);
+    border:2px solid #2d4070; border-radius:14px;
+    color:#7ba8d6; font-size:13px; font-weight:bold;
+    cursor:pointer; font-family:Arial, sans-serif;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    transition:all .3s cubic-bezier(.34,1.56,.64,1);
   }
-  #menu .sub { color:#888; font-size:12px; margin-bottom:8px; flex-shrink:0; letter-spacing:1px; }
-  .tg-user {
-    display:none; align-items:center; gap:10px;
-    background:linear-gradient(145deg, rgba(30,42,74,0.85), rgba(22,33,62,0.85));
-    backdrop-filter:blur(10px);
-    border:2px solid #4fc3f7; border-radius:50px;
-    padding:6px 18px 6px 6px;
-    box-shadow:0 0 22px rgba(79,195,247,0.5);
-    margin-bottom:6px; flex-shrink:0;
-    animation:popIn .55s cubic-bezier(.22,.9,.35,1) both;
+  .tab-btn:active { transform:scale(0.95); }
+  .tab-btn.active {
+    background:linear-gradient(145deg, rgba(79,195,247,0.25), rgba(186,104,200,0.25));
+    border-color:#4fc3f7;
+    color:#fff;
+    box-shadow:0 0 18px rgba(79,195,247,0.5);
   }
-  .tg-user.show { display:flex; }
-  @keyframes popIn {
-    0%   { opacity:0; transform:scale(0.85) translateY(8px); }
-    60%  { transform:scale(1.03) translateY(0); }
-    100% { opacity:1; transform:scale(1) translateY(0); }
+  .tab-btn .tab-ico { font-size:18px; }
+  .tab-btn .tab-lbl { font-size:12px; }
+
+  /* Контент вкладок */
+  .tab-content {
+    flex:1; display:none; overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y !important;
+    padding:6px 16px 30px;
+    height:0; min-height:0;
   }
-  .tg-user .avatar {
-    width:46px; height:46px; border-radius:50%;
-    background:linear-gradient(135deg, #4fc3f7 0%, #2196f3 50%, #ba68c8 100%);
-    display:flex; align-items:center; justify-content:center;
-    font-size:22px; font-weight:bold; color:#0a0e1a;
-    border:2px solid rgba(79,195,247,0.8);
-    box-shadow:0 0 22px rgba(79,195,247,0.8), inset 0 0 15px rgba(255,255,255,0.3);
-    overflow:hidden; flex-shrink:0; position:relative;
-    text-shadow:0 0 10px rgba(255,255,255,0.7);
+  .tab-content::-webkit-scrollbar { width:0; display:none; }
+  .tab-content.active { display:block; }
+
+  /* Сетка игр */
+  .games-grid {
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:10px;
+    max-width:440px; margin:0 auto;
+    padding-bottom:20px;
   }
-  .tg-user .avatar::after {
-    content:''; position:absolute; inset:2px; border-radius:50%;
-    background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.45), transparent 60%);
+  .game-tile {
+    background:linear-gradient(145deg, rgba(30,42,74,0.9), rgba(22,33,62,0.9));
+    backdrop-filter:blur(8px);
+    border:2px solid #2d4070; border-radius:16px;
+    padding:16px 12px;
+    cursor:pointer;
+    text-align:center;
+    position:relative; overflow:hidden;
+    transition:transform .3s cubic-bezier(.34,1.56,.64,1), border-color .3s ease, box-shadow .3s ease;
+    animation:btnSlide .55s cubic-bezier(.22,.9,.35,1) both;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .game-tile:nth-child(1) { animation-delay:.04s; }
+  .game-tile:nth-child(2) { animation-delay:.08s; }
+  .game-tile:nth-child(3) { animation-delay:.12s; }
+  .game-tile:nth-child(4) { animation-delay:.16s; }
+  .game-tile:nth-child(5) { animation-delay:.20s; }
+  .game-tile:nth-child(6) { animation-delay:.24s; }
+  @keyframes btnSlide {
+    0%   { opacity:0; transform:translateY(12px) scale(0.95); }
+    100% { opacity:1; transform:translateY(0) scale(1); }
+  }
+  .game-tile::before {
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(circle at 50% 0%, rgba(79,195,247,0.15), transparent 70%);
     pointer-events:none;
   }
-  .tg-user .info { display:flex; flex-direction:column; text-align:left; }
-  .tg-user .info .greet { font-size:10px; color:#7ba8d6; font-weight:normal; letter-spacing:0.5px; }
-  .tg-user .info .uname {
-    font-size:14px; font-weight:bold; color:#4fc3f7;
-    text-shadow:0 0 8px rgba(79,195,247,0.6);
-    max-width:170px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  .game-tile:active {
+    transform:scale(0.94);
+    border-color:#4fc3f7;
+    box-shadow:0 0 26px rgba(79,195,247,0.6);
   }
-  .score-btn {
-    display:flex; align-items:center; justify-content:center; gap:8px;
-    background:linear-gradient(145deg, rgba(74,46,90,0.9), rgba(42,30,58,0.9));
-    backdrop-filter:blur(8px);
-    border:2px solid #ba68c8;
-    border-radius:16px;
-    padding:10px 22px;
-    font-size:14px; font-weight:bold; color:#fff;
-    cursor:pointer;
-    margin-bottom:8px; flex-shrink:0;
-    box-shadow:0 0 20px rgba(186,104,200,0.45);
-    font-family:Arial, sans-serif;
-    transition:transform .25s cubic-bezier(.34,1.56,.64,1);
-  }
-  .score-btn:active { transform:scale(0.94); }
-  .score-btn .lbl { color:#ba68c8; font-size:11px; }
-  .score-btn .val { color:#fff; font-size:16px; }
-  .menu-balance {
-    display:flex; align-items:center; gap:8px;
-    background:linear-gradient(145deg, rgba(42,30,77,0.9), rgba(26,16,53,0.9));
-    backdrop-filter:blur(8px);
-    border:2px solid #ffd54f; border-radius:16px;
-    padding:10px 24px; font-size:18px; font-weight:bold; color:#ffd54f;
-    box-shadow:0 0 24px rgba(255,213,79,0.5);
-    margin-bottom:8px; flex-shrink:0;
-    animation:balancePulse 2.4s ease-in-out infinite alternate;
-  }
-  @keyframes balancePulse {
-    from { box-shadow:0 0 18px rgba(255,213,79,0.4); }
-    to   { box-shadow:0 0 32px rgba(255,213,79,0.8); }
-  }
-  .menu-players {
-    display:flex; gap:8px;
-    width:100%; max-width:360px;
-    margin-bottom:6px; flex-shrink:0;
-  }
-  .menu-players .mp {
-    flex:1; background:rgba(26,16,53,0.85); border:2px solid; border-radius:14px;
-    padding:8px 10px; font-size:12px; font-weight:bold; text-align:center;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    backdrop-filter:blur(6px);
-  }
-  .menu-players .mp.p1 { border-color:#4fc3f7; color:#4fc3f7; box-shadow:0 0 16px rgba(79,195,247,0.35); }
-  .menu-players .mp.p2 { border-color:#ba68c8; color:#ba68c8; box-shadow:0 0 16px rgba(186,104,200,0.35); }
-  .game-btn {
-    width:100%; max-width:360px;
+  .game-tile .g-ico { font-size:40px; line-height:1; filter:drop-shadow(0 0 10px rgba(79,195,247,0.4)); }
+  .game-tile .g-name { font-size:14px; font-weight:bold; color:#fff; }
+  .game-tile .g-desc { font-size:10px; color:#7ba8d6; line-height:1.3; }
+
+  /* Список кнопок (для "Ещё") */
+  .list-btn {
+    display:flex; align-items:center; gap:14px;
+    width:100%; max-width:440px; margin:0 auto 10px;
     padding:14px 16px;
     background:linear-gradient(145deg, rgba(30,42,74,0.9), rgba(22,33,62,0.9));
     backdrop-filter:blur(8px);
     border:2px solid #2d4070; border-radius:16px;
-    font-size:16px; font-weight:bold; color:#fff;
-    display:flex; align-items:center; gap:14px;
+    color:#fff; font-size:15px; font-weight:bold;
     cursor:pointer; font-family:Arial, sans-serif;
-    flex-shrink:0;
-    position:relative; overflow:hidden;
-    transition:transform .3s cubic-bezier(.34,1.56,.64,1), border-color .3s ease, box-shadow .3s ease, background .3s ease;
-    animation:btnSlide .55s cubic-bezier(.22,.9,.35,1) both;
+    transition:transform .3s cubic-bezier(.34,1.56,.64,1), border-color .3s ease, box-shadow .3s ease;
   }
-  .game-btn:nth-of-type(1) { animation-delay:.04s; }
-  .game-btn:nth-of-type(2) { animation-delay:.08s; }
-  .game-btn:nth-of-type(3) { animation-delay:.12s; }
-  .game-btn:nth-of-type(4) { animation-delay:.16s; }
-  .game-btn:nth-of-type(5) { animation-delay:.20s; }
-  .game-btn:nth-of-type(6) { animation-delay:.24s; }
-  .game-btn:nth-of-type(7) { animation-delay:.28s; }
-  .game-btn:nth-of-type(8) { animation-delay:.32s; }
-  .game-btn:nth-of-type(9) { animation-delay:.36s; }
-  @keyframes btnSlide {
-    0%   { opacity:0; transform:translateX(-28px) scale(0.96); }
-    100% { opacity:1; transform:translateX(0) scale(1); }
-  }
-  .game-btn::before {
-    content:''; position:absolute; inset:0;
-    background:linear-gradient(120deg, transparent 30%, rgba(79,195,247,0.25) 50%, transparent 70%);
-    transform:translateX(-100%);
-    transition:transform .8s cubic-bezier(.22,.9,.35,1);
-    pointer-events:none;
-  }
-  .game-btn:active {
-    transform:scale(0.965);
+  .list-btn:active {
+    transform:scale(0.97);
     border-color:#4fc3f7;
-    box-shadow:0 0 28px rgba(79,195,247,0.55);
-    background:linear-gradient(145deg, rgba(38,52,90,0.95), rgba(28,42,74,0.95));
+    box-shadow:0 0 22px rgba(79,195,247,0.5);
   }
-  .game-btn:active::before { transform:translateX(100%); }
-  .game-btn .ico {
-    font-size:28px;
-    filter:drop-shadow(0 0 8px rgba(79,195,247,0.5));
-    transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+  .list-btn .lb-ico { font-size:26px; }
+  .list-btn .lb-info { flex:1; text-align:left; }
+  .list-btn .lb-info .lb-n { font-size:15px; }
+  .list-btn .lb-info .lb-d { font-size:11px; color:#7ba8d6; font-weight:normal; margin-top:2px; }
+  .list-btn .lb-arrow { color:#4fc3f7; font-size:20px; }
+
+  /* Онлайн-заглушка в табе */
+  .online-tab-content {
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    text-align:center; gap:12px;
+    padding:20px; max-width:400px; margin:0 auto;
   }
-  .game-btn:active .ico { transform:scale(1.15) rotate(-6deg); }
-  .game-btn .info { flex:1; text-align:left; }
-  .game-btn .info .n { font-size:16px; color:#fff; }
-  .game-btn .info .d { font-size:11px; color:#7ba8d6; font-weight:normal; margin-top:2px; }
-  .game-btn .arrow {
-    color:#4fc3f7; font-size:22px;
-    transition:transform .3s cubic-bezier(.34,1.56,.64,1), color .3s ease;
+  .online-tab-content .big-ico {
+    font-size:70px; line-height:1;
+    filter:drop-shadow(0 0 30px #ffd54f);
+    animation:corePulse 2s ease-in-out infinite alternate;
   }
-  .game-btn:active .arrow { transform:translateX(5px); color:#ffd54f; }
+  .online-tab-content h2 { color:#ffd54f; font-size:20px; text-shadow:0 0 14px rgba(255,213,79,0.5); }
+  .online-tab-content .soon-badge {
+    font-size:12px; background:linear-gradient(145deg,#ffd54f,#ffb300);
+    color:#0a0e1a; padding:5px 14px; border-radius:14px;
+    font-weight:bold; letter-spacing:2px;
+    box-shadow:0 0 20px rgba(255,213,79,0.6);
+  }
+  .online-tab-content p { color:#ccc; font-size:13px; line-height:1.6; }
+  .online-tab-content .support { color:#81c784; font-size:12px; font-style:italic; }
+
+  /* Top-bar для игровых экранов */
   .game-screen { background:#0a0e1a; position:relative; z-index:1; }
   .top-bar {
     display:flex; align-items:center;
@@ -338,6 +373,7 @@
     font-size:12px; font-weight:bold; color:#ffd54f;
     box-shadow:0 0 12px rgba(255,213,79,0.35);
   }
+
   .scroll-content {
     flex:1; overflow-y:scroll !important; overflow-x:hidden;
     -webkit-overflow-scrolling:touch;
@@ -348,6 +384,8 @@
     height:0; min-height:0;
   }
   .scroll-content::-webkit-scrollbar { width:0; height:0; display:none; }
+
+  /* Стата / настройки / о игре */
   #statsScreen .scroll-content { padding-top:24px; }
   .stats-block, .settings-card, .about-block {
     width:100%; max-width:400px;
@@ -491,7 +529,7 @@
     letter-spacing:1px; margin-bottom:2px;
   }
   .tech-enter-btn {
-    margin-top:24px;
+    margin-top:16px;
     padding:9px 22px;
     background:transparent;
     border:1px solid #3d2d70;
@@ -1028,79 +1066,112 @@
   </div>
 </div>
 
+<!-- ГЛАВНОЕ МЕНЮ (с вкладками) -->
 <div class="screen active" id="menu">
-  <h1>🎰 КАЗИК</h1>
-  <div class="sub">Выбери игру</div>
+  <div class="menu-header">
+    <h1>🎰 КАЗИК</h1>
 
-  <div class="tg-user" id="tgUserBox">
-    <div class="avatar" id="tgAvatar">👤</div>
-    <div class="info">
-      <div class="greet">Привет из Telegram</div>
-      <div class="uname" id="tgUsername">Пользователь</div>
+    <div class="profile-row">
+      <div class="balance-mini">💰 <span id="menuBalance">100 000</span></div>
+      <div class="score-mini" id="openStatsBtn">
+        <span class="lbl">🏆</span>
+        <span class="val" id="menuScoreVal">0 : 0</span>
+      </div>
+    </div>
+
+    <div class="player-names-row">
+      <div class="pn p1" id="menuNameP1">🔵 Игрок 1</div>
+      <div class="pn p2" id="menuNameP2">🟣 Игрок 2</div>
     </div>
   </div>
 
-  <button class="score-btn" id="openStatsBtn">
-    <span class="lbl">🏆 СЧЁТ СЕССИИ</span>
-    <span class="val" id="menuScoreVal">0 : 0</span>
-  </button>
-
-  <div class="menu-balance">💰 <span id="menuBalance">100 000</span></div>
-
-  <div class="menu-players">
-    <div class="mp p1" id="menuNameP1">🔵 Игрок 1</div>
-    <div class="mp p2" id="menuNameP2">🟣 Игрок 2</div>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="games">
+      <span class="tab-ico">🎮</span>
+      <span class="tab-lbl">Игры</span>
+    </button>
+    <button class="tab-btn" data-tab="online">
+      <span class="tab-ico">🌐</span>
+      <span class="tab-lbl">Онлайн</span>
+    </button>
+    <button class="tab-btn" data-tab="more">
+      <span class="tab-ico">⚙️</span>
+      <span class="tab-lbl">Ещё</span>
+    </button>
   </div>
 
-  <div class="game-btn" data-game="lucky">
-    <div class="ico">💎</div>
-    <div class="info"><div class="n">20 ячеек</div><div class="d">1 или 2 игрока · кто первый найдёт алмаз</div></div>
-    <div class="arrow">›</div>
-  </div>
-  <div class="game-btn" data-game="bj">
-    <div class="ico">🃏</div>
-    <div class="info"><div class="n">Блэкджек</div><div class="d">1 или 2 игрока</div></div>
-    <div class="arrow">›</div>
-  </div>
-  <div class="game-btn" data-game="dice">
-    <div class="ico">🎲</div>
-    <div class="info"><div class="n">Кости</div><div class="d">1 или 2 игрока</div></div>
-    <div class="arrow">›</div>
-  </div>
-  <div class="game-btn" data-game="rps">
-    <div class="ico">✊</div>
-    <div class="info"><div class="n">Камень-Ножницы-Бумага</div><div class="d">Против бота или 1 на 1</div></div>
-    <div class="arrow">›</div>
-  </div>
-  <div class="game-btn" data-game="slots">
-    <div class="ico">🎰</div>
-    <div class="info"><div class="n">Слоты</div><div class="d">Крути барабаны, лови 3 в ряд</div></div>
-    <div class="arrow">›</div>
-  </div>
-  <div class="game-btn" data-game="roulette">
-    <div class="ico">🎡</div>
-    <div class="info"><div class="n">Рулетка</div><div class="d">Красное, чёрное или число</div></div>
-    <div class="arrow">›</div>
-  </div>
-  <div class="game-btn" data-game="online">
-    <div class="ico">🌐</div>
-    <div class="info"><div class="n">Онлайн</div><div class="d">Играй с друзьями по сети</div></div>
-    <div class="arrow">›</div>
-  </div>
-  <div class="game-btn" data-game="settings">
-    <div class="ico">⚙️</div>
-    <div class="info"><div class="n">Настройки</div><div class="d">Звук, вибрация, имена, сброс</div></div>
-    <div class="arrow">›</div>
-  </div>
-  <div class="game-btn" data-game="about">
-    <div class="ico">ℹ️</div>
-    <div class="info"><div class="n">О игре</div><div class="d">Что это и как играть</div></div>
-    <div class="arrow">›</div>
+  <!-- Вкладка ИГРЫ -->
+  <div class="tab-content active" id="tabGames">
+    <div class="games-grid">
+      <div class="game-tile" data-game="lucky">
+        <div class="g-ico">💎</div>
+        <div class="g-name">20 ячеек</div>
+        <div class="g-desc">Найди алмаз</div>
+      </div>
+      <div class="game-tile" data-game="bj">
+        <div class="g-ico">🃏</div>
+        <div class="g-name">Блэкджек</div>
+        <div class="g-desc">Набери 21</div>
+      </div>
+      <div class="game-tile" data-game="dice">
+        <div class="g-ico">🎲</div>
+        <div class="g-name">Кости</div>
+        <div class="g-desc">Угадай сумму</div>
+      </div>
+      <div class="game-tile" data-game="rps">
+        <div class="g-ico">✊</div>
+        <div class="g-name">КМН</div>
+        <div class="g-desc">Против бота</div>
+      </div>
+      <div class="game-tile" data-game="slots">
+        <div class="g-ico">🎰</div>
+        <div class="g-name">Слоты</div>
+        <div class="g-desc">Лови 3 в ряд</div>
+      </div>
+      <div class="game-tile" data-game="roulette">
+        <div class="g-ico">🎡</div>
+        <div class="g-name">Рулетка</div>
+        <div class="g-desc">Красное/Чёрное</div>
+      </div>
+    </div>
   </div>
 
-  <div style="margin-top:14px; color:#555; font-size:11px;">версия 0.5</div>
+  <!-- Вкладка ОНЛАЙН -->
+  <div class="tab-content" id="tabOnline">
+    <div class="online-tab-content">
+      <div class="big-ico">🌐</div>
+      <h2>Онлайн-режим</h2>
+      <div class="soon-badge">СКОРО</div>
+      <p>Мы работаем над <b style="color:#ffd54f;">сетевым режимом</b> — ты сможешь играть с друзьями на разных устройствах через интернет!</p>
+      <p>Играть можно будет в <b style="color:#ffd54f;">Блэкджек, Кости и 20 ячеек</b> против реальных людей.</p>
+      <p class="support">💚 Разработчик старается! Поддержи проект — просто играй и делись с друзьями.</p>
+      <button class="tech-enter-btn" id="techEnterBtn">🔧 Технический вход</button>
+    </div>
+  </div>
+
+  <!-- Вкладка ЕЩЁ -->
+  <div class="tab-content" id="tabMore">
+    <button class="list-btn" id="openSettingsBtn">
+      <div class="lb-ico">⚙️</div>
+      <div class="lb-info">
+        <div class="lb-n">Настройки</div>
+        <div class="lb-d">Звук, вибрация, имена, сброс</div>
+      </div>
+      <div class="lb-arrow">›</div>
+    </button>
+    <button class="list-btn" id="openAboutBtn">
+      <div class="lb-ico">ℹ️</div>
+      <div class="lb-info">
+        <div class="lb-n">О игре</div>
+        <div class="lb-d">Что это и как играть</div>
+      </div>
+      <div class="lb-arrow">›</div>
+    </button>
+    <div style="text-align:center;color:#555;font-size:11px;margin-top:16px;">версия 0.6</div>
+  </div>
 </div>
 
+<!-- СТАТИСТИКА -->
 <div class="screen game-screen" id="statsScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1146,9 +1217,10 @@
   </div>
 </div>
 
+<!-- НАСТРОЙКИ -->
 <div class="screen game-screen" id="settingsScreen">
   <div class="top-bar">
-    <button class="back-btn" data-back>◀ Меню</button>
+    <button class="back-btn" id="settingsBack">◀ Назад</button>
     <div class="game-title">⚙️ Настройки</div>
     <div style="width:60px;"></div>
   </div>
@@ -1177,9 +1249,10 @@
   </div>
 </div>
 
+<!-- О ИГРЕ -->
 <div class="screen game-screen" id="aboutScreen">
   <div class="top-bar">
-    <button class="back-btn" data-back>◀ Меню</button>
+    <button class="back-btn" id="aboutBack">◀ Назад</button>
     <div class="game-title">ℹ️ О игре</div>
     <div style="width:60px;"></div>
   </div>
@@ -1187,7 +1260,7 @@
     <div class="about-card">
       <div class="about-icon">🎰</div>
       <h2>КАЗИК</h2>
-      <p class="about-version">версия 0.5 · by zyza</p>
+      <p class="about-version">версия 0.6 · by zyza</p>
     </div>
     <div class="about-block">
       <h3>🎯 Что это?</h3>
@@ -1216,24 +1289,7 @@
   </div>
 </div>
 
-<div class="screen game-screen" id="onlineScreen">
-  <div class="top-bar">
-    <button class="back-btn" data-back>◀ Меню</button>
-    <div class="game-title">🌐 Онлайн</div>
-    <div style="width:60px;"></div>
-  </div>
-  <div class="scroll-content" style="justify-content:flex-start;">
-    <div class="big-icon" style="font-size:90px;margin-top:20px;filter:drop-shadow(0 0 34px #ffd54f);animation:corePulse 2s ease-in-out infinite alternate;">🌐</div>
-    <h2 style="font-size:28px;color:#ffd54f;text-align:center;text-shadow:0 0 18px rgba(255,213,79,0.6);margin-top:0;">Онлайн-режим</h2>
-    <div style="font-size:13px;background:linear-gradient(145deg,#ffd54f,#ffb300);color:#0a0e1a;padding:6px 16px;border-radius:16px;font-weight:bold;letter-spacing:2px;box-shadow:0 0 22px rgba(255,213,79,0.6);">СКОРО</div>
-    <p style="color:#ccc;font-size:14px;line-height:1.7;max-width:360px;text-align:center;">Мы работаем над <span style="color:#ffd54f;font-weight:bold;">сетевым режимом</span> — ты сможешь играть с друзьями на разных устройствах через интернет!</p>
-    <p style="color:#ccc;font-size:14px;line-height:1.7;max-width:360px;text-align:center;">Играть можно будет в <span style="color:#ffd54f;font-weight:bold;">Блэкджек, Кости и 20 ячеек</span> против реальных людей.</p>
-    <p style="color:#81c784;font-size:13px;font-style:italic;margin-top:6px;text-align:center;">💚 Разработчик старается! Поддержи проект — просто играй и делись с друзьями.</p>
-
-    <button class="tech-enter-btn" id="techEnterBtn">🔧 Технический вход</button>
-  </div>
-</div>
-
+<!-- ОНЛАЙН: РЕГИСТРАЦИЯ -->
 <div class="screen game-screen" id="onlineRegisterScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1241,15 +1297,16 @@
     <div style="width:60px;"></div>
   </div>
   <div class="scroll-content" style="justify-content:center;">
-    <div class="big-icon" style="font-size:70px;filter:drop-shadow(0 0 30px #4fc3f7);text-align:center;">🌐</div>
-    <h2 style="text-align:center;font-size:22px;color:#4fc3f7;text-shadow:0 0 14px rgba(79,195,247,0.6);">Вход в онлайн</h2>
-    <p id="onlineRegHint" style="text-align:center;color:#7ba8d6;font-size:13px;max-width:340px;line-height:1.5;">Введи имя, под которым тебя увидят другие игроки. Тебе будет присвоен уникальный ID.</p>
+    <div class="big-icon" style="font-size:70px;filter:drop-shadow(0 0 30px #4fc3f7);">🌐</div>
+    <h2>Вход в онлайн</h2>
+    <p id="onlineRegHint">Введи имя, под которым тебя увидят другие игроки. Тебе будет присвоен уникальный ID.</p>
     <input class="name-input p1" id="onlineNameInput" maxlength="20" placeholder="Например: Вася" style="margin-top:14px;max-width:340px;">
     <button class="btn-deal" id="onlineRegisterBtn" style="margin-top:14px;max-width:340px;width:100%;">🚀 Начать</button>
     <div id="onlineRegError" style="color:#ff5252;font-size:12px;margin-top:8px;min-height:16px;text-align:center;"></div>
   </div>
 </div>
 
+<!-- ОНЛАЙН: МЕНЮ -->
 <div class="screen game-screen" id="onlineMenuScreen">
   <div class="top-bar">
     <button class="back-btn" id="onlineBackToOffline">◀ Офлайн</button>
@@ -1284,6 +1341,7 @@
   </div>
 </div>
 
+<!-- 20 ЯЧЕЕК -->
 <div class="screen game-screen" id="luckyModeScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1322,6 +1380,7 @@
   </div>
 </div>
 
+<!-- БЛЭКДЖЕК -->
 <div class="screen game-screen" id="bjModeScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1388,6 +1447,7 @@
   </div>
 </div>
 
+<!-- КОСТИ -->
 <div class="screen game-screen" id="diceModeScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1472,10 +1532,11 @@
   </div>
 </div>
 
+<!-- КМН -->
 <div class="screen game-screen" id="rpsModeScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
-    <div class="game-title">✊ Камень-Ножницы-Бумага</div>
+    <div class="game-title">✊ КМН</div>
     <button class="top-score-btn" id="rpsModeScoreBtn"><span class="lbl">🏆 </span><span class="val top-score-val">0 : 0</span></button>
   </div>
   <div class="scroll-content" style="justify-content:center;">
@@ -1542,6 +1603,7 @@
   </div>
 </div>
 
+<!-- СЛОТЫ -->
 <div class="screen game-screen casino-game" id="slotsGame">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1565,6 +1627,7 @@
   </div>
 </div>
 
+<!-- РУЛЕТКА -->
 <div class="screen game-screen casino-game" id="rouletteGame">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1645,12 +1708,10 @@ function updateWalletUI() {
     p.style.height = p.style.width;
     box.appendChild(p);
   }
-
   var bar = document.getElementById('loaderBar');
   var pct = document.getElementById('loaderPercent');
   var start = performance.now();
   var duration = 3000;
-
   function tick(now) {
     var t = Math.min(1, (now - start) / duration);
     var eased = t < 0.85 ? t * 1.05 : t;
@@ -1661,7 +1722,6 @@ function updateWalletUI() {
     else finishLoad();
   }
   requestAnimationFrame(tick);
-
   function finishLoad() {
     setTimeout(function() {
       document.getElementById('loader').classList.add('hide');
@@ -1670,6 +1730,18 @@ function updateWalletUI() {
   }
 })();
 
+/* ============ ТАБЫ ============ */
+document.querySelectorAll('.tab-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var tab = this.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    this.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(function(c){ c.classList.remove('active'); });
+    document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+    sndClick();
+  });
+});
+
 /* ============ СТАТИСТИКА ============ */
 var stats = {
   lucky: { p1: 0, p2: 0 },
@@ -1677,7 +1749,6 @@ var stats = {
   dice:  { p1: 0, p2: 0 },
   rps:   { p1: 0, p2: 0 }
 };
-
 function addWin(game, player) {
   if (!stats[game]) return;
   if (player === 1) stats[game].p1++;
@@ -1818,7 +1889,7 @@ function showScreen(id) {
   }, 30);
 }
 
-document.querySelectorAll('.game-btn').forEach(function(b) {
+document.querySelectorAll('.game-tile').forEach(function(b) {
   b.addEventListener('click', function() {
     var g = this.dataset.game;
     if (g === 'lucky')    showScreen('luckyModeScreen');
@@ -1827,17 +1898,34 @@ document.querySelectorAll('.game-btn').forEach(function(b) {
     if (g === 'rps')      showScreen('rpsModeScreen');
     if (g === 'slots')    showScreen('slotsGame');
     if (g === 'roulette') showScreen('rouletteGame');
-    if (g === 'online')   showScreen('onlineScreen');
-    if (g === 'settings') showScreen('settingsScreen');
-    if (g === 'about')    showScreen('aboutScreen');
   });
 });
 document.querySelectorAll('[data-back]').forEach(function(b) {
   b.addEventListener('click', function() { showScreen('menu'); });
 });
-
 document.getElementById('openStatsBtn').addEventListener('click', function() {
   renderStatsScreen(); showScreen('statsScreen');
+});
+document.getElementById('openSettingsBtn').addEventListener('click', function() {
+  showScreen('settingsScreen');
+});
+document.getElementById('openAboutBtn').addEventListener('click', function() {
+  showScreen('aboutScreen');
+});
+document.getElementById('settingsBack').addEventListener('click', function() {
+  showScreen('menu');
+  // вернуть активный таб на "Ещё"
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelector('.tab-btn[data-tab="more"]').classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(function(c){ c.classList.remove('active'); });
+  document.getElementById('tabMore').classList.add('active');
+});
+document.getElementById('aboutBack').addEventListener('click', function() {
+  showScreen('menu');
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelector('.tab-btn[data-tab="more"]').classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(function(c){ c.classList.remove('active'); });
+  document.getElementById('tabMore').classList.add('active');
 });
 document.querySelectorAll('.top-score-btn').forEach(function(b) {
   b.addEventListener('click', function() { renderStatsScreen(); showScreen('statsScreen'); });
@@ -1925,7 +2013,6 @@ document.getElementById('resetBalBtn').addEventListener('click', openPassModal);
 
 /* ============ ТЕХ-ВХОД ============ */
 var TECH_PASS = '2';
-
 function openTechModal() {
   var ov = document.getElementById('techModal');
   var inp = document.getElementById('techInput');
@@ -1955,7 +2042,6 @@ function tryTechPass() {
     closeTechModal();
     sndBig();
     spawnConfetti(40);
-    // открываем экран регистрации или меню онлайна
     if (onlineProfile && onlineProfile.game_id) {
       showOnlineMenu();
     } else {
@@ -2113,7 +2199,6 @@ document.getElementById('onlineBackToOffline').addEventListener('click', functio
 document.getElementById('onlinePlayOfflineBtn').addEventListener('click', function() {
   showScreen('menu');
 });
-
 document.getElementById('copyIdBtn').addEventListener('click', function() {
   if (!onlineProfile) return;
   var id = String(onlineProfile.game_id);
@@ -2157,7 +2242,6 @@ function saveNewName() {
     vib(80);
     return;
   }
-
   fetch(API_URL + '/api/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -3286,20 +3370,15 @@ document.getElementById('friendsBtn').addEventListener('click', function() {
         var totalScroll = cellH * (strip_len + 10);
         var start = performance.now();
         var lastTickTime = 0;
-
         function frame(now) {
           var t = Math.min(1, (now - start) / duration);
           var ease = 1 - Math.pow(1 - t, 3);
           var y = -ease * totalScroll;
           var offset = y % (cellH * strip_len);
           strip.style.transform = 'translateY(' + offset + 'px)';
-          if (now - lastTickTime > 60 && t < 0.9) {
-            sndTick();
-            lastTickTime = now;
-          }
-          if (t < 1) {
-            requestAnimationFrame(frame);
-          } else {
+          if (now - lastTickTime > 60 && t < 0.9) { sndTick(); lastTickTime = now; }
+          if (t < 1) requestAnimationFrame(frame);
+          else {
             strip.children[strip_len - 1].textContent = finalSymbol;
             strip.style.transform = 'translateY(-' + (cellH * (strip_len - 1)) + 'px)';
             win.classList.remove('spinning');
@@ -3373,7 +3452,6 @@ document.getElementById('friendsBtn').addEventListener('click', function() {
     }
   }
 
-  /* РУЛЕТКА */
   var canvas = document.getElementById('wheelCanvas');
   var ctx = canvas.getContext('2d');
   var rouletteBet = 500;
@@ -3557,9 +3635,9 @@ function initTelegram() {
   var avatarEl = document.getElementById('tgAvatar');
   var nameEl = document.getElementById('tgUsername');
 
-  nameEl.textContent = displayName;
-  avatarEl.textContent = displayName.charAt(0).toUpperCase();
-  box.classList.add('show');
+  if (nameEl) nameEl.textContent = displayName;
+  if (avatarEl) avatarEl.textContent = displayName.charAt(0).toUpperCase();
+  if (box) box.classList.add('show');
 
   if (player1Name === defaultName1 && user.first_name) {
     player1Name = user.first_name.substring(0, 14);
