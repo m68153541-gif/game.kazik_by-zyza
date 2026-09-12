@@ -16,15 +16,16 @@ from aiogram.filters import CommandStart
 from aiogram.types import (
     Message, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo,
 )
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 import uvicorn
 
 # ============ НАСТРОЙКИ ============
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8665249676:AAGF5cu1i29JHgCUqYJ6iRfBYqSILA44Jag")
 WEBAPP_URL = "https://m68153541-gif.github.io/game.kazik_by-zyza/"
-DB_FILE = "kazik_v5.db"
+DB_FILE = "kazik_v6.db"
 # ==================================
 
 logging.basicConfig(level=logging.INFO)
@@ -123,9 +124,25 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600,
 )
+
+# Универсальный обработчик OPTIONS (preflight)
+@app.options("/{full_path:path}")
+async def options_handler(full_path: str):
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Max-Age": "3600",
+        }
+    )
 
 class RegisterBody(BaseModel):
     initData: str = ""
@@ -147,7 +164,7 @@ class LobbyLeaveBody(BaseModel):
 
 @app.get("/")
 def health():
-    return {"status": "Bot is running!", "version": "1.1"}
+    return {"status": "Bot is running!", "version": "1.2"}
 
 # ---------- РЕГИСТРАЦИЯ ----------
 @app.post("/api/register")
