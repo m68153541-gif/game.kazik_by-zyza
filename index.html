@@ -490,19 +490,21 @@
     font-size:11px; color:#7ba8d6;
     letter-spacing:1px; margin-bottom:2px;
   }
-  .tech-btn {
-    position:fixed; bottom:12px; right:12px;
-    z-index:300;
-    padding:8px 14px;
-    background:rgba(26,16,53,0.85);
+  .tech-enter-btn {
+    margin-top:24px;
+    padding:9px 22px;
+    background:transparent;
     border:1px solid #3d2d70;
+    color:#7ba8d6;
     border-radius:14px;
-    color:#7ba8d6; font-size:11px; font-weight:bold;
-    cursor:pointer; font-family:Arial, sans-serif;
-    opacity:0.5;
-    transition:opacity .3s ease, transform .2s ease;
+    font-size:12px;
+    font-weight:bold;
+    cursor:pointer;
+    font-family:Arial, sans-serif;
+    opacity:0.65;
+    transition:opacity .3s ease, transform .2s ease, border-color .3s ease;
   }
-  .tech-btn:hover, .tech-btn:active { opacity:1; transform:scale(0.96); }
+  .tech-enter-btn:active { opacity:1; transform:scale(0.96); border-color:#4fc3f7; }
   #luckyGame .wrap {
     flex:1; display:flex; flex-direction:column;
     align-items:center; justify-content:center;
@@ -1002,7 +1004,6 @@
   </div>
 </div>
 
-<!-- МОДАЛКА ТЕХ ВХОДА -->
 <div class="modal-overlay" id="techModal">
   <div class="modal" id="techModalBox">
     <h3>🔧 Технический вход</h3>
@@ -1015,7 +1016,18 @@
   </div>
 </div>
 
-<!-- МЕНЮ -->
+<div class="modal-overlay" id="changeNameModal">
+  <div class="modal" id="changeNameModalBox">
+    <h3>✏️ Смена ника</h3>
+    <p>Введи новый ник (2–20 символов)</p>
+    <input type="text" id="changeNameInput" maxlength="20" placeholder="Новый ник" autocomplete="off" style="letter-spacing:1px;font-size:16px;">
+    <div class="modal-actions">
+      <button class="m-cancel" id="changeNameCancel">Отмена</button>
+      <button class="m-ok" id="changeNameOk" style="background:linear-gradient(145deg,#ba68c8,#9c27b0);">Сохранить</button>
+    </div>
+  </div>
+</div>
+
 <div class="screen active" id="menu">
   <h1>🎰 КАЗИК</h1>
   <div class="sub">Выбери игру</div>
@@ -1086,10 +1098,9 @@
     <div class="arrow">›</div>
   </div>
 
-  <div style="margin-top:14px; color:#555; font-size:11px;">версия 0.4</div>
+  <div style="margin-top:14px; color:#555; font-size:11px;">версия 0.5</div>
 </div>
 
-<!-- СТАТИСТИКА -->
 <div class="screen game-screen" id="statsScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1135,7 +1146,6 @@
   </div>
 </div>
 
-<!-- НАСТРОЙКИ -->
 <div class="screen game-screen" id="settingsScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1167,7 +1177,6 @@
   </div>
 </div>
 
-<!-- О ИГРЕ -->
 <div class="screen game-screen" id="aboutScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1178,7 +1187,7 @@
     <div class="about-card">
       <div class="about-icon">🎰</div>
       <h2>КАЗИК</h2>
-      <p class="about-version">версия 0.4 · by zyza</p>
+      <p class="about-version">версия 0.5 · by zyza</p>
     </div>
     <div class="about-block">
       <h3>🎯 Что это?</h3>
@@ -1207,7 +1216,24 @@
   </div>
 </div>
 
-<!-- ОНЛАЙН: РЕГИСТРАЦИЯ -->
+<div class="screen game-screen" id="onlineScreen">
+  <div class="top-bar">
+    <button class="back-btn" data-back>◀ Меню</button>
+    <div class="game-title">🌐 Онлайн</div>
+    <div style="width:60px;"></div>
+  </div>
+  <div class="scroll-content" style="justify-content:flex-start;">
+    <div class="big-icon" style="font-size:90px;margin-top:20px;filter:drop-shadow(0 0 34px #ffd54f);animation:corePulse 2s ease-in-out infinite alternate;">🌐</div>
+    <h2 style="font-size:28px;color:#ffd54f;text-align:center;text-shadow:0 0 18px rgba(255,213,79,0.6);margin-top:0;">Онлайн-режим</h2>
+    <div style="font-size:13px;background:linear-gradient(145deg,#ffd54f,#ffb300);color:#0a0e1a;padding:6px 16px;border-radius:16px;font-weight:bold;letter-spacing:2px;box-shadow:0 0 22px rgba(255,213,79,0.6);">СКОРО</div>
+    <p style="color:#ccc;font-size:14px;line-height:1.7;max-width:360px;text-align:center;">Мы работаем над <span style="color:#ffd54f;font-weight:bold;">сетевым режимом</span> — ты сможешь играть с друзьями на разных устройствах через интернет!</p>
+    <p style="color:#ccc;font-size:14px;line-height:1.7;max-width:360px;text-align:center;">Играть можно будет в <span style="color:#ffd54f;font-weight:bold;">Блэкджек, Кости и 20 ячеек</span> против реальных людей.</p>
+    <p style="color:#81c784;font-size:13px;font-style:italic;margin-top:6px;text-align:center;">💚 Разработчик старается! Поддержи проект — просто играй и делись с друзьями.</p>
+
+    <button class="tech-enter-btn" id="techEnterBtn">🔧 Технический вход</button>
+  </div>
+</div>
+
 <div class="screen game-screen" id="onlineRegisterScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1215,18 +1241,15 @@
     <div style="width:60px;"></div>
   </div>
   <div class="scroll-content" style="justify-content:center;">
-    <div class="big-icon" style="font-size:70px;filter:drop-shadow(0 0 30px #4fc3f7);">🌐</div>
-    <h2>Вход в онлайн</h2>
-    <p id="onlineRegHint">Введи имя, под которым тебя увидят другие игроки. Тебе будет присвоен уникальный ID.</p>
+    <div class="big-icon" style="font-size:70px;filter:drop-shadow(0 0 30px #4fc3f7);text-align:center;">🌐</div>
+    <h2 style="text-align:center;font-size:22px;color:#4fc3f7;text-shadow:0 0 14px rgba(79,195,247,0.6);">Вход в онлайн</h2>
+    <p id="onlineRegHint" style="text-align:center;color:#7ba8d6;font-size:13px;max-width:340px;line-height:1.5;">Введи имя, под которым тебя увидят другие игроки. Тебе будет присвоен уникальный ID.</p>
     <input class="name-input p1" id="onlineNameInput" maxlength="20" placeholder="Например: Вася" style="margin-top:14px;max-width:340px;">
     <button class="btn-deal" id="onlineRegisterBtn" style="margin-top:14px;max-width:340px;width:100%;">🚀 Начать</button>
     <div id="onlineRegError" style="color:#ff5252;font-size:12px;margin-top:8px;min-height:16px;text-align:center;"></div>
   </div>
-
-  <button class="tech-btn" id="techEnterBtn">🔧 Тех. вход</button>
 </div>
 
-<!-- ОНЛАЙН: ГЛАВНОЕ МЕНЮ -->
 <div class="screen game-screen" id="onlineMenuScreen">
   <div class="top-bar">
     <button class="back-btn" id="onlineBackToOffline">◀ Офлайн</button>
@@ -1239,6 +1262,7 @@
       <div class="p-label">Твой ID</div>
       <div class="online-id-big" id="onlineMenuId">000 000</div>
       <button class="toggle-btn" id="copyIdBtn" style="margin-top:6px;">📋 Скопировать ID</button>
+      <button class="toggle-btn" id="changeNameBtn" style="margin-top:8px;border-color:#ba68c8;color:#ba68c8;">✏️ Сменить ник</button>
     </div>
 
     <div class="bj-mode-btn" id="createLobbyBtn">
@@ -1260,7 +1284,6 @@
   </div>
 </div>
 
-<!-- 20 ЯЧЕЕК: ВЫБОР -->
 <div class="screen game-screen" id="luckyModeScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1280,7 +1303,6 @@
   </div>
 </div>
 
-<!-- 20 ЯЧЕЕК: ИГРА -->
 <div class="screen game-screen" id="luckyGame">
   <div class="top-bar">
     <button class="back-btn" id="luckyMenuBtn">◀ Режим</button>
@@ -1300,7 +1322,6 @@
   </div>
 </div>
 
-<!-- БЛЭКДЖЕК: ВЫБОР -->
 <div class="screen game-screen" id="bjModeScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1320,7 +1341,6 @@
   </div>
 </div>
 
-<!-- БЛЭКДЖЕК: ИГРА -->
 <div class="screen game-screen" id="bjGame">
   <div class="top-bar">
     <button class="back-btn" id="bjMenuBtn">◀ Режим</button>
@@ -1368,7 +1388,6 @@
   </div>
 </div>
 
-<!-- КОСТИ: ВЫБОР -->
 <div class="screen game-screen" id="diceModeScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1388,7 +1407,6 @@
   </div>
 </div>
 
-<!-- КОСТИ: ИГРА -->
 <div class="screen game-screen" id="diceGame">
   <div class="top-bar">
     <button class="back-btn" id="diceMenuBtn">◀ Режим</button>
@@ -1454,7 +1472,6 @@
   </div>
 </div>
 
-<!-- КМН: ВЫБОР -->
 <div class="screen game-screen" id="rpsModeScreen">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1474,7 +1491,6 @@
   </div>
 </div>
 
-<!-- КМН: ИГРА -->
 <div class="screen game-screen" id="rpsGame">
   <div class="top-bar">
     <button class="back-btn" id="rpsMenuBtn">◀ Режим</button>
@@ -1526,7 +1542,6 @@
   </div>
 </div>
 
-<!-- СЛОТЫ -->
 <div class="screen game-screen casino-game" id="slotsGame">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1550,7 +1565,6 @@
   </div>
 </div>
 
-<!-- РУЛЕТКА -->
 <div class="screen game-screen casino-game" id="rouletteGame">
   <div class="top-bar">
     <button class="back-btn" data-back>◀ Меню</button>
@@ -1813,7 +1827,7 @@ document.querySelectorAll('.game-btn').forEach(function(b) {
     if (g === 'rps')      showScreen('rpsModeScreen');
     if (g === 'slots')    showScreen('slotsGame');
     if (g === 'roulette') showScreen('rouletteGame');
-    if (g === 'online')   openOnline();
+    if (g === 'online')   showScreen('onlineScreen');
     if (g === 'settings') showScreen('settingsScreen');
     if (g === 'about')    showScreen('aboutScreen');
   });
@@ -1909,9 +1923,8 @@ function tryPass() {
 }
 document.getElementById('resetBalBtn').addEventListener('click', openPassModal);
 
-/* ============ ПАРОЛЬ ТЕХ ВХОДА ============ */
+/* ============ ТЕХ-ВХОД ============ */
 var TECH_PASS = '2';
-var techUnlocked = false;
 
 function openTechModal() {
   var ov = document.getElementById('techModal');
@@ -1926,7 +1939,6 @@ function closeTechModal() {
   document.getElementById('techInput').classList.remove('error');
   document.getElementById('techModalBox').classList.remove('shake');
 }
-document.getElementById('techEnterBtn').addEventListener('click', openTechModal);
 document.getElementById('techCancel').addEventListener('click', closeTechModal);
 document.getElementById('techModal').addEventListener('click', function(e) {
   if (e.target === this) closeTechModal();
@@ -1935,14 +1947,37 @@ document.getElementById('techOk').addEventListener('click', tryTechPass);
 document.getElementById('techInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') tryTechPass();
 });
+document.getElementById('techEnterBtn').addEventListener('click', openTechModal);
+
 function tryTechPass() {
   var inp = document.getElementById('techInput');
   if (inp.value.trim() === TECH_PASS) {
-    techUnlocked = true;
     closeTechModal();
-    showToast('Тех вход разрешён');
     sndBig();
     spawnConfetti(40);
+    // открываем экран регистрации или меню онлайна
+    if (onlineProfile && onlineProfile.game_id) {
+      showOnlineMenu();
+    } else {
+      showScreen('onlineRegisterScreen');
+      document.getElementById('onlineRegError').textContent = '';
+      var hint = document.getElementById('onlineRegHint');
+      if (!getInitData()) {
+        hint.textContent = 'Ты зашёл через браузер. Играть можно, но привязка будет только к этому устройству. Для сохранения — открывай через Telegram.';
+        hint.style.color = '#ffd54f';
+      } else {
+        hint.textContent = 'Введи имя, под которым тебя увидят другие игроки. Тебе будет присвоен уникальный ID.';
+        hint.style.color = '#7ba8d6';
+      }
+      var tgName = '';
+      try {
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
+          tgName = window.Telegram.WebApp.initDataUnsafe.user.first_name || '';
+        }
+      } catch(e) {}
+      if (!tgName) tgName = player1Name === defaultName1 ? '' : player1Name;
+      document.getElementById('onlineNameInput').value = tgName;
+    }
   } else {
     inp.classList.add('error');
     var box = document.getElementById('techModalBox');
@@ -1991,160 +2026,181 @@ function vib(ms)     { if (settings.vib && navigator.vibrate) navigator.vibrate(
 function vibPattern(p) { if (settings.vib && navigator.vibrate) navigator.vibrate(p); }
 
 /* ==================== ОНЛАЙН ==================== */
-(function() {
-  var API_URL = 'https://game-kazik-by-zyza.onrender.com';
-  var ONLINE_KEY = 'kazik_online_profile_v1';
-  var GUEST_KEY = 'kazik_guest_id';
+var API_URL = 'https://game-kazik-by-zyza.onrender.com';
+var ONLINE_KEY = 'kazik_online_profile_v1';
+var GUEST_KEY = 'kazik_guest_id';
+var onlineProfile = null;
+try { onlineProfile = JSON.parse(localStorage.getItem(ONLINE_KEY) || 'null'); } catch(e) {}
 
-  var onlineProfile = null;
-  try { onlineProfile = JSON.parse(localStorage.getItem(ONLINE_KEY) || 'null'); } catch(e) {}
-
-  function getInitData() {
-    try {
-      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
-        return window.Telegram.WebApp.initData;
-      }
-    } catch(e) {}
-    return '';
-  }
-  function getGuestId() {
-    var gid = localStorage.getItem(GUEST_KEY);
-    if (!gid || gid.length < 8) {
-      var chars = 'abcdef0123456789';
-      gid = '';
-      for (var i = 0; i < 16; i++) gid += chars[Math.floor(Math.random() * chars.length)];
-      localStorage.setItem(GUEST_KEY, gid);
+function getInitData() {
+  try {
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+      return window.Telegram.WebApp.initData;
     }
-    return gid;
+  } catch(e) {}
+  return '';
+}
+function getGuestId() {
+  var gid = localStorage.getItem(GUEST_KEY);
+  if (!gid || gid.length < 8) {
+    var chars = 'abcdef0123456789';
+    gid = '';
+    for (var i = 0; i < 16; i++) gid += chars[Math.floor(Math.random() * chars.length)];
+    localStorage.setItem(GUEST_KEY, gid);
   }
-  function saveOnlineProfile(p) {
-    onlineProfile = p;
-    localStorage.setItem(ONLINE_KEY, JSON.stringify(p));
+  return gid;
+}
+function saveOnlineProfile(p) {
+  onlineProfile = p;
+  localStorage.setItem(ONLINE_KEY, JSON.stringify(p));
+}
+function showOnlineMenu() {
+  document.getElementById('onlineMenuName').textContent = onlineProfile.name;
+  var gid = String(onlineProfile.game_id);
+  var formatted = gid.length === 6 ? gid.slice(0,3) + ' ' + gid.slice(3) : gid;
+  document.getElementById('onlineMenuId').textContent = formatted;
+  showScreen('onlineMenuScreen');
+}
+
+document.getElementById('onlineRegisterBtn').addEventListener('click', function() {
+  var name = document.getElementById('onlineNameInput').value.trim();
+  if (name.length < 2) {
+    document.getElementById('onlineRegError').textContent = 'Имя минимум 2 символа';
+    return;
   }
+  var errEl = document.getElementById('onlineRegError');
+  errEl.style.color = '#7ba8d6';
+  errEl.textContent = 'Отправляем...';
+  this.disabled = true;
 
-  window.openOnline = function() {
-    // тех вход — если не разблокирован, показать модалку
-    if (!techUnlocked) {
-      openTechModal();
-      return;
-    }
-    if (onlineProfile && onlineProfile.game_id) {
-      showOnlineMenu();
-    } else {
-      showScreen('onlineRegisterScreen');
-      document.getElementById('onlineRegError').textContent = '';
-
-      var hint = document.getElementById('onlineRegHint');
-      if (!getInitData()) {
-        hint.textContent = 'Ты зашёл через браузер. Играть можно, но привязка будет только к этому устройству. Для сохранения — открывай через Telegram.';
-        hint.style.color = '#ffd54f';
-      } else {
-        hint.textContent = 'Введи имя, под которым тебя увидят другие игроки. Тебе будет присвоен уникальный ID.';
-        hint.style.color = '#7ba8d6';
-      }
-
-      var tgName = '';
-      try {
-        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
-          tgName = window.Telegram.WebApp.initDataUnsafe.user.first_name || '';
-        }
-      } catch(e) {}
-      if (!tgName) tgName = player1Name === defaultName1 ? '' : player1Name;
-      document.getElementById('onlineNameInput').value = tgName;
-    }
+  var payload = {
+    initData: getInitData(),
+    name: name,
+    guest_id: getGuestId()
   };
 
-  function showOnlineMenu() {
-    document.getElementById('onlineMenuName').textContent = onlineProfile.name;
-    var gid = String(onlineProfile.game_id);
-    var formatted = gid.length === 6 ? gid.slice(0,3) + ' ' + gid.slice(3) : gid;
-    document.getElementById('onlineMenuId').textContent = formatted;
-    showScreen('onlineMenuScreen');
-  }
-
-  document.getElementById('onlineRegisterBtn').addEventListener('click', function() {
-    if (!techUnlocked) { openTechModal(); return; }
-
-    var name = document.getElementById('onlineNameInput').value.trim();
-    if (name.length < 2) {
-      document.getElementById('onlineRegError').textContent = 'Имя минимум 2 символа';
+  fetch(API_URL + '/api/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    document.getElementById('onlineRegisterBtn').disabled = false;
+    errEl.style.color = '#ff5252';
+    if (data.error) {
+      errEl.textContent = 'Ошибка: ' + data.error;
       return;
     }
-    var errEl = document.getElementById('onlineRegError');
-    errEl.style.color = '#7ba8d6';
-    errEl.textContent = 'Отправляем...';
-    this.disabled = true;
-
-    var payload = {
-      initData: getInitData(),
-      name: name,
-      guest_id: getGuestId()
-    };
-
-    fetch(API_URL + '/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      document.getElementById('onlineRegisterBtn').disabled = false;
-      errEl.style.color = '#ff5252';
-      if (data.error) {
-        errEl.textContent = 'Ошибка: ' + data.error;
-        return;
-      }
-      saveOnlineProfile(data.player);
-      if (data.guest_id) localStorage.setItem(GUEST_KEY, data.guest_id);
-      sndBig();
-      spawnConfetti(60);
-      showOnlineMenu();
-      showToast('Добро пожаловать, ' + data.player.name + '!');
-    })
-    .catch(function(err) {
-      document.getElementById('onlineRegisterBtn').disabled = false;
-      errEl.style.color = '#ff5252';
-      errEl.textContent = 'Сервер не отвечает. Попробуй позже.';
-      console.error(err);
-    });
+    saveOnlineProfile(data.player);
+    if (data.guest_id) localStorage.setItem(GUEST_KEY, data.guest_id);
+    sndBig();
+    spawnConfetti(60);
+    showOnlineMenu();
+    showToast('Добро пожаловать, ' + data.player.name + '!');
+  })
+  .catch(function(err) {
+    document.getElementById('onlineRegisterBtn').disabled = false;
+    errEl.style.color = '#ff5252';
+    errEl.textContent = 'Сервер не отвечает. Попробуй позже.';
+    console.error(err);
   });
+});
 
-  document.getElementById('onlineBackToOffline').addEventListener('click', function() {
-    showScreen('menu');
-  });
-  document.getElementById('onlinePlayOfflineBtn').addEventListener('click', function() {
-    showScreen('menu');
-  });
+document.getElementById('onlineBackToOffline').addEventListener('click', function() {
+  showScreen('menu');
+});
+document.getElementById('onlinePlayOfflineBtn').addEventListener('click', function() {
+  showScreen('menu');
+});
 
-  document.getElementById('copyIdBtn').addEventListener('click', function() {
-    if (!onlineProfile) return;
-    var id = String(onlineProfile.game_id);
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(id).then(function() {
-        showToast('ID скопирован: ' + id);
-      }).catch(function() {
-        showToast('ID: ' + id);
-      });
-    } else {
-      var t = document.createElement('textarea');
-      t.value = id; document.body.appendChild(t); t.select();
-      try { document.execCommand('copy'); } catch(e) {}
-      t.remove();
+document.getElementById('copyIdBtn').addEventListener('click', function() {
+  if (!onlineProfile) return;
+  var id = String(onlineProfile.game_id);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(id).then(function() {
       showToast('ID скопирован: ' + id);
-    }
-    sndClick();
-  });
+    }).catch(function() {
+      showToast('ID: ' + id);
+    });
+  } else {
+    var t = document.createElement('textarea');
+    t.value = id; document.body.appendChild(t); t.select();
+    try { document.execCommand('copy'); } catch(e) {}
+    t.remove();
+    showToast('ID скопирован: ' + id);
+  }
+  sndClick();
+});
 
-  document.getElementById('createLobbyBtn').addEventListener('click', function() {
-    showToast('Лобби — следующий этап!');
+/* ============ СМЕНА НИКА ============ */
+function openChangeNameModal() {
+  if (!onlineProfile) return;
+  var ov = document.getElementById('changeNameModal');
+  var inp = document.getElementById('changeNameInput');
+  inp.value = onlineProfile.name || '';
+  inp.classList.remove('error');
+  ov.classList.add('show');
+  setTimeout(function() { inp.focus(); inp.select(); }, 300);
+}
+function closeChangeNameModal() {
+  document.getElementById('changeNameModal').classList.remove('show');
+  document.getElementById('changeNameModalBox').classList.remove('shake');
+}
+function saveNewName() {
+  var inp = document.getElementById('changeNameInput');
+  var newName = inp.value.trim();
+  if (newName.length < 2) {
+    inp.classList.add('error');
+    var box = document.getElementById('changeNameModalBox');
+    box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake');
+    vib(80);
+    return;
+  }
+
+  fetch(API_URL + '/api/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      initData: getInitData(),
+      name: newName,
+      guest_id: getGuestId()
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.error) { showToast('Ошибка: ' + data.error); return; }
+    saveOnlineProfile(data.player);
+    document.getElementById('onlineMenuName').textContent = data.player.name;
+    closeChangeNameModal();
+    sndBig();
+    spawnConfetti(40);
+    showToast('Ник изменён на ' + data.player.name);
+  })
+  .catch(function(err) {
+    showToast('Сервер не отвечает');
+    console.error(err);
   });
-  document.getElementById('joinLobbyBtn').addEventListener('click', function() {
-    showToast('Присоединение — следующий этап!');
-  });
-  document.getElementById('friendsBtn').addEventListener('click', function() {
-    showToast('Друзья — следующий этап!');
-  });
-})();
+}
+document.getElementById('changeNameBtn').addEventListener('click', openChangeNameModal);
+document.getElementById('changeNameCancel').addEventListener('click', closeChangeNameModal);
+document.getElementById('changeNameOk').addEventListener('click', saveNewName);
+document.getElementById('changeNameModal').addEventListener('click', function(e) {
+  if (e.target === this) closeChangeNameModal();
+});
+document.getElementById('changeNameInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') saveNewName();
+});
+
+document.getElementById('createLobbyBtn').addEventListener('click', function() {
+  showToast('Лобби — следующий этап!');
+});
+document.getElementById('joinLobbyBtn').addEventListener('click', function() {
+  showToast('Присоединение — следующий этап!');
+});
+document.getElementById('friendsBtn').addEventListener('click', function() {
+  showToast('Друзья — следующий этап!');
+});
 
 /* ==================== 20 ЯЧЕЕК ==================== */
 (function() {
