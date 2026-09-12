@@ -16,7 +16,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import (
     Message, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo,
 )
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
@@ -24,7 +24,7 @@ import uvicorn
 # ============ НАСТРОЙКИ ============
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8665249676:AAGF5cu1i29JHgCUqYJ6iRfBYqSILA44Jag")
 WEBAPP_URL = "https://m68153541-gif.github.io/game.kazik_by-zyza/"
-DB_FILE = "kazik_v4.db"
+DB_FILE = "kazik_v5.db"
 # ==================================
 
 logging.basicConfig(level=logging.INFO)
@@ -132,14 +132,22 @@ class RegisterBody(BaseModel):
     name: str
     guest_id: str = ""
 
-class LobbyBody(BaseModel):
+class LobbyCreateBody(BaseModel):
     initData: str = ""
     guest_id: str = ""
     game_type: str = "rps"
 
+class LobbyJoinBody(BaseModel):
+    initData: str = ""
+    guest_id: str = ""
+
+class LobbyLeaveBody(BaseModel):
+    initData: str = ""
+    guest_id: str = ""
+
 @app.get("/")
 def health():
-    return {"status": "Bot is running!", "version": "1.0"}
+    return {"status": "Bot is running!", "version": "1.1"}
 
 # ---------- РЕГИСТРАЦИЯ ----------
 @app.post("/api/register")
@@ -194,7 +202,7 @@ def get_me(initData: str = "", guest_id: str = ""):
 
 # ---------- ЛОББИ ----------
 @app.post("/api/lobby/create")
-def lobby_create(body: LobbyBody):
+def lobby_create(body: LobbyCreateBody):
     external_id = get_external_id(body.initData, body.guest_id)
     if not external_id:
         return {"error": "bad_auth"}
@@ -212,7 +220,7 @@ def lobby_create(body: LobbyBody):
     return {"ok": True, "lobby_id": lid}
 
 @app.post("/api/lobby/join")
-def lobby_join(lobby_id: str, body: LobbyBody):
+def lobby_join(body: LobbyJoinBody, lobby_id: str = Query(...)):
     external_id = get_external_id(body.initData, body.guest_id)
     if not external_id:
         return {"error": "bad_auth"}
@@ -256,7 +264,7 @@ def lobby_info(lobby_id: str):
     return result
 
 @app.post("/api/lobby/leave")
-def lobby_leave(lobby_id: str, body: LobbyBody):
+def lobby_leave(body: LobbyLeaveBody, lobby_id: str = Query(...)):
     external_id = get_external_id(body.initData, body.guest_id)
     conn = db()
     lob = conn.execute("SELECT * FROM lobbies WHERE lobby_id = ?", (lobby_id,)).fetchone()
@@ -272,8 +280,7 @@ def lobby_leave(lobby_id: str, body: LobbyBody):
     conn.close()
     return {"ok": True}
 
-# ---------- WEBSOCKET ЛОББИ ----------
-# lobby_id -> [{"ws": WebSocket, "player_id": str, "name": str}]
+# ---------- WEBSOCKET ----------
 active_lobbies = {}
 
 @app.websocket("/ws/lobby/{lobby_id}")
@@ -296,23 +303,16 @@ async def ws_lobby(ws: WebSocket, lobby_id: str):
 
             action = msg.get("action")
 
-            # Приветствие
             if action == "hello":
                 info["player_id"] = msg.get("player_id")
                 info["name"] = msg.get("name") or "Игрок"
 
-                # системное сообщение
-                await broadcast(lobby_id, {
-                    "type": "system",
-                    "text": info["name"] + " вошёл в лобби"
-                }, skip=None)
+                await broadcast(lobby_id, {"type": "system", "text": info["name"] + " вошёл в лобби"})
 
-                # список игроков
                 players = [{"id": c["player_id"], "name": c["name"]}
                            for c in active_lobbies[lobby_id] if c["player_id"]]
                 await broadcast(lobby_id, {"type": "players", "players": players})
 
-            # Сообщение в чат
             elif action == "chat":
                 txt = (msg.get("text") or "").strip()[:200]
                 if not txt:
@@ -324,7 +324,6 @@ async def ws_lobby(ws: WebSocket, lobby_id: str):
                 )
                 conn.commit()
                 conn.close()
-
                 await broadcast(lobby_id, {
                     "type": "chat",
                     "from": info["player_id"],
@@ -332,7 +331,6 @@ async def ws_lobby(ws: WebSocket, lobby_id: str):
                     "text": txt
                 })
 
-            # Ход в игре
             elif action == "game_move":
                 await broadcast(lobby_id, {
                     "type": "game_move",
@@ -340,20 +338,12 @@ async def ws_lobby(ws: WebSocket, lobby_id: str):
                     "data": msg.get("data")
                 }, skip=info["player_id"])
 
-            # Начало игры
             elif action == "game_start":
                 await broadcast(lobby_id, {
                     "type": "game_start",
                     "game_type": msg.get("game_type"),
                     "from": info["player_id"]
                 })
-
-            # Готовность/статус
-            elif action == "game_state":
-                await broadcast(lobby_id, {
-                    "type": "game_state",
-                    "data": msg.get("data")
-                }, skip=info["player_id"])
 
     except WebSocketDisconnect:
         pass
