@@ -1,378 +1,1196 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Kazik - Fixed & Improved</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Казик - Часть 1</title>
 <style>
-  * {margin:0;padding:0;box-sizing:border-box; user-select:none;}
-  body {background:#0b1020; font-family:Arial,sans-serif; color:#fff; min-height:100vh;}
+  * {margin:0;padding:0;box-sizing:border-box;}
+  html, body {width:100%; height:100%; background:#0b1020; font-family:Arial,sans-serif; color:#fff; overflow:hidden;}
   /* Общие стили */
-  .screen {display:none; padding:20px; max-width:800px; margin:auto; border-radius:10px; background:#222; min-height:400px; position:relative;}
-  .screen.active {display:flex; flex-direction:column;}
-  /* Заголовки и кнопки */
-  .top-bar {display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;}
-  .btn {padding:10px 20px; border:none; border-radius:8px; background:#4fc3f7; cursor:pointer; font-weight:600; transition:background 0.3s;}
-  .btn:hover {background:#66ccf7;}
-  /* Вкладки */
-  .tabs {display:flex; gap:10px; margin-bottom:15px;}
-  .tab {flex:1; padding:10px; background:#3d2d70; border-radius:8px; cursor:pointer; text-align:center;}
-  .tab.active {background:#4fc3f7; color:#000;}
-  /* Контент вкладок */
-  .tab-contents {display:none; flex-direction:column; gap:10px;}
-  .tab-contents.active {display:flex;}
-  /* Игра - области */
-  #gameArea { flex:1; display:flex; align-items:center; justify-content:center; font-size:24px; color:#ffd54f; border:2px solid #555; border-radius:10px; padding:20px; min-height:200px;}
-  /* Crash */
-  #crashStage { position: relative; width:100%; height:300px; overflow:hidden; border:2px solid #555; border-radius:10px; background:#111; margin-top:20px; }
-  #crashRocket { position:absolute; top:calc(50% - 20px); left:10%; font-size:40px; transition: all 0.5s ease; transform: rotate(45deg);}
-  #crashLine { position:absolute; bottom:50px; left:0; height:2px; background:#ffd54f; width:0%; transition: width 0.5s ease;}
-  /* Dice */
-  #diceStage { margin-top:20px; display:flex; flex-direction:column; align-items:center; }
-  .dice { margin:10px; width:80px; height:80px; border-radius:10px; border:2px solid #555; display:flex; align-items:center; justify-content:center; font-size:36px; background:#222; }
-  /* Slots */
-  #slotsArea { margin-top:20px; display:flex; flex-direction:column; align-items:center; }
-  #reels { display:flex; gap:10px; }
-  .reel { width:60px; height:60px; border:2px solid #555; border-radius:8px; background:#111; display:flex; align-items:center; justify-content:center; font-size:24px; }
-  #slotResult { margin-top:10px; font-size:32px; transition: all 0.2s; }
+  .bg-orbs {position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
+  .bg-orbs .orb {position:absolute; border-radius:50%; filter:blur(60px); opacity:.35; animation:orbFloat 18s ease-in-out infinite;}
+  .bg-orbs .orb.o1 {width:280px; height:280px; background:#4fc3f7; top:-60px; left:-60px;}
+  .bg-orbs .orb.o2 {width:240px; height:240px; background:#ba68c8; bottom:-60px; right:-40px; animation-delay:-6s;}
+  .bg-orbs .orb.o3 {width:200px; height:200px; background:#ffd54f; top:40%; right:-80px; animation-delay:-12s; opacity:.22;}
+  @keyframes orbFloat {
+    0%, 100% {transform: translate(0,0) scale(1);}
+    50% {transform: translate(40px,-30px) scale(1.15);}
+  }
+  #loader {position:fixed; inset:0; z-index:9999; background: radial-gradient(circle at 50% 50%, #16213e 0%, #0b1020 70%); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; overflow:hidden; transition:opacity .9s ease, visibility .9s ease;}
+  #loader.hide {opacity:0; visibility:hidden;}
+  /* Загрузка анимации, звезды и т.п. */
+  /* ... (здесь могут быть остальные стили загрузчика) ... */
 </style>
 </head>
 <body>
 
-<!-- меню -->
-<div id="mainMenu" class="screen active">
-  <h1 style="text-align:center;margin-bottom:20px;">🎰 Kazik</h1>
-  <div class="tabs">
-    <div class="tab active" data-tab="games">Games</div>
-    <div class="tab" data-tab="online">Online</div>
-    <div class="tab" data-tab="stats">Session Score</div>
+<!-- Загрузчик -->
+<div id="loader">
+  <div class="loader-stars" id="loaderStars"></div>
+  <div class="loader-grid"></div>
+  <div class="loader-core">
+    <div class="loader-orbit o1"></div>
+    <div class="loader-orbit o2"></div>
+    <div class="loader-orbit o3"></div>
+    <div class="core-pulse"></div>
+    <div class="core-text">🎰</div>
   </div>
-  <div class="tab-contents">
-    <div class="tab-content active" id="games">
-      <button class="btn" data-game="lucky">20 Cells</button>
-      <button class="btn" id="blackjackBtn">Blackjack</button>
-      <button class="btn" data-game="dice">Dice</button>
-      <button class="btn" data-game="crash">Crash</button>
-      <button class="btn" data-game="mines">Mines</button>
-      <button class="btn" data-game="slots">Slots</button>
-      <button class="btn" data-game="roulette">Roulette</button>
+  <div class="loader-logo">ДЕП ДОДЕД ЛАСТДЕП ВСЕ ЗДЕСЬ</div>
+  <div class="loader-tips" id="loaderTip">Загрузка вселенной...</div>
+  <div class="loader-bar-wrap"><div class="loader-bar" id="loaderBar"></div></div>
+  <div class="loader-percent" id="loaderPercent">0%</div>
+</div>
+
+<!-- Фоновые анимации -->
+<div class="bg-orbs">
+  <div class="orb o1"></div>
+  <div class="orb o2"></div>
+  <div class="orb o3"></div>
+</div>
+
+<!-- Уведомления, конфетти и т.п. -->
+<div class="toast" id="toast"></div>
+<div class="confetti-container" id="confettiBox"></div>
+<div class="flash" id="flashBox"></div>
+
+<!-- Основное меню -->
+<div class="screen active" id="menu">
+  <div class="menu-header">
+    <h1>🎰 Казик</h1>
+    <div class="balance-mini">💰 <span id="menuBalance">100 000</span></div>
+    <div class="player-names-row">
+      <div class="pn p1" id="menuNameP1">🔵 Игрок 1</div>
+      <div class="pn p2" id="menuNameP2">🟣 Игрок 2</div>
     </div>
-    <div class="tab-content" id="online">
-      <h3 style="text-align:center;">Coming Soon</h3>
+  </div>
+  <div class="tabs" style="padding:8px;">
+    <button class="tab-btn active" data-tab="games"><span class="tab-ico">🎮</span><span class="tab-lbl">Игры</span></button>
+    <button class="tab-btn" data-tab="online"><span class="tab-ico">🌐</span><span class="tab-lbl">Онлайн</span></button>
+    <button class="tab-btn" data-tab="stats"><span class="tab-ico">🏆</span><span class="tab-lbl">Счёт</span></button>
+    <button class="tab-btn" data-tab="more"><span class="tab-ico">⚙️</span><span class="tab-lbl">Ещё</span></button>
+  </div>
+  <div class="tab-content active" id="tabGames">
+    <div class="games-grid">
+      <div class="game-tile" data-game="lucky"><div class="g-ico">💎</div><div class="g-name">20 ячеек</div><div class="g-desc">Найди алмаз</div></div>
+      <div class="game-tile" data-game="bj"><div class="g-ico">🃏</div><div class="g-name">Blackjack</div><div class="g-desc">Набери 21</div></div>
+      <div class="game-tile" data-game="dice"><div class="g-ico">🎲</div><div class="g-name">Кости</div><div class="g-desc">Больше или меньше</div></div>
+      <div class="game-tile" data-game="crash"><div class="g-ico">🚀</div><div class="g-name">Crash</div><div class="g-desc">Успей забрать</div></div>
+      <div class="game-tile" data-game="mines"><div class="g-ico">💣</div><div class="g-name">Минёр</div><div class="g-desc">5×5 · где мины?</div></div>
+      <div class="game-tile" data-game="slots"><div class="g-ico">🎰</div><div class="g-name">Слоты</div><div class="g-desc">Лови 3 в ряд</div></div>
+      <div class="game-tile" data-game="roulette"><div class="g-ico">🎡</div><div class="g-name">Рулетка</div><div class="g-desc">Красное/Чёрное</div></div>
     </div>
-    <div class="tab-content" id="stats">
-      <div id="sessionStats" style="margin-top:20px; font-size:14px; text-align:center;">Statistics will be here</div>
-      <button class="btn" id="backToMainStats">Back</button>
-    </div>
   </div>
+  <!-- Другие вкладки ... -->
 </div>
 
-<!-- Игра -->
-<div id="gameWindow" class="screen">
-  <div class="top-bar">
-    <button class="btn" id="toMainFromGame">◀ Back</button>
-    <h2>Game</h2>
-  </div>
-  <div id="gameArea"></div>
-</div>
-
-<!-- Статистика -->
-<div id="sessionStatsWindow" class="screen">
-  <div class="top-bar">
-    <button class="btn" id="toMainFromStats">◀ Back</button>
-    <h2>Session Stats</h2>
-  </div>
-  <div id="sessionStatsContent" style="margin-top:20px;">Statistics</div>
-</div>
-
-<!-- Crash -->
-<div id="crashWindow" class="screen">
-  <div class="top-bar">
-    <button class="btn" id="toMainFromCrash">◀ Back</button>
-    <h2>Crash</h2>
-  </div>
-  <div id="crashStage">
-    <div id="crashLine"></div>
-    <div id="crashRocket">🚀</div>
-  </div>
-  <div style="margin-top:20px; text-align:center;">
-    <button class="btn" id="startRocket">Launch Rocket</button>
-    <button class="btn" id="cashoutBtn" style="display:none;">Cash Out</button>
-  </div>
-  <div id="crashMsg" style="margin-top:10px; text-align:center; font-size:14px;"></div>
-</div>
-
-<!-- Dice -->
-<div id="diceWindow" class="screen">
-  <div class="top-bar">
-    <button class="btn" id="toMainFromDice">◀ Back</button>
-    <h2>Dice</h2>
-  </div>
-  <div id="diceStage" style="margin-top:20px;">
-    <div class="dice" id="dice1">🎲</div>
-    <div class="dice" id="dice2">🎲</div>
-    <button class="btn" id="rollDice">Roll Dice</button>
-  </div>
-</div>
-
-<!-- Slots -->
-<div id="slotsWindow" class="screen">
-  <div class="top-bar">
-    <button class="btn" id="toMainFromSlots">◀ Back</button>
-    <h2>Slots</h2>
-  </div>
-  <div id="slotsArea" style="margin-top:20px;">
-    <div style="display:flex; gap:10px;">
-      <div class="reel" id="reel1">🍒</div>
-      <div class="reel" id="reel2">🍒</div>
-      <div class="reel" id="reel3">🍒</div>
-    </div>
-    <div id="slotResult"></div>
-    <button class="btn" id="spinSlots" style="margin-top:20px;">Spin</button>
-  </div>
-</div>
+<!-- Игра: тут стартовая область -->
+<div id="gameContainer"></div>
 
 <script>
+  // Инициализация
   // Переключение вкладок
-  document.querySelectorAll('.tab').forEach(t => {
-    t.onclick = () => {
-      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-      t.classList.add('active');
-      document.querySelectorAll('.tab-contents').forEach(c => c.classList.remove('active'));
-      document.querySelector('#' + t.dataset.tab).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.onclick=()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+      document.getElementById('tab'+btn.dataset.tab).classList.add('active');
     }
   });
-
-  // Переключение экранов
+  // Показать экран
   function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
   }
-
-  // Обработка выбора игр
-  document.querySelectorAll('.btn[data-game]').forEach(btn => {
-    btn.onclick = () => {
-      showScreen('gameWindow');
-      startGame(btn.dataset.game);
+  // Обработка кликов по играм
+  document.querySelectorAll('.game-tile').forEach(tile => {
+    tile.onclick= ()=> {
+      const game=tile.dataset.game;
+      showScreen('gameContainer');
+      startGame(game);
     }
   });
-
   // Обратные кнопки
-  document.getElementById('toMainFromGame').onclick = () => showScreen('mainMenu');
-  document.getElementById('toMainFromStats').onclick = () => showScreen('mainMenu');
-  document.getElementById('toMainFromCrash').onclick = () => showScreen('mainMenu');
-  document.getElementById('toMainFromDice').onclick = () => showScreen('mainMenu');
-  document.getElementById('toMainFromSlots').onclick = () => showScreen('mainMenu');
-
-  // Статистика
-  let sessionStats = {lucky:0, bj:0, roulette:0};
-  function updateStats() {
-    document.getElementById('sessionStats').innerHTML =
-      '20 Cells Wins: ' + sessionStats.lucky + '<br>' +
-      'Blackjack Wins: ' + sessionStats.bj + '<br>' +
-      'Roulette Wins: ' + sessionStats.roulette;
-  }
-
-  document.getElementById('backToMainStats').onclick = () => showScreen('mainMenu');
-
-  // ------------ Реализация игр -------------------
-
-function startGame(game) {
-  const area = document.getElementById('gameArea');
-  area.innerHTML = '';
-  if (game==='lucky') {
-    area.innerHTML = '<h3>20 Cells: Find the diamond</h3><button id="luckyBtn">Start</button>';
-    document.getElementById('luckyBtn').onclick = runLucky;
-  } else if (game==='bj') {
-    // Описание о баге
-    area.innerHTML = '<h3>Blackjack</h3><p style="color:#888; text-decoration:line-through;">Coming Soon. We are fixing bugs and will update soon.</p>';
-    alert('This game has bugs and is under development. It will be updated or replaced soon.');
-  } else if (game==='dice') {
-    area.innerHTML = '<h3>Dice</h3><button id="diceBtn">Roll the Dice</button>';
-    document.getElementById('diceBtn').onclick=runDice;
-  } else if (game==='crash') {
-    showScreen('crashWindow');
-    initCrash();
-  } else if (game==='mines') {
-    area.innerHTML = '<h3>Mines</h3><p>Game in development</p>';
-  } else if (game==='slots') {
-    showScreen('slotsWindow');
-    initSlots();
-  } else if (game==='roulette') {
-    area.innerHTML = '<h3>Roulette</h3><p>Game in development</p>';
-  }
-}
-
-// -------- Lucky game --------
-function runLucky() {
-  const area = document.getElementById('gameArea');
-  area.innerHTML = '';
-  const container = document.createElement('div');
-  container.innerHTML = '<div style="display:grid; grid-template-columns:repeat(5,1fr); gap:5px;">' +
-    Array.from({length:20}, (_,i) => `<div style="border:1px solid #555; padding:10px; cursor:pointer;" data-i="${i}">?</div>`).join('') +
-    '</div>';
-  area.appendChild(container);
-  const cells = container.querySelectorAll('div[data-i]');
-  const winIndex = Math.floor(Math.random()*20);
-  let tries=3;
-  cells.forEach(c => {
-    c.onclick=()=>{
-      const idx = parseInt(c.dataset.i);
-      if (tries===0) return;
-      if (idx===winIndex) {
-        c.textContent='💎';
-        alert('You won!');
-        sessionStats.lucky++;
-        updateStats();
-      } else {
-        c.textContent='✖';
-        tries--;
-        if (tries===0) {
-          cells[winIndex].textContent='💎';
-          alert('You lost! It was at '+winIndex);
-        }
-      }
-    }
+  document.querySelectorAll('#toMainFromGame,#toMainFromStats,#toMainFromCrash,#toMainFromDice,#toMainFromSlots').forEach(btn => {
+    btn.onclick= ()=> showScreen('menu');
   });
-}
+  
+  // ------------------ Основные функции игр ----------------------
 
-// -------- Blackjack --------
-function runBlackjack() {
-  const area = document.getElementById('gameArea');
-  area.innerHTML = '<p>Blackjack is under development, stay tuned!</p>';
-}
-
-// -------- Dice --------
-function runDice() {
-  const area = document.getElementById('gameArea');
-  area.innerHTML = '<div id="diceContainer" style="text-align:center;">' +
-    '<div style="display:flex; gap:20px; justify-content:center;">' +
-    '<div class="dice" id="dice1">🎲</div>' +
-    '<div class="dice" id="dice2">🎲</div>' +
-    '</div>' +
-    '<button class="btn" id="rollDice">Roll Dice</button>' +
-    '</div>';
-  document.getElementById('rollDice').onclick=rollDiceAnimation;
-}
-
-function rollDiceAnimation() {
-  const d1 = document.getElementById('dice1');
-  const d2 = document.getElementById('dice2');
-  const diceFaces=['🎲','🎲','🎲','🎲','🎲','🎲'];
-  let count=0;
-  const maxCount=30; // дольше
-  const interval = setInterval(()=>{
-    d1.textContent=diceFaces[Math.floor(Math.random()*diceFaces.length)];
-    d2.textContent=diceFaces[Math.floor(Math.random()*diceFaces.length)];
-    count++;
-    if (count>=maxCount) {
-      clearInterval(interval);
-      // конечный результат
-      d1.textContent=['🎲','🎲','🎲'][Math.floor(Math.random()*3)];
-      d2.textContent=['🎲','🎲','🎲'][Math.floor(Math.random()*3)];
-      // звук
-      new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3').play();
+  function startGame(game) {
+    const container = document.getElementById('gameContainer');
+    container.innerHTML='';
+    if (game==='lucky') {
+      container.innerHTML='<h3>20 Cells: Find the diamond</h3><button id="startLucky">Start</button>';
+      document.getElementById('startLucky').onclick=runLucky;
+    } else if (game==='bj') {
+      // сообщение о баге
+      container.innerHTML='<p style="color:#888;text-decoration:line-through;">Coming Soon. Fixing bugs...</p>';
+      alert('Blackjack under development');
+    } else if (game==='dice') {
+      container.innerHTML='<button id="startDice">Roll Dice</button>';
+      document.getElementById('startDice').onclick=runDice;
+    } else if (game==='crash') {
+      showScreen('crashWindow');
+      initCrash();
+    } else if (game==='mines') {
+      container.innerHTML='<p>Miners in development</p>';
+    } else if (game==='slots') {
+      showScreen('slotsWindow');
+      initSlots();
+    } else if (game==='roulette') {
+      container.innerHTML='<p>Roulette in development</p>';
     }
-  }, 150);
-}
+  }
 
-// -------- Crash --------
-let crashInterval;
-function initCrash() {
-  const rocket = document.getElementById('crashRocket');
-  const line = document.getElementById('crashLine');
-  line.style.width='0%';
-  rocket.style.left='10%';
-  rocket.style.top='calc(50% - 20px)';
-  rocket.style.transform='rotate(45deg)';
-  document.getElementById('crashMsg').textContent='';
-  document.getElementById('cashoutBtn').style.display='none';
+  // ------------------ Игра 20 ячеек --------------------------
+  function runLucky() {
+    const container=document.getElementById('gameContainer');
+    container.innerHTML='';
+    const grid=document.createElement('div');
+    grid.style.display='grid'; grid.gridTemplateColumns='repeat(5,1fr)'; grid.gap='5px'; grid.maxWidth='460px';
+    for (let i=0;i<20;i++) {
+      const cell=document.createElement('div');
+      cell.style.border='1px solid #555'; cell.padding='10px'; cell.cursor='pointer';
+      cell.textContent='?';
+      cell.onclick=()=>{
+        // логика игры
+      }
+      grid.appendChild(cell);
+    }
+    container.appendChild(grid);
+  }
 
-  document.getElementById('startRocket').onclick=()=>{
+  // ------------------ Кости --------------------------
+  function runDice() {
+    const container=document.getElementById('gameContainer');
+    container.innerHTML='<div style="text-align:center;">' +
+      '<div style="display:flex; gap:20px; justify-content:center;">' +
+      '<div class="dice" id="dice1">🎲</div>' +
+      '<div class="dice" id="dice2">🎲</div>' +
+      '</div>' +
+      '<button class="btn" id="rollDiceBtn">Roll Dice</button>' +
+      '</div>';
+    document.getElementById('rollDiceBtn').onclick=rollDiceAnimation;
+  }
+
+  function rollDiceAnimation() {
+    // анимация, задержка, итог
+    const d1=document.getElementById('dice1');
+    const d2=document.getElementById('dice2');
+    const faces=['🎲','🎲','🎲','🎲','🎲','🎲'];
+    let count=0;
+    const maxCount=30;
+    const interval=setInterval(()=>{
+      d1.textContent=faces[Math.floor(Math.random()*faces.length)];
+      d2.textContent=faces[Math.floor(Math.random()*faces.length)];
+      count++;
+      if (count>=maxCount) {
+        clearInterval(interval);
+        d1.textContent=['🎲','🎲','🎲'][Math.floor(Math.random()*3)];
+        d2.textContent=['🎲','🎲','🎲'][Math.floor(Math.random()*3)];
+        // звук
+        new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3').play();
+      }
+    },150);
+  }
+
+  // ------------------ Crash --------------------------
+  function initCrash() {
+    const rocket=document.getElementById('crashRocket');
+    const line=document.getElementById('crashLine');
     line.style.width='0%';
-    let progress=0;
-    clearInterval(crashInterval);
-    crashInterval=setInterval(()=>{
-      progress+=0.3+Math.random()*0.2; // медленнее
-      if (progress>100) progress=100;
-      line.style.width=progress+'%';
+    rocket.style.left='10%';
+    rocket.style.top='calc(50% - 20px)';
+    rocket.style.transform='rotate(45deg)';
+    document.getElementById('crashMsg').textContent='';
+    document.getElementById('cashoutBtn').style.display='none';
 
-      // ракета движется
-      rocket.style.left=progress+'%';
-      // поворот
-      rocket.style.transform='rotate(45deg)';
-      if (progress>=100) {
-        clearInterval(crashInterval);
-        document.getElementById('crashMsg').textContent='💥 Crash at ×'+(1+progress/100).toFixed(2);
-        document.getElementById('cashoutBtn').style.display='inline-block';
-      }
-    }, 300); // медленнее
-  };
-  document.getElementById('cashoutBtn').onclick=()=>{
-    alert('You cashed out!');
-    showScreen('mainMenu');
-  };
-}
+    document.getElementById('startRocket').onclick=()=>{
+      line.style.width='0%';
+      let progress=0;
+      clearInterval(crashInterval);
+      crashInterval=setInterval(()=>{
+        progress+=0.3+Math.random()*0.2; // медленнее
+        if (progress>100) progress=100;
+        line.style.width=progress+'%';
 
-// -------- Slots --------
-function initSlots() {
-  document.getElementById('spinSlots').onclick=()=>{
-    const faces=['🍒','🍋','🍇','⭐','💎','7️⃣'];
-    const reel1=document.getElementById('reel1');
-    const reel2=document.getElementById('reel2');
-    const reel3=document.getElementById('reel3');
+        // ракета движется
+        rocket.style.left=progress+'%';
+        // поворот ракеты - фиксированный
+        rocket.style.transform='rotate(45deg)';
+        if (progress>=100) {
+          clearInterval(crashInterval);
+          document.getElementById('crashMsg').textContent='💥 Crash at ×'+(1+progress/100).toFixed(2);
+          document.getElementById('cashoutBtn').style.display='inline-block';
+        }
+      },300); // медленнее
+    };
+    document.getElementById('cashoutBtn').onclick=()=>{
+      alert('Cash out!');
+      showScreen('mainMenu');
+    };
+  }
 
-    // Анимация прокрутки с звуком
-    animateReel(reel1, faces);
-    animateReel(reel2, faces);
-    animateReel(reel3, faces, true); // с эффектом
-
-    // Итог
-    setTimeout(()=>{
-      const final1=faces[Math.floor(Math.random()*faces.length)];
-      const final2=faces[Math.floor(Math.random()*faces.length)];
-      const final3=faces[Math.floor(Math.random()*faces.length)];
-      reel1.textContent=final1;
-      reel2.textContent=final2;
-      reel3.textContent=final3;
-
-      // выигрыш или проигрыш
-      if (final1===final2 && final2===final3) {
-        let payout=0;
-        if (final1==='💎') payout=25;
-        else if (final1==='⭐') payout=15;
-        else if (final1==='7️⃣') payout=12;
-        else if (final1==='🍒') payout=10;
-        else if (final1==='🍋') payout=8;
-        else payout=6;
-        document.getElementById('slotResult').textContent='Win x'+payout+'!';
-      } else if (final1===final2 || final2===final3 || final1===final3) {
-        document.getElementById('slotResult').textContent='Pair x2!';
-      } else {
-        document.getElementById('slotResult').textContent='Lose!';
-      }
-      // звук
-      new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3').play();
-    }, 3000); // дольше
-  };
-}
-
-function animateReel(reel, faces, fast=false) {
-  let count=0;
-  const maxCount=30; // дольше
-  const intervalTime=fast ? 50 : 100;
-  const interval=setInterval(()=>{
-    reel.textContent=faces[Math.floor(Math.random()*faces.length)];
-    count++;
-    if (count>=maxCount) {
-      clearInterval(interval);
+  // ------------------ Слоты --------------------------
+  function initSlots() {
+    document.getElementById('spinSlots').onclick=()=>{
+      const faces=['🍒','🍋','🍇','⭐','💎','7️⃣'];
+      // анимация
+      ['reel1','reel2','reel3'].forEach(id => {
+        const reel=document.getElementById(id);
+        reel.innerHTML='';
+        for (let i=0;i<20;i++) {
+          const c=document.createElement('div');
+          c.style.border='1px solid #555'; c.padding='10px'; c.textContent=faces[Math.floor(Math.random()*faces.length)];
+          reel.appendChild(c);
+        }
+      });
+      // итог
+      setTimeout(()=>{
+        const final1=faces[Math.floor(Math.random()*faces.length)];
+        const final2=faces[Math.floor(Math.random()*faces.length)];
+        const final3=faces[Math.floor(Math.random()*faces.length)];
+        document.getElementById('reel1').textContent=final1;
+        document.getElementById('reel2').textContent=final2;
+        document.getElementById('reel3').textContent=final3;
+        // проверка выигрыша
+        if (final1===final2 && final2===final3) {
+          document.getElementById('slotResult').textContent='Win!';
+        } else if (final1===final2 || final2===final3 || final1===final3) {
+          document.getElementById('slotResult').textContent='Pair!';
+        } else {
+          document.getElementById('slotResult').textContent='Lose!';
+        }
+        // звук
+        new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3').play();
+      },3000);
     }
-  }, intervalTime);
-}
+  }
 
-// --------- Инициализация ---------
-updateStats();
+  // Инициализация
+  updateStats();
 
 </script>
 </body>
 </html>
+<script>
+  // Объявляем переменные для состояния
+  let wallet = 100000; // стартовый баланс
+  let currentGame = null;
+
+  // Обновление UI баланса
+  function updateWallet() {
+    document.getElementById('menuBalance').textContent = wallet.toLocaleString('ru-RU');
+    // Обновляем баланс в окнах игр, если есть
+    ['slotsBal','diceBal','crashBal','minesBal'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent=wallet.toLocaleString('ru-RU');
+    });
+  }
+
+  // Функция для изменения баланса
+  function changeWallet(amount) {
+    wallet += amount;
+    if (wallet<0) wallet=0;
+    updateWallet();
+  }
+
+  // Инициализация
+  window.onload=()=>{
+    // Обновляем баланс при загрузке
+    updateWallet();
+
+    // Обработка вкладок
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.onclick=()=>{
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        const tab=btn.dataset.tab;
+        document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+        document.getElementById('tab'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add('active');
+      }
+    });
+
+    // Обработка кнопок игр
+    document.querySelectorAll('.game-tile').forEach(tile => {
+      tile.onclick=()=>{
+        const game=tile.dataset.game;
+        startGame(game);
+      }
+    });
+
+    // Обработка кнопки "Назад" во всех экранах
+    document.querySelectorAll('[data-back]').forEach(btn => {
+      btn.onclick= ()=> showScreen('menu');
+    });
+
+    // Обработка вкладки "Ещё" и "Настройки"
+    document.getElementById('openSettingsBtn')?.addEventListener('click', ()=>showScreen('settingsScreen'));
+    document.getElementById('openAboutBtn')?.addEventListener('click', ()=>showScreen('aboutScreen'));
+
+    // Обработка сброса статистики
+    document.getElementById('resetStatsBtn')?.addEventListener('click', ()=> {
+      if (confirm('Сбросить статистику?')) {
+        resetStats();
+        showToast('Статистика сброшена');
+      }
+    });
+  };
+
+  // Функция для показа экранов
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+
+    // При возврате в меню обновляем баланс и имена
+    if (id==='menu') {
+      updateWallet();
+      updateNamesUI();
+    }
+  }
+
+  // ------------------ Вспомогательные функции ------------------
+
+  // Обновление имен
+  let player1Name='Игрок 1';
+  let player2Name='Игрок 2';
+  const defaultName1='Игрок 1';
+  const defaultName2='Игрок 2';
+
+  function updateNamesUI() {
+    document.getElementById('menuNameP1').textContent='🔵 '+player1Name;
+    document.getElementById('menuNameP2').textContent='🟣 '+player2Name;
+  }
+
+  // ------------------ Статистика ------------------
+
+  const stats={
+    lucky:{p1:0,p2:0},
+    bj:{p1:0,p2:0}
+  };
+
+  function addWin(game,playerNumber) {
+    if (!stats[game]) return;
+    stats[game]['p'+playerNumber]++;
+    updateStatsDisplay();
+  }
+
+  function updateStatsDisplay() {
+    document.getElementById('statsTotalWins1').textContent=stats.bj.p1+stats.lucky.p1;
+    document.getElementById('statsTotalWins2').textContent=stats.bj.p2+stats.lucky.p2;
+  }
+
+  function resetStats() {
+    stats.lucky={p1:0,p2:0};
+    stats.bj={p1:0,p2:0};
+    updateStatsDisplay();
+  }
+
+  // ------------------ Общие функции ------------------
+  function showToast(message) {
+    const toast=document.getElementById('toast');
+    toast.textContent=message;
+    toast.classList.add('show');
+    clearTimeout(toast._timeout);
+    toast._timeout=setTimeout(()=>toast.classList.remove('show'),1800);
+  }
+
+  // ------------------ Игра Lucky (20 ячеек) ------------------
+  // (подробнее реализуйте отдельные функции, если нужно)
+
+  // ------------------ Игра Blackjack ------------------
+  // (подробнее реализуйте отдельные функции, если нужно)
+
+  // ------------------ Игра Кости ------------------
+  // (подробнее реализуйте отдельные функции, если нужно)
+
+  // ------------------ Игра Crash ------------------
+  // (подробнее реализуйте отдельные функции, если нужно)
+
+  // ------------------ Игра Минёр ------------------
+  // (подробнее реализуйте отдельные функции, если нужно)
+
+  // ------------------ Слоты ------------------
+  // (подробнее реализуйте отдельные функции, если нужно)
+
+  // ------------------ Рулетка ------------------
+  // (подробнее реализуйте отдельные функции, если нужно)
+
+  // Продолжайте добавлять сюда ваши функции для игр...
+
+</script>
+<script>
+  // ------------------ Lucky: Игра 20 ячеек ------------------
+  (function() {
+    const TOTAL=20;
+    const MAX=3;
+    let winIdx=-1;
+    let triesLeft=MAX;
+    let over=false;
+    let turn=1;
+    let w1=parseInt(localStorage.getItem('lucky_wins1_v1')||'0');
+    let w2=parseInt(localStorage.getItem('lucky_wins2_v1')||'0');
+
+    function saveW() {
+      localStorage.setItem('lucky_wins1_v1',w1);
+      localStorage.setItem('lucky_wins2_v1',w2);
+    }
+
+    function buildGrid() {
+      const g=document.getElementById('grid');
+      g.innerHTML='';
+      for (let i=0;i<TOTAL;i++) {
+        const c=document.createElement('div');
+        c.className='lucky-cell';
+        c.setAttribute('data-index',i);
+        c.style.animationDelay=(i*0.025)+'s';
+        c.textContent='?';
+        c.onclick=onClick;
+        g.appendChild(c);
+      }
+    }
+
+    function onClick() {
+      if (over||this.dataset.opened) return;
+      const idx=parseInt(this.getAttribute('data-index'));
+      this.dataset.opened='1';
+      if (idx===winIdx) {
+        this.classList.add('win');
+        this.textContent='💎';
+        over=true;
+        sndBig();
+        vibPattern([60,40,60,40,120]);
+        flashScreen();
+        spawnConfetti(80);
+        spawnCoins(10);
+        if (turn===1) {
+          w1++;
+          saveW();
+          document.getElementById('luckyTitle').textContent='🎉 Победа!';
+          document.getElementById('luckyMsg').style.color='#66bb6a';
+          document.getElementById('luckyMsg').textContent='💎 Найдено на попытке '+(MAX-triesLeft+1)+'!';
+        } else {
+          w2++;
+          saveW();
+          addWin('lucky', turn);
+          document.getElementById('luckyMsg').style.color='#4fc3f7';
+          document.getElementById('luckyMsg').textContent='🔵 '+player1Name+' нашёл!';
+        }
+        document.getElementById('luckyRestart').style.display='inline-block';
+        return;
+      }
+      this.textContent='✖';
+      if (turn===1) {
+        this.classList.add('p1-open');
+        triesLeft--;
+        document.getElementById('luckyTries').textContent=triesLeft;
+        sndCard();
+        vib(30);
+        if (triesLeft<=0) {
+          over=true;
+          sndLose();
+          document.getElementById('luckyTitle').textContent='💀 Проигрыш...';
+          document.getElementById('luckyMsg').style.color='#ff5252';
+          document.getElementById('luckyMsg').textContent='Алмаз был в другой ячейке';
+          const wc=document.querySelector('.lucky-cell[data-index="'+winIdx+'"]');
+          if (wc) {
+            wc.classList.add('win');
+            wc.textContent='💎';
+          }
+          document.getElementById('luckyRestart').style.display='inline-block';
+        } else {
+          document.getElementById('luckyMsg').style.color='#4fc3f7';
+          document.getElementById('luckyMsg').textContent='Мимо! Осталось: '+triesLeft;
+        }
+      } else {
+        this.classList.add(turn===1?'p1-open':'p2-open');
+        sndCard();
+        vib(30);
+        turn=turn===1?2:1;
+        const t=document.getElementById('luckyTurn');
+        t.textContent=turn===1?'🔵 '+player1Name:'🟣 '+player2Name;
+        document.getElementById('luckyMsg').textContent='Мимо! Ход: '+t.textContent;
+      }
+    }
+
+    function start() {
+      const old=document.getElementById('grid');
+      const n=document.createElement('div');
+      n.id='grid';
+      n.style.cssText='display:grid;grid-template-columns:repeat(5,1fr);gap:9px;width:100%;max-width:460px;aspect-ratio:1/1;';
+      old.parentNode.replaceChild(n,old);
+      winIdx=Math.floor(Math.random()*TOTAL);
+      triesLeft=MAX;
+      over=false;
+      turn=1;
+      buildGrid();
+      document.getElementById('luckyLeft').style.display='';
+      document.getElementById('luckyRight').style.display= (MAX===3)?'':'none';
+      if (MAX===3) {
+        document.getElementById('luckyLeft').innerHTML='🎯 Попытки: <span id="luckyTries">'+triesLeft+'</span>';
+      } else {
+        document.getElementById('luckyLeft').textContent='🏆 '+player1Name.substring(0,6)+': '+w1+' · '+player2Name.substring(0,6)+': '+w2;
+      }
+      document.getElementById('luckyTitle').textContent='Найди 💎 среди 20 ячеек!';
+      document.getElementById('luckyMsg').style.color='#4fc3f7';
+      document.getElementById('luckyMsg').textContent= (MAX===3) ? 'Выбери ячейку. 3 попытки.' : 'Ход '+player1Name;
+      document.getElementById('luckyRestart').style.display='none';
+    }
+
+    document.getElementById('luckyRestart').onclick=function(e){e.stopPropagation(); start();};
+    document.getElementById('luckyMenuBtn').onclick=function(){showScreen('luckyModeScreen')};
+    document.getElementById('luckyMode1').onclick=function(){MAX=1;showScreen('luckyGame');document.getElementById('luckyGameTitle').textContent='💎 20 ячеек · 1 игрок'; start();};
+    document.getElementById('luckyMode2').onclick=function(){MAX=2;showScreen('luckyGame');document.getElementById('luckyGameTitle').textContent='💎 20 ячеек · 2 игрока'; start();};
+    start();
+  })();
+
+  // ------------------ Blackjack ------------------
+  (function() {
+    const SUITS=['♠','♥','♦','♣'];
+    const RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+    let deck=[], dealer=[], p1=[], p2=[];
+    let p1Bet=500, p2Bet=500;
+    let phase='bet';
+    let holeHidden=false;
+    let p1BJ=false, p2BJ=false;
+
+    function newDeck() {
+      const d=[];
+      for (let s=0;s<4;s++) {
+        for (let r=0;r<13;r++) {
+          d.push({s:SUITS[s],r:RANKS[r]});
+        }
+      }
+      for (let i=d.length-1;i>0;i--) {
+        const j=Math.floor(Math.random()*(i+1));
+        const t=d[i];
+        d[i]=d[j];
+        d[j]=t;
+      }
+      return d;
+    }
+
+    function cval(c) {
+      if (c.r==='A') return 11;
+      if (['J','Q','K'].includes(c.r)) return 10;
+      return parseInt(c.r);
+    }
+
+    function hscore(h) {
+      let s=0, a=0;
+      for (let i=0;i<h.length;i++) {
+        s+=cval(h[i]);
+        if (h[i].r==='A') a++;
+      }
+      while (s>21 && a>0) {
+        s-=10;
+        a--;
+      }
+      return s;
+    }
+
+    function mkCard(c,hidden) {
+      const d=document.createElement('div');
+      d.className='card';
+      if (hidden) { d.classList.add('back'); d.textContent='?'; return d; }
+      if (c.s==='♥'||c.s==='♦') d.classList.add('red');
+      d.innerHTML='<div class="r">'+c.r+'</div><div class="s">'+c.s+'</div>';
+      return d;
+    }
+
+    function setMsg(t,cls='info') {
+      const m=document.getElementById('bjMsg');
+      m.textContent=t;
+      m.className='msg-bar '+cls;
+    }
+
+    function updateBank() {
+      const b=(phase==='bet') ? p1Bet : (p1Bet+p2Bet);
+      document.getElementById('bjBankRow').textContent='💰 Банк: '+b;
+    }
+
+    function highlight() {
+      const h1=document.getElementById('bjP1Hand'), h2=document.getElementById('bjP2Hand'), hd=document.getElementById('bjDealerHand');
+      h1.className='bj-hand'; h2.className='bj-hand'; hd.className='bj-hand';
+
+      if (phase==='p1') {
+        h1.classList.add('active-p1');
+        if (SUITS.length===2) h2.classList.add('dimmed');
+        hd.classList.add('dimmed');
+      } else if (phase==='p2') {
+        h2.classList.add('active-p2');
+        h1.classList.add('dimmed');
+        hd.classList.add('dimmed');
+      } else if (phase==='dealer') {
+        hd.classList.add('active-dealer');
+        h1.classList.add('dimmed');
+        if (SUITS.length===2) h2.classList.add('dimmed');
+      }
+    }
+
+    function render() {
+      // Обновление карт и подсчетов
+      // ...
+      // (здесь вы добавите код для отображения карт)
+    }
+
+    function updateUI() {
+      // Обновление UI элементов
+      // ...
+    }
+
+    function newRound() {
+      deck=newDeck();
+      dealer=[]; p1=[]; p2=[];
+      holeHidden=false;
+      p1BJ=false; p2BJ=false;
+      phase='bet';
+      // Очистка и подготовка
+      // ...
+    }
+
+    // Инициализация и обработчики
+    // ...
+    // (здесь ваш код для кнопок и логики игры)
+  })();
+
+  // ------------------ Crash: ракета по канвасу ------------------
+  (function() {
+    const canvas=document.getElementById('crashCanvas');
+    const ctx=canvas.getContext('2d');
+    let spinning=false;
+    let multiplier=1;
+    let crashInterval=null;
+
+    function resizeCanvas() {
+      const wrap=document.getElementById('crashWrap');
+      canvas.width=wrap.clientWidth;
+      canvas.height=wrap.clientHeight;
+    }
+
+    function resetStage() {
+      resizeCanvas();
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      drawGrid();
+      document.getElementById('crashRocket').style.left='30px';
+      document.getElementById('crashRocket').style.top='calc(100% - 30px)';
+    }
+
+    function drawGrid() {
+      ctx.strokeStyle='rgba(79,195,247,0.08)';
+      ctx.lineWidth=1;
+      for (let i=1;i<5;i++) {
+        const y=(canvas.height/5)*i;
+        ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke();
+      }
+      for (let j=1;j<6;j++) {
+        const x=(canvas.width/6)*j;
+        ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke();
+      }
+    }
+
+    document.getElementById('crashStartBtn').onclick=()=>{
+      if (spinning) return;
+      // запуск ракеты
+      // ...
+    };
+
+    document.getElementById('crashCashoutBtn').onclick=()=>{
+      if (!spinning) return;
+      // сбор выигрыша
+      // ...
+    };
+
+    // Обработки и анимация
+    // ...
+    // (добавьте здесь анимацию ракеты и креш)
+  })();
+
+  // ------------------ Минёр ------------------
+  (function() {
+    let bombsCount=3;
+    let bet=500;
+    let playing=false;
+    let revealed=0;
+    let multiplier=1.00;
+    const TOTAL=25;
+    let bombs=[];
+
+    function newGame() {
+      bombs=[];
+      for (let i=0;i<TOTAL;i++) bombs.push(false);
+      let placed=0;
+      while (placed<bombsCount) {
+        const idx=Math.floor(Math.random()*TOTAL);
+        if (!bombs[idx]) {
+          bombs[idx]=true;
+          placed++;
+        }
+      }
+    }
+
+    function buildGrid() {
+      const g=document.getElementById('minesGrid');
+      g.innerHTML='';
+      for (let i=0;i<TOTAL;i++) {
+        const c=document.createElement('div');
+        c.className='mine-cell';
+        c.setAttribute('data-index',i);
+        c.textContent='❓';
+        c.onclick=onClickCell;
+        g.appendChild(c);
+      }
+    }
+
+    function onClickCell() {
+      if (!playing || this.classList.contains('opened')) return;
+      const idx=parseInt(this.getAttribute('data-index'));
+      this.classList.add('opened');
+      if (bombs[idx]) {
+        this.classList.add('bomb');
+        this.textContent='💥';
+        sndLose();
+        vib(150);
+        document.getElementById('minesMsg').style.color='#ff5252';
+        document.getElementById('minesMsg').textContent='💥 Бум! Ты попал на мину';
+        // открыть все мины
+        document.querySelectorAll('.mine-cell').forEach((cell,i)=>{
+          if (bombs[i]&&!cell.classList.contains('opened')){
+            cell.textContent='💣'; cell.classList.add('bomb');
+          }
+        });
+        setTimeout(endGame,1500);
+      } else {
+        this.classList.add('safe');
+        this.textContent='💎';
+        revealed++;
+        multiplier=calcMultiplier(revealed);
+        sndCard();
+        vib(30);
+        updateInfo();
+        document.getElementById('minesMsg').style.color='#66bb6a';
+        document.getElementById('minesMsg').textContent='✅ Безопасно! Множитель ×'+multiplier.toFixed(2);
+        if (revealed===TOTAL-bombsCount) {
+          // выигрыш
+          const win=Math.floor(bet*multiplier);
+          changeWallet(win);
+          updateWallet();
+          document.getElementById('minesMsg').textContent='🏆 Все безопасные открыты! +'+win;
+          sndBig();
+          spawnConfetti(150);
+          spawnCoins(20);
+          flashScreen();
+          setTimeout(endGame,2000);
+        }
+      }
+    }
+
+    function calcMultiplier(revealed) {
+      if (revealed<=0) return 1;
+      const safeCells=TOTAL-bombsCount;
+      let mult=1;
+      for (let i=0;i<revealed;i++) {
+        mult*=(safeCells-i)/(safeCells-i-bombsCount/Math.max(1,revealed));
+      }
+      mult=1+revealed*0.15;
+      return Math.min(mult,50);
+    }
+
+    function endGame() {
+      document.getElementById('minesStartBtn').style.display='inline-block';
+      document.getElementById('minesCashoutBtn').style.display='none';
+      document.getElementById('minesBombPicker').style.display='flex';
+      document.getElementById('minesMsg').style.color='#4fc3f7';
+      document.getElementById('minesMsg').textContent='Выбери ставку и начни игру';
+      buildGrid();
+      updateInfo();
+      playing=false;
+      revealed=0;
+      multiplier=1.00;
+    }
+
+    // Обработчики кнопок
+    document.getElementById('minesStartBtn').onclick=()=>{
+      if (playing) return;
+      if (wallet<bet) {showToast('Мало монет'); return;}
+      changeWallet(-bet);
+      updateWallet();
+      playing=true;
+      revealed=0;
+      multiplier=1.00;
+      newGame();
+      buildGrid();
+      document.getElementById('minesStartBtn').style.display='none';
+      document.getElementById('minesCashoutBtn').style.display='inline-block';
+      document.getElementById('minesMsg').style.color='#4fc3f7';
+      document.getElementById('minesMsg').textContent='Открывай ячейки — не попадёшь на мину';
+      updateInfo();
+    };
+
+    document.getElementById('minesCashoutBtn').onclick=()=>{
+      if (!playing || revealed===0) return;
+      const win=Math.floor(bet*multiplier);
+      changeWallet(win);
+      updateWallet();
+      document.getElementById('minesMsg').style.color='#66bb6a';
+      document.getElementById('minesMsg').textContent='💰 Забрал '+win;
+      sndBig();
+      spawnConfetti(80);
+      spawnCoins(10);
+      flashScreen();
+      setTimeout(endGame,1500);
+    };
+
+    // Обновление ставки и мины
+    document.getElementById('minesBetUp').onclick=()=> {
+      if (playing) return;
+      bet=Math.min(bet+100,10000);
+      document.getElementById('minesBetVal').textContent=bet;
+    };
+    document.getElementById('minesBetDown').onclick=()=> {
+      if (playing) return;
+      bet=Math.max(bet-100,100);
+      document.getElementById('minesBetVal').textContent=bet;
+    };
+
+    // Обработка выбора количества мин
+    document.querySelectorAll('#minesBombPicker .mines-mode-btn').forEach(btn => {
+      btn.onclick= ()=> {
+        if (playing) return;
+        document.querySelectorAll('#minesBombPicker .mines-mode-btn').forEach(x=>x.classList.remove('active'));
+        btn.classList.add('active');
+        bombsCount=parseInt(btn.dataset.bombs);
+        updateInfo();
+      }
+    });
+
+    // Инициализация
+    buildGrid();
+    updateInfo();
+
+  })();
+
+  // ------------------ Слоты ------------------
+  (function() {
+    const SYM=['🍒','🍋','🍇','⭐','💎','7️⃣'];
+    let bet=500;
+    let spinning=false;
+    const reel1=document.getElementById('reel1');
+    const reel2=document.getElementById('reel2');
+    const reel3=document.getElementById('reel3');
+
+    function initReel(reel) {
+      reel.innerHTML='';
+      for (let i=0;i<20;i++) {
+        const c=document.createElement('div');
+        c.textContent=SYM[Math.floor(Math.random()*SYM.length)];
+        reel.appendChild(c);
+      }
+    }
+
+    initReel(reel1);
+    initReel(reel2);
+    initReel(reel3);
+
+    document.getElementById('slotSpin').onclick=()=>{
+      if (spinning) return;
+      if (wallet<bet) {showToast('Мало монет'); return;}
+      changeWallet(-bet);
+      updateWallet();
+
+      // Играем анимацию
+      // Обновляем reels
+      initReel(reel1);
+      initReel(reel2);
+      initReel(reel3);
+
+      // Итоговые символы
+      const final1=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
+      const final2=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
+      const final3=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
+
+      setTimeout(()=> {
+        reel1.innerHTML=''; reel2.innerHTML=''; reel3.innerHTML='';
+        reel1.appendChild(document.createTextNode(final1));
+        reel2.appendChild(document.createTextNode(final2));
+        reel3.appendChild(document.createTextNode(final3));
+        // Проверка выигрыша
+        if (final1===final2 && final2===final3) {
+          const payout=bet*25;
+          changeWallet(payout);
+          updateWallet();
+          document.getElementById('slotMsg').textContent='💎 Джекпот! +'+payout;
+          sndBig();
+          spawnConfetti(120);
+        } else if (final1===final2 || final2===final3 || final1===final3) {
+          const payout=bet*10;
+          changeWallet(payout);
+          updateWallet();
+          document.getElementById('slotMsg').textContent='Пара! +' + payout;
+          sndWin();
+          spawnConfetti(50);
+        } else {
+          document.getElementById('slotMsg').textContent='Мимо! '+bet;
+          sndLose();
+        }
+      },3000);
+    };
+  })();
+
+  // ------------------ Рулетка ------------------
+  (function() {
+    const wheelCanvas=document.getElementById('wheelCanvas');
+    const ctx=wheelCanvas.getContext('2d');
+    let spinning=false;
+    let bet=500;
+    let betType=null;
+    let betNum=17;
+    const reds=[1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+    const order=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+
+    function numColor(n) {
+      if (n===0) return '#1b5e20';
+      return reds.includes(n) ? '#c62828':'#1a1a1a';
+    }
+
+    function drawAt(angle) {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const N=order.length;
+      ctx.save();
+      ctx.translate(canvas.width/2,canvas.height/2);
+      ctx.rotate(angle);
+      ctx.translate(-canvas.width/2,-canvas.height/2);
+      for (let i=0; i<N; i++) {
+        const s=(i/N)*Math.PI*2 - Math.PI/2;
+        const e=((i+1)/N)*Math.PI*2 - Math.PI/2;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width/2,canvas.height/2);
+        ctx.arc(canvas.width/2,canvas.height/2,canvas.width/2-10,s,e);
+        ctx.fillStyle=numColor(order[i]);
+        ctx.strokeStyle='#ffd54f';
+        ctx.lineWidth=1;
+        ctx.fill();
+        ctx.stroke();
+
+        const mid=(s+e)/2;
+        ctx.save();
+        ctx.translate(canvas.width/2+Math.cos(mid)*(canvas.width/2-20),canvas.height/2+Math.sin(mid)*(canvas.width/2-20));
+        ctx.rotate(mid+Math.PI/2);
+        ctx.fillStyle='#fff';
+        ctx.font='bold 13px Arial';
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        ctx.fillText(order[i],0,0);
+        ctx.restore();
+      }
+      ctx.beginPath();
+      ctx.arc(canvas.width/2,canvas.height/2,canvas.width/2*0.35,0,Math.PI*2);
+      ctx.fillStyle='#0a0e1a';
+      ctx.fill();
+      ctx.strokeStyle='#ffd54f';
+      ctx.lineWidth=3;
+      ctx.stroke();
+      ctx.fillStyle='#ffd54f';
+      ctx.font='bold 20px Arial';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText('🎡',canvas.width/2,canvas.height/2);
+      ctx.restore();
+    }
+
+    drawAt(0);
+
+    // Обработка выбора ставки
+    document.querySelectorAll('#rouletteGame .bet-opt').forEach(opt => {
+      opt.onclick=()=>{
+        if (spinning) return;
+        document.querySelectorAll('#rouletteGame .bet-opt').forEach(x=>x.classList.remove('active'));
+        opt.classList.add('active');
+        betType=opt.dataset.bet;
+        document.getElementById('numPicker').style.display= (betType==='num')?'flex':'none';
+        document.getElementById('rouletteMsg').textContent='Ставка: '+opt.textContent.trim();
+        document.getElementById('rouletteMsg').style.color='#4fc3f7';
+      }
+    });
+
+    // Выбор числа
+    document.getElementById('numDown').onclick=()=>{
+      betNum=(betNum-1+37)%37;
+      document.getElementById('numVal').textContent=betNum;
+    };
+    document.getElementById('numUp').onclick=()=>{
+      betNum=(betNum+1)%37;
+      document.getElementById('numVal').textContent=betNum;
+    };
+
+    // Вращение рулетки
+    document.getElementById('rouletteSpin').onclick=()=>{
+      if (spinning || !betType) return;
+      if (wallet<bet) {showToast('Мало монет'); return;}
+      changeWallet(-bet);
+      updateWallet();
+      spinning=true;
+      document.getElementById('rouletteMsg').textContent='Крутим...';
+      // запуск анимации
+      startRouletteMusic();
+
+      const wNum=Math.floor(Math.random()*37);
+      const wIdx=order.indexOf(wNum);
+      const target=(wIdx+0.5)/order.length*Math.PI*2;
+      const start=performance.now();
+      const duration=3800;
+
+      function frame(now) {
+        const t=Math.min(1,(now-start)/duration);
+        const ease=1-Math.pow(1-t,3);
+        const ang=ease*(Math.PI*2*8+target);
+        drawAt(ang);
+        if (t<1) {
+          requestAnimationFrame(frame);
+        } else {
+          stopRouletteMusic();
+          finishRoulette(wNum);
+        }
+      }
+      requestAnimationFrame(frame);
+    };
+
+    function finishRoulette(n) {
+      spinning=false;
+      // Проверка выигрыша
+      const isRed=reds.includes(n);
+      const isBlack=(n!==0 && !isRed);
+      let win=0;
+      let label='';
+
+      if (betType==='red' && isRed) { win=bet*2; label='🔴 Красное'; }
+      else if (betType==='black' && isBlack) { win=bet*2; label='⚫ Чёрное'; }
+      else if (betType==='green' && n===0) { win=bet*14; label='🟢 Зеро'; }
+      else if (betType==='even' && n!==0 && n%2===0) { win=bet*2; label='Чётное'; }
+      else if (betType==='odd' && n!==0 && n%2===1) { win=bet*2; label='Нечётное'; }
+      else if (betType==='1-18' && n>=1 && n<=18) { win=bet*2; label='1–18'; }
+      else if (betType==='19-36' && n>=19 && n<=36) { win=bet*2; label='19–36'; }
+      else if (betType==='num' && n===betNum) { win=bet*36; label='🎯 Число'; }
+
+      const elMsg=document.getElementById('rouletteMsg');
+      if (win>0) {
+        changeWallet(win);
+        updateWallet();
+        elMsg.textContent=''+(isRed?'🔴':(isBlack?'⚫':'🟢'))+' '+n+' — '+label+' +'+win;
+        elMsg.style.color='#66bb6a';
+        if (win>=bet*10) {sndBig(); flashScreen(); spawnConfetti(120);}
+        else {sndWin(); spawnConfetti(50);}
+        vibPattern([60,40,60,40,120]);
+      } else {
+        elMsg.textContent=''+(isRed?'🔴':(isBlack?'⚫':'🟢'))+' '+n+' — -'+bet;
+        elMsg.style.color='#ff5252';
+        sndLose();
+      }
+    }
+
+  })();
+
+  // ------------------ Общие функции ------------------
+  function startRouletteMusic() {
+    // Воспроизведение музыки рулетки
+  }
+
+  function stopRouletteMusic() {
+    // Остановка музыки рулетки
+  }
+
+</script>
+<script>
+  // ------------------ Сохранение настроек ------------------
+  const SETTINGS_KEY='kazik_settings_v2';
+
+  function loadSettings() {
+    const s=localStorage.getItem(SETTINGS_KEY);
+    if (s) {
+      try { return JSON.parse(s); } catch(e) { return {sound:true, vib:true}; }
+    }
+    return {sound:true, vib:true};
+  }
+
+  function saveSettings() {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  }
+
+  // Инициализация настроек
+  let settings=loadSettings();
+  updateToggleUI();
+
+  // Обработчики для включения/выключения звука и вибрации
+  document.getElementById('toggleSound')?.addEventListener('click', ()=> {
+    settings.sound=!settings.sound;
+    saveSettings();
+    updateToggleUI();
+  });
+  document.getElementById('toggleVib')?.addEventListener('click', ()=> {
+    settings.vib=!settings.vib;
+    saveSettings();
+    updateToggleUI();
+  });
+
+  function updateToggleUI() {
+    const s=document.getElementById('toggleSound');
+    const v=document.getElementById('toggleVib');
+    if (s) {
+      s.textContent= settings.sound?'ВКЛ':'ВЫКЛ';
+      s.classList.toggle('off',!settings.sound);
+    }
+    if (v) {
+      v.textContent= settings.vib?'ВКЛ':'ВЫКЛ';
+      v.classList.toggle('off',!settings.vib);
+    }
+  }
+
+  // ------------------ Интеграция с Telegram ------------------
+  function initTelegram() {
+    if (typeof window.Telegram==='undefined' || !window.Telegram.WebApp) return;
+    const tg=window.Telegram.WebApp;
+    try { tg.ready(); } catch(e) {}
+    try { tg.expand(); } catch(e) {}
+    try { tg.setHeaderColor('#0b1020'); tg.setBackgroundColor('#0b1020'); } catch(e) {}
+    const user= tg.initDataUnsafe?.user;
+    if (user) {
+      // Можно обновить имя игрока или ID
+    }
+  }
+
+  // Вызов инициализации
+  initTelegram();
+
+  // ------------------ Общие функции ------------------
+  function showToast(message) {
+    const toast=document.getElementById('toast');
+    toast.textContent=message;
+    toast.classList.add('show');
+    clearTimeout(toast._timeout);
+    toast._timeout=setTimeout(()=>toast.classList.remove('show'),1800);
+  }
+
+  // ------------------ Управление состоянием и возврат ------------------
+  // Обработчики для кнопок назад, меню, настроек и т.п.
+  // В основном уже реализованы, при необходимости добавьте для конкретных сценариев.
+
+  // ------------------ Дополнительные функции и логика ------------------
+  // Можно добавить функции для обновления профиля, смены имени, или взаимодействия с сервером.
+
+  // Например, смена имени игрока
+  function changePlayerName(playerNumber, newName) {
+    if (playerNumber===1) {
+      player1Name=newName.trim()||defaultName1;
+    } else {
+      player2Name=newName.trim()||defaultName2;
+    }
+    updateNamesUI();
+    localStorage.setItem(`player${playerNumber}_name_v1`, newName);
+  }
+
+  // Вызов смены имени
+  // changePlayerName(1, 'Новый ник');
+
+</script>
