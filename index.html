@@ -244,6 +244,25 @@
   .die { transition:transform .3s ease; }
   .die.rolling { animation:rollAnim .35s linear infinite; }
   @keyframes rollAnim { 0% { transform:rotate(0deg) scale(1); } 50% { transform:rotate(180deg) scale(1.2); } 100% { transform:rotate(360deg) scale(1); } }
+  /* ============ СЛОТЫ: реальные барабаны ============ */
+  .reel-window {
+    width:68px; height:88px;
+    background:#0a0e1a; border-radius:14px;
+    overflow:hidden; position:relative;
+    border:2px solid #3d2d70;
+    transition:border-color .35s ease;
+  }
+  .reel-window.spinning { border-color:#ffd54f; box-shadow:0 0 18px rgba(255,213,79,0.7); }
+  .reel-strip {
+    position:absolute; top:0; left:0; right:0;
+    display:flex; flex-direction:column;
+    will-change:transform;
+  }
+  .reel-cell {
+    width:100%; height:88px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:46px; flex-shrink:0;
+  }
   .lobby-players { display:flex; align-items:center; justify-content:center; gap:12px; padding:14px; flex-shrink:0; }
   .lobby-player { flex:1; max-width:150px; background:linear-gradient(145deg,rgba(26,16,53,0.95),rgba(21,12,43,0.95)); border:2px solid #3d2d70; border-radius:16px; padding:12px 10px; text-align:center; }
   .lobby-player.host { border-color:#ffd54f; box-shadow:0 0 20px rgba(255,213,79,0.4); }
@@ -631,9 +650,9 @@
   <div class="top-bar"><button class="back-btn" data-back>◀ Меню</button><div class="game-title">🎰 Слоты</div><div class="bal-mini">💰 <span id="slotsBal">100 000</span></div></div>
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:14px;overflow-y:auto;">
     <div style="display:flex;gap:10px;background:linear-gradient(145deg,#2a1e4d,#1a1035);padding:18px;border-radius:22px;border:3px solid #ffd54f;box-shadow:0 0 34px rgba(255,213,79,0.55);animation:balancePulse 2s ease-in-out infinite alternate;">
-      <div id="rw1" style="width:68px;height:88px;background:#0a0e1a;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:46px;border:2px solid #3d2d70;">🍒</div>
-      <div id="rw2" style="width:68px;height:88px;background:#0a0e1a;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:46px;border:2px solid #3d2d70;">🍒</div>
-      <div id="rw3" style="width:68px;height:88px;background:#0a0e1a;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:46px;border:2px solid #3d2d70;">🍒</div>
+      <div class="reel-window" id="rw1"></div>
+      <div class="reel-window" id="rw2"></div>
+      <div class="reel-window" id="rw3"></div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;background:#1a1035;padding:10px 18px;border-radius:22px;border:1px solid #3d2d70;">
       <span style="font-size:12px;color:#a08cd0;">Ставка:</span>
@@ -950,7 +969,7 @@ function vib(ms) { if (settings.vib && navigator.vibrate) navigator.vibrate(ms);
 function vibPattern(p) { if (settings.vib && navigator.vibrate) navigator.vibrate(p); }
 
 /* --------- МУЗЫКА ДЛЯ РУЛЕТКИ --------- */
-var musicOsc = null, musicGain = null, musicInterval = null;
+var musicInterval = null;
 function startRouletteMusic() {
   if (!settings.sound) return;
   try {
@@ -971,9 +990,7 @@ function startRouletteMusic() {
     }, 90);
   } catch(e) {}
 }
-function stopRouletteMusic() {
-  if (musicInterval) { clearInterval(musicInterval); musicInterval = null; }
-}
+function stopRouletteMusic() { if (musicInterval) { clearInterval(musicInterval); musicInterval = null; } }
 
 /* ==================== ОНЛАЙН ==================== */
 var API_URL = 'https://game-kazik-by-zyza.onrender.com';
@@ -1244,7 +1261,7 @@ function startOnlineGame() { if (lobbySocket && isHost && lobbySocket.readyState
   document.getElementById('luckyMode2').onclick = function() { MODE = 2; showScreen('luckyGame'); document.getElementById('luckyGameTitle').textContent = '💎 20 ячеек · 2 игрока'; start(); };
 })();
 
-/* ==================== БЛЭКДЖЕК ==================== */
+/* ==================== БЛЭКДЖЕК (ИСПРАВЛЕН) ==================== */
 (function() {
   var GAME_MODE = 1;
   var SUITS = ['♠','♥','♦','♣'], RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
@@ -1298,14 +1315,21 @@ function startOnlineGame() { if (lobbySocket && isHost && lobbySocket.readyState
     else if (phase === 'done') nr.style.display = 'inline-block';
     updateBank(); highlight();
   }
+  // === НОВЫЙ РАУНД — вызывается всегда, сбрасывает всё ===
   function newRound() {
-    deck = newDeck(); dealer = []; p1 = []; p2 = [];
-    holeHidden = false; p1BJ = p2BJ = false; phase = 'bet';
-    document.getElementById('bjP1Badge').innerHTML = ''; document.getElementById('bjP2Badge').innerHTML = ''; document.getElementById('bjDealerBadge').innerHTML = '';
+    deck = newDeck();
+    dealer = []; p1 = []; p2 = [];
+    holeHidden = false; p1BJ = false; p2BJ = false;
+    phase = 'bet';
+    document.getElementById('bjP1Badge').innerHTML = '';
+    document.getElementById('bjP2Badge').innerHTML = '';
+    document.getElementById('bjDealerBadge').innerHTML = '';
     document.getElementById('bjP1Hand').classList.remove('winner','loser');
     document.getElementById('bjP2Hand').classList.remove('winner','loser');
     document.getElementById('bjDealerHand').classList.remove('winner','loser');
-    render(); setMsg('Сделайте ставки', 'info'); updateUI();
+    render();
+    setMsg('Сделайте ставки', 'info');
+    updateUI();
   }
   function deal() {
     if (phase !== 'bet') return;
@@ -1318,7 +1342,8 @@ function startOnlineGame() { if (lobbySocket && isHost && lobbySocket.readyState
       if (hscore(p1) === 21 && p1.length === 2) { p1BJ = true; }
       if (hscore(p2) === 21 && p2.length === 2) { p2BJ = true; }
       render();
-      if (p1BJ) { setMsg('🔵 ' + player1Name + ': блэкджек! Ход ' + player2Name, 'p2'); phase = 'p2'; }
+      if (p1BJ && p2BJ) { phase = 'done'; setTimeout(finish2, 700); return; }
+      if (p1BJ) { setMsg('🔵 блэкджек! Ход ' + player2Name, 'p2'); phase = 'p2'; }
       else { setMsg('🔵 Ход ' + player1Name, 'p1'); phase = 'p1'; }
       updateUI();
     } else {
@@ -1327,24 +1352,28 @@ function startOnlineGame() { if (lobbySocket && isHost && lobbySocket.readyState
       if (hscore(p1) === 21 && p1.length === 2) {
         p1BJ = true; holeHidden = false;
         render(); setMsg('🃏 БЛЭКДЖЕК!', 'win');
-        setTimeout(dealerStep, 1000); return;
+        phase = 'dealer';
+        setTimeout(function() { phase = 'done'; finish1(); }, 1200);
+        return;
       }
       render(); setMsg('🔵 Твой ход', 'p1'); phase = 'p1'; updateUI();
     }
   }
   function hit() {
+    if (phase !== 'p1' && phase !== 'p2') return;
     sndCard();
     if (phase === 'p1') {
       p1.push(deck.pop()); render();
       var s = hscore(p1);
       if (s > 21) {
         if (GAME_MODE === 2) { setMsg('🔵 Перебор. Ход ' + player2Name, 'p2'); phase = 'p2'; }
-        else { setMsg('💥 Перебор!', 'lose'); holeHidden = false; phase = 'done'; setTimeout(finish1, 900); }
+        else { setMsg('💥 Перебор!', 'lose'); holeHidden = false; render(); phase = 'done'; setTimeout(finish1, 900); }
       } else if (s === 21) { stand(); return; }
     } else if (phase === 'p2') {
       p2.push(deck.pop()); render();
       var s2 = hscore(p2);
       if (s2 > 21) { setMsg('🟣 Перебор. Считаем...', 'info'); phase = 'done'; setTimeout(finish2, 900); return; }
+      else if (s2 === 21) { stand(); return; }
     }
     updateUI();
   }
@@ -1356,6 +1385,7 @@ function startOnlineGame() { if (lobbySocket && isHost && lobbySocket.readyState
     updateUI();
   }
   function double() {
+    if (phase !== 'p1' && phase !== 'p2') return;
     var add = phase === 'p1' ? p1Bet : p2Bet;
     if (getWallet() < add) { showToast('Мало монет'); return; }
     setWallet(getWallet() - add); updateWalletUI();
@@ -1369,16 +1399,14 @@ function startOnlineGame() { if (lobbySocket && isHost && lobbySocket.readyState
     }
   }
   function dealerTurn() {
-    holeHidden = false; render();
+    holeHidden = false;
+    phase = 'dealer';
+    render(); updateUI();
     function step() {
       if (hscore(dealer) < 17 && dealer.length < 8) { dealer.push(deck.pop()); sndCard(); render(); setTimeout(step, 900); }
       else { phase = 'done'; finish1(); }
     }
     setTimeout(step, 700);
-  }
-  function dealerStep() {
-    if (hscore(dealer) < 17 && dealer.length < 8) { dealer.push(deck.pop()); sndCard(); render(); setTimeout(dealerStep, 900); }
-    else { phase = 'done'; finish1(); }
   }
   function finish1() {
     var p = hscore(p1), d = hscore(dealer), bet = p1Bet;
@@ -1445,7 +1473,8 @@ function startOnlineGame() { if (lobbySocket && isHost && lobbySocket.readyState
   document.getElementById('bjHitBtn').onclick = hit;
   document.getElementById('bjStandBtn').onclick = stand;
   document.getElementById('bjDoubleBtn').onclick = double;
-  document.getElementById('bjNewRoundBtn').onclick = function() { if (phase === 'done') newRound(); };
+  // === ИСПРАВЛЕНО: кнопка нового раунда всегда работает ===
+  document.getElementById('bjNewRoundBtn').onclick = function() { newRound(); };
   document.getElementById('bjMode1').onclick = function() {
     GAME_MODE = 1; showScreen('bjGame');
     document.getElementById('bjGameTitle').textContent = '🃏 Против дилера';
@@ -1652,31 +1681,103 @@ function startOnlineGame() { if (lobbySocket && isHost && lobbySocket.readyState
   document.getElementById('rpsMenuBtn').onclick = function() { showScreen('rpsModeScreen'); };
 })();
 
-/* ==================== СЛОТЫ ==================== */
+/* ==================== СЛОТЫ (С АНИМАЦИЕЙ ПРОКРУТКИ) ==================== */
 (function() {
   var SYM = ['🍒','🍋','🍇','⭐','💎','7️⃣'];
   var bet = 500, spinning = false;
-  var r1 = document.getElementById('rw1'), r2 = document.getElementById('rw2'), r3 = document.getElementById('rw3');
+  var reelWins = [document.getElementById('rw1'), document.getElementById('rw2'), document.getElementById('rw3')];
+  var strips = [];
+  var CELL_H = 88;
+
+  // Инициализация каждого барабана (20 ячеек в ленте)
+  function initReel(win) {
+    win.innerHTML = '';
+    var strip = document.createElement('div');
+    strip.className = 'reel-strip';
+    for (var i = 0; i < 20; i++) {
+      var cell = document.createElement('div');
+      cell.className = 'reel-cell';
+      cell.textContent = SYM[Math.floor(Math.random() * SYM.length)];
+      strip.appendChild(cell);
+    }
+    win.appendChild(strip);
+    return strip;
+  }
+  for (var i = 0; i < 3; i++) strips.push(initReel(reelWins[i]));
+
   document.querySelectorAll('#slotsGame [data-bet-up]').forEach(function(b){ b.onclick = function(){ bet = Math.min(bet+100, 5000); sndClick(); document.getElementById('slotBet').textContent = bet; }; });
   document.querySelectorAll('#slotsGame [data-bet-down]').forEach(function(b){ b.onclick = function(){ bet = Math.max(bet-100, 100); sndClick(); document.getElementById('slotBet').textContent = bet; }; });
+
+  function spinReel(strip, win, finalSymbol, duration, delay) {
+    return new Promise(function(resolve) {
+      setTimeout(function() {
+        win.classList.add('spinning');
+        var len = strip.children.length;
+        var totalScroll = CELL_H * (len + 10);  // прокрутить с запасом
+        var start = performance.now();
+        var lastTick = 0;
+        function frame(now) {
+          var t = Math.min(1, (now - start) / duration);
+          var ease = 1 - Math.pow(1 - t, 3);  // плавное замедление
+          var y = -ease * totalScroll;
+          var offset = y % (CELL_H * len);
+          strip.style.transform = 'translateY(' + offset + 'px)';
+          if (now - lastTick > 70 && t < 0.85) { sndTick(); lastTick = now; }
+          if (t < 1) {
+            requestAnimationFrame(frame);
+          } else {
+            // финальная позиция — последняя ячейка
+            strip.children[len - 1].textContent = finalSymbol;
+            strip.style.transform = 'translateY(-' + (CELL_H * (len - 1)) + 'px)';
+            win.classList.remove('spinning');
+            sndCard();
+            resolve();
+          }
+        }
+        requestAnimationFrame(frame);
+      }, delay);
+    });
+  }
+
   document.getElementById('slotSpin').onclick = function() {
     if (spinning) return;
     if (getWallet() < bet) { showToast('Мало монет'); return; }
-    spinning = true; setWallet(getWallet()-bet); updateWalletUI();
+    spinning = true;
+    setWallet(getWallet() - bet); updateWalletUI();
     document.getElementById('slotSpin').disabled = true;
-    document.getElementById('slotMsg').textContent = 'Крутим...'; document.getElementById('slotMsg').style.color = '#4fc3f7';
-    var n = 0;
-    var iv = setInterval(function() {
-      r1.textContent = SYM[Math.floor(Math.random()*SYM.length)];
-      r2.textContent = SYM[Math.floor(Math.random()*SYM.length)];
-      r3.textContent = SYM[Math.floor(Math.random()*SYM.length)];
-      sndTick(); n++;
-      if (n > 25) { clearInterval(iv); finish(); }
-    }, 80);
+    document.getElementById('slotMsg').textContent = 'Крутим...';
+    document.getElementById('slotMsg').style.color = '#4fc3f7';
+
+    // Заранее определяем финальный результат
+    var finalA = SYM[Math.floor(Math.random()*SYM.length)];
+    var finalB = SYM[Math.floor(Math.random()*SYM.length)];
+    var finalC = SYM[Math.floor(Math.random()*SYM.length)];
+
+    // Пересоздаём ленты со случайными символами
+    for (var r = 0; r < 3; r++) {
+      strips[r].innerHTML = '';
+      for (var i = 0; i < 20; i++) {
+        var cell = document.createElement('div');
+        cell.className = 'reel-cell';
+        cell.textContent = SYM[Math.floor(Math.random() * SYM.length)];
+        strips[r].appendChild(cell);
+      }
+      strips[r].style.transform = 'translateY(0)';
+    }
+
+    // Разные скорости остановки: 1.4с, 1.9с, 2.4с
+    Promise.all([
+      spinReel(strips[0], reelWins[0], finalA, 1400, 0),
+      spinReel(strips[1], reelWins[1], finalB, 1900, 200),
+      spinReel(strips[2], reelWins[2], finalC, 2400, 400)
+    ]).then(function() {
+      spinning = false;
+      document.getElementById('slotSpin').disabled = false;
+      finishSlots(finalA, finalB, finalC);
+    });
   };
-  function finish() {
-    var a = SYM[Math.floor(Math.random()*SYM.length)], b = SYM[Math.floor(Math.random()*SYM.length)], c = SYM[Math.floor(Math.random()*SYM.length)];
-    r1.textContent = a; r2.textContent = b; r3.textContent = c;
+
+  function finishSlots(a, b, c) {
     var m = 0, label = '';
     if (a === b && b === c) {
       if (a === '💎') { m = 25; label = '💎 ДЖЕКПОТ ×25'; }
@@ -1695,7 +1796,6 @@ function startOnlineGame() { if (lobbySocket && isHost && lobbySocket.readyState
       document.getElementById('slotMsg').textContent = 'Мимо −' + fmt(bet);
       document.getElementById('slotMsg').style.color = '#ff5252'; sndLose();
     }
-    spinning = false; document.getElementById('slotSpin').disabled = false;
   }
 })();
 
