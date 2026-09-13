@@ -515,47 +515,279 @@
 </div>
 
 <!-- БЛЭКДЖЕК -->
-<div class="screen game-screen" id="bjModeScreen">
-  <div class="top-bar"><button class="back-btn" data-back>◀ Меню</button><div class="game-title">🃏 Блэкджек</div><button class="top-score-btn" id="bjModeScoreBtn"><span class="lbl">🏆 </span><span class="val top-score-val">0 : 0</span></button></div>
-  <div class="scroll-content" style="justify-content:center;">
-    <h2 style="color:#ffd54f;">Выбери режим</h2>
-    <div class="bj-mode-btn" id="bjMode1"><div class="ico">👤</div><div class="info"><div class="n">Один игрок</div><div class="d">Против дилера</div></div></div>
-    <div class="bj-mode-btn" id="bjMode2"><div class="ico">👥</div><div class="info"><div class="n">Два игрока</div><div class="d">1 на 1</div></div></div>
-  </div>
-</div>
+/* ==================== БЛЭКДЖЕК (ИСПРАВЛЕН #2) ==================== */
+(function() {
+  var GAME_MODE = 1;
+  var SUITS = ['♠','♥','♦','♣'], RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+  var deck = [], dealer = [], p1 = [], p2 = [], p1Bet = 500, p2Bet = 500;
+  var phase = 'bet', holeHidden = false, p1BJ = false, p2BJ = false;
+  var busy = false;  // защита от двойных нажатий
 
-<div class="screen game-screen" id="bjGame">
-  <div class="top-bar"><button class="back-btn" id="bjMenuBtn">◀ Режим</button><div class="game-title" id="bjGameTitle">🃏 Игра</div><button class="top-score-btn" id="bjGameScoreBtn"><span class="lbl">🏆 </span><span class="val top-score-val">0 : 0</span></button></div>
-  <div style="background:linear-gradient(90deg, rgba(36,26,72,0.9), rgba(61,45,112,0.9));padding:7px;text-align:center;font-size:13px;font-weight:bold;color:#ffd54f;" id="bjBankRow">💰 Банк: 0</div>
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly;padding:10px 12px;gap:10px;overflow-y:auto;">
-    <div class="bj-hand" id="bjDealerHand" style="display:none;">
-      <div style="font-size:12px;color:#a08cd0;margin-bottom:6px;display:flex;justify-content:space-between;"><span>🔴 Дилер <span id="bjDealerBadge"></span></span><span id="bjDealerScore" style="color:#ffd54f;font-weight:bold;background:#2a1e4d;padding:4px 12px;border-radius:14px;">0</span></div>
-      <div id="bjDealerCards" style="display:flex;gap:6px;flex-wrap:wrap;min-height:60px;align-items:center;"></div>
-    </div>
-    <div class="bj-hand" id="bjP1Hand">
-      <div style="font-size:12px;color:#a08cd0;margin-bottom:6px;display:flex;justify-content:space-between;"><span><span id="bjP1Name">🔵 Игрок 1 <span id="bjP1Badge"></span></span></span><span id="bjP1Score" style="color:#ffd54f;font-weight:bold;background:#2a1e4d;padding:4px 12px;border-radius:14px;">0</span></div>
-      <div id="bjP1Cards" style="display:flex;gap:6px;flex-wrap:wrap;min-height:60px;align-items:center;"></div>
-    </div>
-    <div class="bj-hand" id="bjP2Hand" style="display:none;">
-      <div style="font-size:12px;color:#a08cd0;margin-bottom:6px;display:flex;justify-content:space-between;"><span><span id="bjP2Name">🟣 Игрок 2 <span id="bjP2Badge"></span></span></span><span id="bjP2Score" style="color:#ffd54f;font-weight:bold;background:#2a1e4d;padding:4px 12px;border-radius:14px;">0</span></div>
-      <div id="bjP2Cards" style="display:flex;gap:6px;flex-wrap:wrap;min-height:60px;align-items:center;"></div>
-    </div>
-  </div>
-  <div class="msg-bar info" id="bjMsg">Сделай ставку</div>
-  <div style="padding:8px 12px 14px;display:flex;flex-direction:column;gap:9px;">
-    <div style="display:flex;gap:8px;justify-content:center;" id="bjBetPanel">
-      <div class="bet-item p1"><span class="lbl" id="bjBetLblP1">Ставка</span><button id="bjP1BetDown">−</button><span class="val" id="bjP1BetVal">500</span><button id="bjP1BetUp">+</button></div>
-      <div class="bet-item p2" id="bjBetItemP2" style="display:none;"><span class="lbl" id="bjBetLblP2">И2</span><button id="bjP2BetDown">−</button><span class="val" id="bjP2BetVal">500</span><button id="bjP2BetUp">+</button></div>
-    </div>
-    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-      <button class="btn-deal" id="bjDealBtn">🃏 Раздать</button>
-      <button class="btn-deal" id="bjHitBtn" style="display:none;background:linear-gradient(145deg,#4fc3f7,#2196f3);color:#0a0e1a;">Взять</button>
-      <button class="btn-deal" id="bjStandBtn" style="display:none;background:linear-gradient(145deg,#ff5252,#c62828);color:#fff;">Хватит</button>
-      <button class="btn-deal" id="bjDoubleBtn" style="display:none;">Удвоить</button>
-      <button class="btn-deal" id="bjNewRoundBtn" style="display:none;">🔄 Новый раунд</button>
-    </div>
-  </div>
-</div>
+  function newDeck() {
+    var d = [];
+    for (var s = 0; s < 4; s++) for (var r = 0; r < 13; r++) d.push({ s: SUITS[s], r: RANKS[r] });
+    for (var i = d.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i+1)); var t = d[i]; d[i] = d[j]; d[j] = t; }
+    return d;
+  }
+  function cval(c) { if (c.r === 'A') return 11; if (c.r === 'J' || c.r === 'Q' || c.r === 'K') return 10; return parseInt(c.r); }
+  function hscore(h) { var s = 0, a = 0; for (var i = 0; i < h.length; i++) { s += cval(h[i]); if (h[i].r === 'A') a++; } while (s > 21 && a > 0) { s -= 10; a--; } return s; }
+  function mkCard(c, hidden) {
+    var d = document.createElement('div');
+    d.className = 'card';
+    if (hidden) { d.classList.add('back'); d.textContent = '?'; return d; }
+    if (c.s === '♥' || c.s === '♦') d.classList.add('red');
+    d.innerHTML = '<div class="r">' + c.r + '</div><div class="s">' + c.s + '</div>';
+    return d;
+  }
+  function setMsg(t, cls) { var m = document.getElementById('bjMsg'); m.textContent = t; m.className = 'msg-bar ' + (cls||'info'); }
+  function updateBank() { var b = GAME_MODE === 1 ? p1Bet : (p1Bet+p2Bet); document.getElementById('bjBankRow').textContent = '💰 Банк: ' + fmt(b); }
+  function highlight() {
+    var h1 = document.getElementById('bjP1Hand'), h2 = document.getElementById('bjP2Hand'), hd = document.getElementById('bjDealerHand');
+    h1.classList.remove('active-p1','active-p2','active-dealer','dimmed');
+    h2.classList.remove('active-p1','active-p2','active-dealer','dimmed');
+    hd.classList.remove('active-p1','active-p2','active-dealer','dimmed');
+    if (phase === 'p1') { h1.classList.add('active-p1'); if (GAME_MODE === 2) h2.classList.add('dimmed'); hd.classList.add('dimmed'); }
+    else if (phase === 'p2') { h2.classList.add('active-p2'); h1.classList.add('dimmed'); hd.classList.add('dimmed'); }
+    else if (phase === 'dealer') { hd.classList.add('active-dealer'); h1.classList.add('dimmed'); if (GAME_MODE === 2) h2.classList.add('dimmed'); }
+  }
+  function render() {
+    var dEl = document.getElementById('bjDealerCards'); dEl.innerHTML = '';
+    for (var i = 0; i < dealer.length; i++) dEl.appendChild(mkCard(dealer[i], holeHidden && i === 1));
+    document.getElementById('bjDealerScore').textContent = holeHidden ? hscore([dealer[0]]) : hscore(dealer);
+    var e1 = document.getElementById('bjP1Cards'); e1.innerHTML = '';
+    for (var a = 0; a < p1.length; a++) e1.appendChild(mkCard(p1[a]));
+    document.getElementById('bjP1Score').textContent = hscore(p1);
+    var e2 = document.getElementById('bjP2Cards'); e2.innerHTML = '';
+    for (var b = 0; b < p2.length; b++) e2.appendChild(mkCard(p2[b]));
+    document.getElementById('bjP2Score').textContent = hscore(p2);
+    highlight();
+  }
+  function updateUI() {
+    var bp = document.getElementById('bjBetPanel'), db = document.getElementById('bjDealBtn'), hb = document.getElementById('bjHitBtn'), sb = document.getElementById('bjStandBtn'), dbb = document.getElementById('bjDoubleBtn'), nr = document.getElementById('bjNewRoundBtn');
+    bp.style.display = 'none'; db.style.display = 'none'; hb.style.display = 'none'; sb.style.display = 'none'; dbb.style.display = 'none'; nr.style.display = 'none';
+    if (phase === 'bet') { bp.style.display = 'flex'; db.style.display = 'inline-block'; }
+    else if (phase === 'p1' || phase === 'p2') { hb.style.display = 'inline-block'; sb.style.display = 'inline-block'; dbb.style.display = 'inline-block'; }
+    else if (phase === 'done') nr.style.display = 'inline-block';
+    updateBank(); highlight();
+  }
+
+  // === НОВЫЙ РАУНД — работает всегда, что бы ни было ===
+  function newRound() {
+    busy = false;
+    deck = newDeck();
+    dealer = []; p1 = []; p2 = [];
+    holeHidden = false; p1BJ = false; p2BJ = false;
+    phase = 'bet';
+    document.getElementById('bjP1Badge').innerHTML = '';
+    document.getElementById('bjP2Badge').innerHTML = '';
+    document.getElementById('bjDealerBadge').innerHTML = '';
+    document.getElementById('bjP1Hand').classList.remove('winner','loser');
+    document.getElementById('bjP2Hand').classList.remove('winner','loser');
+    document.getElementById('bjDealerHand').classList.remove('winner','loser');
+    render();
+    setMsg('Сделайте ставки', 'info');
+    updateUI();
+  }
+
+  function deal() {
+    if (phase !== 'bet') return;
+    var tot = p1Bet + (GAME_MODE === 2 ? p2Bet : 0);
+    if (getWallet() < tot) { showToast('Недостаточно монет'); return; }
+    setWallet(getWallet() - tot); updateWalletUI();
+    p1.push(deck.pop(), deck.pop());
+    if (GAME_MODE === 2) {
+      p2.push(deck.pop(), deck.pop());
+      if (hscore(p1) === 21 && p1.length === 2) p1BJ = true;
+      if (hscore(p2) === 21 && p2.length === 2) p2BJ = true;
+      render();
+      if (p1BJ && p2BJ) { phase = 'done'; setTimeout(finish2, 700); updateUI(); return; }
+      if (p1BJ) { setMsg('🔵 блэкджек! Ход ' + player2Name, 'p2'); phase = 'p2'; }
+      else { setMsg('🔵 Ход ' + player1Name, 'p1'); phase = 'p1'; }
+      updateUI();
+    } else {
+      dealer.push(deck.pop(), deck.pop());
+      holeHidden = true;
+      if (hscore(p1) === 21 && p1.length === 2) {
+        p1BJ = true; holeHidden = false;
+        render(); setMsg('🃏 БЛЭКДЖЕК!', 'win');
+        phase = 'dealer'; updateUI();
+        setTimeout(function() { phase = 'done'; finish1(); updateUI(); }, 1200);
+        return;
+      }
+      render(); setMsg('🔵 Твой ход', 'p1'); phase = 'p1'; updateUI();
+    }
+  }
+
+  function hit() {
+    if (phase !== 'p1' && phase !== 'p2') return;
+    sndCard();
+    if (phase === 'p1') {
+      p1.push(deck.pop()); render();
+      var s = hscore(p1);
+      if (s > 21) {
+        if (GAME_MODE === 2) { setMsg('🔵 Перебор. Ход ' + player2Name, 'p2'); phase = 'p2'; updateUI(); }
+        else {
+          setMsg('💥 Перебор!', 'lose');
+          holeHidden = false; render();
+          // МГНОВЕННО ставим phase в done, чтобы кнопка сразу сработала
+          phase = 'done'; updateUI();
+          setTimeout(finish1, 900);
+        }
+        return;
+      } else if (s === 21) { stand(); return; }
+    } else if (phase === 'p2') {
+      p2.push(deck.pop()); render();
+      var s2 = hscore(p2);
+      if (s2 > 21) {
+        setMsg('🟣 Перебор. Считаем...', 'info');
+        phase = 'done'; updateUI();
+        setTimeout(finish2, 900);
+        return;
+      } else if (s2 === 21) { stand(); return; }
+    }
+    updateUI();
+  }
+
+  function stand() {
+    if (phase === 'p1') {
+      if (GAME_MODE === 2) { setMsg('🔵 Хватит. Ход ' + player2Name, 'p2'); phase = 'p2'; updateUI(); }
+      else { setMsg('Ход дилера...', 'info'); dealerTurn(); return; }
+    } else if (phase === 'p2') {
+      setMsg('🟣 Считаем...', 'info');
+      phase = 'done'; updateUI();
+      setTimeout(finish2, 900);
+      return;
+    }
+    updateUI();
+  }
+
+  function double() {
+    if (phase !== 'p1' && phase !== 'p2') return;
+    var add = phase === 'p1' ? p1Bet : p2Bet;
+    if (getWallet() < add) { showToast('Мало монет'); return; }
+    setWallet(getWallet() - add); updateWalletUI();
+    if (phase === 'p1') {
+      p1Bet *= 2; p1.push(deck.pop()); render();
+      if (GAME_MODE === 2) { setMsg('Удвоил. Ход ' + player2Name, 'p2'); phase = 'p2'; updateUI(); }
+      else { setMsg('Ход дилера...', 'info'); dealerTurn(); }
+    } else {
+      p2Bet *= 2; p2.push(deck.pop()); render();
+      setMsg('Считаем...', 'info');
+      phase = 'done'; updateUI();
+      setTimeout(finish2, 900);
+    }
+  }
+
+  function dealerTurn() {
+    holeHidden = false;
+    phase = 'dealer';
+    render(); updateUI();
+    function step() {
+      if (hscore(dealer) < 17 && dealer.length < 8) {
+        dealer.push(deck.pop()); sndCard(); render();
+        setTimeout(step, 900);
+      } else {
+        phase = 'done'; finish1(); updateUI();
+      }
+    }
+    setTimeout(step, 700);
+  }
+
+  function finish1() {
+    var p = hscore(p1), d = hscore(dealer), bet = p1Bet;
+    var dbl = (d === 21 && dealer.length === 2);
+    var payout = 0, badge = '', msg = '', cls = '';
+    if (p > 21) { badge = '<span class="badge lose">ПЕРЕБОР</span>'; msg = '💥 Перебор −' + fmt(bet); cls = 'lose'; sndLose();
+      document.getElementById('bjP1Hand').classList.add('loser'); document.getElementById('bjDealerHand').classList.add('winner'); }
+    else if (p1BJ && !dbl) { payout = Math.floor(bet*2.5); badge = '<span class="badge win">БЛЭКДЖЕК ×2.5</span>'; msg = '🃏 БЛЭКДЖЕК! +' + fmt(payout-bet); cls = 'win'; sndBig();
+      document.getElementById('bjP1Hand').classList.add('winner'); document.getElementById('bjDealerHand').classList.add('loser'); }
+    else if (dbl && !p1BJ) { badge = '<span class="badge lose">ПРОИГРЫШ</span>'; msg = 'У дилера блэкджек −' + fmt(bet); cls = 'lose'; sndLose();
+      document.getElementById('bjDealerHand').classList.add('winner'); document.getElementById('bjP1Hand').classList.add('loser'); }
+    else if (d > 21) { payout = bet*2; badge = '<span class="badge win">ПОБЕДА</span>'; msg = '🏆 Дилер перебрал! +' + fmt(bet); cls = 'win'; sndWin();
+      document.getElementById('bjP1Hand').classList.add('winner'); document.getElementById('bjDealerHand').classList.add('loser'); }
+    else if (p > d) { payout = bet*2; badge = '<span class="badge win">ПОБЕДА ' + p + ':' + d + '</span>'; msg = '🏆 Победа! +' + fmt(bet); cls = 'win'; sndWin();
+      document.getElementById('bjP1Hand').classList.add('winner'); document.getElementById('bjDealerHand').classList.add('loser'); }
+    else if (p < d) { badge = '<span class="badge lose">ПРОИГРЫШ ' + p + ':' + d + '</span>'; msg = 'Проигрыш −' + fmt(bet); cls = 'lose'; sndLose();
+      document.getElementById('bjP1Hand').classList.add('loser'); document.getElementById('bjDealerHand').classList.add('winner'); }
+    else { payout = bet; badge = '<span class="badge push">НИЧЬЯ</span>'; msg = 'Ничья — возврат'; cls = 'info'; sndWin();
+      document.getElementById('bjP1Hand').classList.add('winner'); document.getElementById('bjDealerHand').classList.add('winner'); }
+    if (payout > 0) { setWallet(getWallet() + payout); updateWalletUI(); }
+    document.getElementById('bjP1Badge').innerHTML = badge;
+    setMsg(msg, cls);
+    if (cls === 'win') { vibPattern([60,40,60,40,120]); spawnConfetti(payout > bet*2 ? 100 : 50); spawnCoins(6); }
+    phase = 'done';
+    updateUI();
+  }
+
+  function finish2() {
+    var s1 = hscore(p1), s2 = hscore(p2);
+    var bank = p1Bet + p2Bet;
+    var result = '', reason = '';
+    if (s1 > 21 && s2 > 21) { result = 'push'; reason = 'Оба перебрали'; }
+    else if (p1BJ && p2BJ) { result = 'push'; reason = 'У обоих блэкджек'; }
+    else if (p1BJ && !p2BJ) { result = 'p1'; reason = '🔵 блэкджек!'; }
+    else if (p2BJ && !p1BJ) { result = 'p2'; reason = '🟣 блэкджек!'; }
+    else if (s1 > 21) { result = 'p2'; reason = '🔵 перебрал'; }
+    else if (s2 > 21) { result = 'p1'; reason = '🟣 перебрал'; }
+    else if (s1 > s2) { result = 'p1'; reason = '🔵 ' + s1 + '>' + s2; }
+    else if (s2 > s1) { result = 'p2'; reason = '🟣 ' + s2 + '>' + s1; }
+    else { result = 'push'; reason = 'Ничья'; }
+    if (result === 'p1') {
+      setWallet(getWallet() + bank); addWin('bj', 1);
+      document.getElementById('bjP1Hand').classList.add('winner'); document.getElementById('bjP2Hand').classList.add('loser');
+      document.getElementById('bjP1Badge').innerHTML = '<span class="badge win">ЗАБРАЛ ' + fmt(bank) + '</span>';
+      document.getElementById('bjP2Badge').innerHTML = '<span class="badge lose">−' + fmt(p2Bet) + '</span>';
+      setMsg(reason + ' +' + fmt(bank-p1Bet), 'win'); sndBig(); spawnConfetti(100); spawnCoins(12); flashScreen();
+    } else if (result === 'p2') {
+      setWallet(getWallet() + bank); addWin('bj', 2);
+      document.getElementById('bjP2Hand').classList.add('winner'); document.getElementById('bjP1Hand').classList.add('loser');
+      document.getElementById('bjP2Badge').innerHTML = '<span class="badge win">ЗАБРАЛ ' + fmt(bank) + '</span>';
+      document.getElementById('bjP1Badge').innerHTML = '<span class="badge lose">−' + fmt(p1Bet) + '</span>';
+      setMsg(reason + ' +' + fmt(bank-p2Bet), 'win'); sndBig(); spawnConfetti(100); spawnCoins(12); flashScreen();
+    } else {
+      setWallet(getWallet() + p1Bet + p2Bet);
+      document.getElementById('bjP1Badge').innerHTML = '<span class="badge push">НИЧЬЯ</span>';
+      document.getElementById('bjP2Badge').innerHTML = '<span class="badge push">НИЧЬЯ</span>';
+      setMsg(reason, 'info'); sndWin();
+    }
+    updateWalletUI(); phase = 'done'; updateUI();
+  }
+
+  document.getElementById('bjP1BetUp').onclick = function() { if (phase !== 'bet') return; p1Bet = Math.min(p1Bet+100, 10000); sndClick(); document.getElementById('bjP1BetVal').textContent = p1Bet; updateBank(); };
+  document.getElementById('bjP1BetDown').onclick = function() { if (phase !== 'bet') return; p1Bet = Math.max(p1Bet-100, 100); sndClick(); document.getElementById('bjP1BetVal').textContent = p1Bet; updateBank(); };
+  document.getElementById('bjP2BetUp').onclick = function() { if (phase !== 'bet') return; p2Bet = Math.min(p2Bet+100, 10000); sndClick(); document.getElementById('bjP2BetVal').textContent = p2Bet; updateBank(); };
+  document.getElementById('bjP2BetDown').onclick = function() { if (phase !== 'bet') return; p2Bet = Math.max(p2Bet-100, 100); sndClick(); document.getElementById('bjP2BetVal').textContent = p2Bet; updateBank(); };
+  document.getElementById('bjDealBtn').onclick = deal;
+  document.getElementById('bjHitBtn').onclick = hit;
+  document.getElementById('bjStandBtn').onclick = stand;
+  document.getElementById('bjDoubleBtn').onclick = double;
+
+  // === ГЛАВНЫЙ ФИКС: кнопка "Новый раунд" вызывает newRound() ВСЕГДА ===
+  document.getElementById('bjNewRoundBtn').onclick = function(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    newRound();
+  };
+
+  document.getElementById('bjMode1').onclick = function() {
+    GAME_MODE = 1; showScreen('bjGame');
+    document.getElementById('bjGameTitle').textContent = '🃏 Против дилера';
+    document.getElementById('bjDealerHand').style.display = 'block';
+    document.getElementById('bjP2Hand').style.display = 'none';
+    document.getElementById('bjBetItemP2').style.display = 'none';
+    document.getElementById('bjBetLblP1').textContent = 'Ставка';
+    updateWalletUI(); updateNamesUI(); newRound();
+  };
+  document.getElementById('bjMode2').onclick = function() {
+    GAME_MODE = 2; showScreen('bjGame');
+    document.getElementById('bjGameTitle').textContent = '🃏 1 на 1';
+    document.getElementById('bjDealerHand').style.display = 'none';
+    document.getElementById('bjP2Hand').style.display = 'block';
+    document.getElementById('bjBetItemP2').style.display = 'flex';
+    document.getElementById('bjBetLblP1').textContent = player1Name.substring(0, 8);
+    updateWalletUI(); updateNamesUI(); newRound();
+  };
+  document.getElementById('bjMenuBtn').onclick = function() { showScreen('bjModeScreen'); };
+})();
 
 <!-- КОСТИ -->
 <div class="screen game-screen" id="diceModeScreen">
