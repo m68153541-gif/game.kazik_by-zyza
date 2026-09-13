@@ -921,7 +921,7 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
   document.getElementById('luckyMode2').onclick=function(){MODE=2;showScreen('luckyGame');document.getElementById('luckyGameTitle').textContent='💎 20 ячеек · 2 игрока';start()};
 })();
 
-/* ==================== БЛЭКДЖЕК — ФИНАЛЬНАЯ ВЕРСИЯ ==================== */
+/* ==================== БЛЭКДЖЕК — WORKING VERSION ==================== */
 (function(){
   var GAME_MODE=1;
   var SUITS=['♠','♥','♦','♣'],RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
@@ -974,77 +974,99 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
     var sb=document.getElementById('bjStandBtn');
     var dbb=document.getElementById('bjDoubleBtn');
     var nr=document.getElementById('bjNewRoundBtn');
-    bp.style.display='none';
-    db.style.display='none';
-    hb.style.display='none';
-    sb.style.display='none';
-    dbb.style.display='none';
-    nr.style.display='none';
+    bp.style.display='none';db.style.display='none';hb.style.display='none';
+    sb.style.display='none';dbb.style.display='none';nr.style.display='none';
     db.disabled=false;
     if(phase==='bet'){
-      bp.style.display='flex';
-      db.style.display='inline-block';
+      bp.style.display='flex';db.style.display='inline-block';
     } else if(phase==='p1'||phase==='p2'){
-      hb.style.display='inline-block';
-      sb.style.display='inline-block';
-      dbb.style.display='inline-block';
+      hb.style.display='inline-block';sb.style.display='inline-block';dbb.style.display='inline-block';
     } else if(phase==='done'){
       nr.style.display='inline-block';
     }
-    updateBank();
-    highlight();
+    updateBank();highlight();
   }
+
+  // Полный сброс игры — всегда работает
   function newRound(){
     deck=newDeck();
-    dealer=[];
-    p1=[];
-    p2=[];
-    holeHidden=false;
-    p1BJ=false;
-    p2BJ=false;
+    dealer=[];p1=[];p2=[];
+    holeHidden=false;p1BJ=false;p2BJ=false;
     phase='bet';
-    document.getElementById('bjP1Badge').innerHTML='';
-    document.getElementById('bjP2Badge').innerHTML='';
-    document.getElementById('bjDealerBadge').innerHTML='';
-    document.getElementById('bjP1Hand').classList.remove('winner','loser');
-    document.getElementById('bjP2Hand').classList.remove('winner','loser');
-    document.getElementById('bjDealerHand').classList.remove('winner','loser');
+    var ids=['bjP1Badge','bjP2Badge','bjDealerBadge'];
+    for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el)el.innerHTML=''}
+    ['bjP1Hand','bjP2Hand','bjDealerHand'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el)el.classList.remove('winner','loser','active-p1','active-p2','active-dealer','dimmed');
+    });
     render();
     setMsg('Сделайте ставки','info');
     updateUI();
   }
+
   function deal(){
-    // Если не в фазе ставок — сбрасываем и НЕ раздаём
-    if(phase!=='bet'){
-      newRound();
-      return;
-    }
+    // Принудительный сброс, если не в bet
+    if(phase!=='bet'){newRound();return}
     var tot=p1Bet+(GAME_MODE===2?p2Bet:0);
     if(getWallet()<tot){showToast('Недостаточно монет');return}
     setWallet(getWallet()-tot);updateWalletUI();
-    p1.push(deck.pop(),deck.pop());
+
+    // Первая карта игроку 1
+    p1.push(deck.pop());
+    // Первая карта игроку 2 (если 2 игрока)
+    if(GAME_MODE===2)p2.push(deck.pop());
+    // Первая карта дилеру (если 1 игрок)
+    if(GAME_MODE===1)dealer.push(deck.pop());
+    // Вторая карта игроку 1
+    p1.push(deck.pop());
+    // Вторая карта игроку 2
+    if(GAME_MODE===2)p2.push(deck.pop());
+    // Вторая карта дилеру (скрытая)
+    if(GAME_MODE===1){
+      dealer.push(deck.pop());
+      holeHidden=true;
+    }
+
+    // Проверка блэкджека у игрока 1
+    if(hscore(p1)===21&&p1.length===2)p1BJ=true;
+
     if(GAME_MODE===2){
-      p2.push(deck.pop(),deck.pop());
-      if(hscore(p1)===21&&p1.length===2)p1BJ=true;
       if(hscore(p2)===21&&p2.length===2)p2BJ=true;
       render();
-      if(p1BJ&&p2BJ){phase='done';updateUI();setTimeout(finish2,700);return}
-      if(p1BJ){setMsg('🔵 блэкджек! Ход '+player2Name,'p2');phase='p2'}
-      else{setMsg('🔵 Ход '+player1Name,'p1');phase='p1'}
-      updateUI();
-    }else{
-      dealer.push(deck.pop(),deck.pop());
-      holeHidden=true;
-      if(hscore(p1)===21&&p1.length===2){
-        p1BJ=true;holeHidden=false;
-        render();setMsg('🃏 БЛЭКДЖЕК!','win');
-        phase='dealer';updateUI();
-        setTimeout(function(){phase='done';updateUI();finish1()},1200);
+
+      // Оба блэкджека?
+      if(p1BJ&&p2BJ){
+        phase='done';updateUI();
+        setTimeout(finish2,700);
         return;
       }
-      render();setMsg('🔵 Твой ход','p1');phase='p1';updateUI();
+      // Игрок 1 блэкджек — сразу переход к игроку 2
+      if(p1BJ){
+        setMsg('🔵 блэкджек! Ход '+player2Name,'p2');
+        phase='p2';updateUI();
+        return;
+      }
+      // Ход игрока 1
+      setMsg('🔵 Ход '+player1Name,'p1');
+      phase='p1';updateUI();
+    } else {
+      // 1 игрок — дилер играет после
+      render();
+      if(p1BJ){
+        holeHidden=false;
+        render();
+        setMsg('🃏 БЛЭКДЖЕК!','win');
+        phase='dealer';updateUI();
+        setTimeout(function(){
+          if(phase!=='done'){phase='done';finish1();updateUI()}
+        },1200);
+        return;
+      }
+      setMsg('🔵 Твой ход','p1');
+      phase='p1';updateUI();
     }
   }
+
   function hit(){
     if(phase!=='p1'&&phase!=='p2')return;
     sndCard();
@@ -1052,27 +1074,53 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
       p1.push(deck.pop());render();
       var s=hscore(p1);
       if(s>21){
-        if(GAME_MODE===2){setMsg('🔵 Перебор. Ход '+player2Name,'p2');phase='p2';updateUI()}
-        else{setMsg('💥 Перебор!','lose');holeHidden=false;render();phase='done';updateUI();setTimeout(finish1,900)}
+        if(GAME_MODE===2){
+          setMsg('🔵 Перебор. Ход '+player2Name,'p2');
+          phase='p2';updateUI();
+        } else {
+          holeHidden=false;
+          render();
+          setMsg('💥 Перебор!','lose');
+          phase='done';updateUI();
+          setTimeout(finish1,900);
+        }
         return;
-      } else if(s===21){stand();return}
+      } else if(s===21){
+        stand();return;
+      }
     } else if(phase==='p2'){
       p2.push(deck.pop());render();
       var s2=hscore(p2);
-      if(s2>21){setMsg('🟣 Перебор. Считаем...','info');phase='done';updateUI();setTimeout(finish2,900);return}
-      else if(s2===21){stand();return}
+      if(s2>21){
+        setMsg('🟣 Перебор. Считаем...','info');
+        phase='done';updateUI();
+        setTimeout(finish2,900);
+        return;
+      } else if(s2===21){
+        stand();return;
+      }
     }
     updateUI();
   }
+
   function stand(){
     if(phase==='p1'){
-      if(GAME_MODE===2){setMsg('🔵 Хватит. Ход '+player2Name,'p2');phase='p2';updateUI()}
-      else{setMsg('Ход дилера...','info');dealerTurn();return}
+      if(GAME_MODE===2){
+        setMsg('🔵 Хватит. Ход '+player2Name,'p2');
+        phase='p2';updateUI();
+      } else {
+        setMsg('Ход дилера...','info');
+        dealerTurn();return;
+      }
     } else if(phase==='p2'){
-      setMsg('🟣 Считаем...','info');phase='done';updateUI();setTimeout(finish2,900);return;
+      setMsg('🟣 Считаем...','info');
+      phase='done';updateUI();
+      setTimeout(finish2,900);
+      return;
     }
     updateUI();
   }
+
   function double(){
     if(phase!=='p1'&&phase!=='p2')return;
     var add=phase==='p1'?p1Bet:p2Bet;
@@ -1080,38 +1128,61 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
     setWallet(getWallet()-add);updateWalletUI();
     if(phase==='p1'){
       p1Bet*=2;p1.push(deck.pop());render();
-      if(GAME_MODE===2){setMsg('Удвоил. Ход '+player2Name,'p2');phase='p2';updateUI()}
-      else{setMsg('Ход дилера...','info');dealerTurn()}
-    }else{
+      if(GAME_MODE===2){
+        setMsg('Удвоил. Ход '+player2Name,'p2');
+        phase='p2';updateUI();
+      } else {
+        setMsg('Ход дилера...','info');
+        dealerTurn();
+      }
+    } else {
       p2Bet*=2;p2.push(deck.pop());render();
-      setMsg('Считаем...','info');phase='done';updateUI();setTimeout(finish2,900);
+      setMsg('Считаем...','info');
+      phase='done';updateUI();
+      setTimeout(finish2,900);
     }
   }
+
   function dealerTurn(){
-    holeHidden=false;phase='dealer';render();updateUI();
+    holeHidden=false;
+    phase='dealer';render();updateUI();
     function step(){
-      if(hscore(dealer)<17&&dealer.length<8){dealer.push(deck.pop());sndCard();render();setTimeout(step,900)}
-      else{phase='done';updateUI();finish1()}
+      if(hscore(dealer)<17&&dealer.length<8){
+        dealer.push(deck.pop());sndCard();render();
+        setTimeout(step,900);
+      } else {
+        phase='done';updateUI();
+        finish1();
+      }
     }
     setTimeout(step,700);
   }
+
   function finish1(){
     var p=hscore(p1),d=hscore(dealer),bet=p1Bet;
     var dbl=(d===21&&dealer.length===2);
     var payout=0,badge='',msg='',cls='';
-    if(p>21){badge='<span class="badge lose">ПЕРЕБОР</span>';msg='💥 Перебор −'+fmt(bet);cls='lose';sndLose();document.getElementById('bjP1Hand').classList.add('loser');document.getElementById('bjDealerHand').classList.add('winner')}
-    else if(p1BJ&&!dbl){payout=Math.floor(bet*2.5);badge='<span class="badge win">БЛЭКДЖЕК ×2.5</span>';msg='🃏 БЛЭКДЖЕК! +'+fmt(payout-bet);cls='win';sndBig();document.getElementById('bjP1Hand').classList.add('winner');document.getElementById('bjDealerHand').classList.add('loser')}
-    else if(dbl&&!p1BJ){badge='<span class="badge lose">ПРОИГРЫШ</span>';msg='У дилера блэкджек −'+fmt(bet);cls='lose';sndLose();document.getElementById('bjDealerHand').classList.add('winner');document.getElementById('bjP1Hand').classList.add('loser')}
-    else if(d>21){payout=bet*2;badge='<span class="badge win">ПОБЕДА</span>';msg='🏆 Дилер перебрал! +'+fmt(bet);cls='win';sndWin();document.getElementById('bjP1Hand').classList.add('winner');document.getElementById('bjDealerHand').classList.add('loser')}
-    else if(p>d){payout=bet*2;badge='<span class="badge win">ПОБЕДА '+p+':'+d+'</span>';msg='🏆 Победа! +'+fmt(bet);cls='win';sndWin();document.getElementById('bjP1Hand').classList.add('winner');document.getElementById('bjDealerHand').classList.add('loser')}
-    else if(p<d){badge='<span class="badge lose">ПРОИГРЫШ '+p+':'+d+'</span>';msg='Проигрыш −'+fmt(bet);cls='lose';sndLose();document.getElementById('bjP1Hand').classList.add('loser');document.getElementById('bjDealerHand').classList.add('winner')}
-    else{payout=bet;badge='<span class="badge push">НИЧЬЯ</span>';msg='Ничья — возврат';cls='info';sndWin();document.getElementById('bjP1Hand').classList.add('winner');document.getElementById('bjDealerHand').classList.add('winner')}
+    if(p>21){badge='<span class="badge lose">ПЕРЕБОР</span>';msg='💥 Перебор −'+fmt(bet);cls='lose';sndLose();
+      document.getElementById('bjP1Hand').classList.add('loser');document.getElementById('bjDealerHand').classList.add('winner')}
+    else if(p1BJ&&!dbl){payout=Math.floor(bet*2.5);badge='<span class="badge win">БЛЭКДЖЕК ×2.5</span>';msg='🃏 БЛЭКДЖЕК! +'+fmt(payout-bet);cls='win';sndBig();
+      document.getElementById('bjP1Hand').classList.add('winner');document.getElementById('bjDealerHand').classList.add('loser')}
+    else if(dbl&&!p1BJ){badge='<span class="badge lose">ПРОИГРЫШ</span>';msg='У дилера блэкджек −'+fmt(bet);cls='lose';sndLose();
+      document.getElementById('bjDealerHand').classList.add('winner');document.getElementById('bjP1Hand').classList.add('loser')}
+    else if(d>21){payout=bet*2;badge='<span class="badge win">ПОБЕДА</span>';msg='🏆 Дилер перебрал! +'+fmt(bet);cls='win';sndWin();
+      document.getElementById('bjP1Hand').classList.add('winner');document.getElementById('bjDealerHand').classList.add('loser')}
+    else if(p>d){payout=bet*2;badge='<span class="badge win">ПОБЕДА '+p+':'+d+'</span>';msg='🏆 Победа! +'+fmt(bet);cls='win';sndWin();
+      document.getElementById('bjP1Hand').classList.add('winner');document.getElementById('bjDealerHand').classList.add('loser')}
+    else if(p<d){badge='<span class="badge lose">ПРОИГРЫШ '+p+':'+d+'</span>';msg='Проигрыш −'+fmt(bet);cls='lose';sndLose();
+      document.getElementById('bjP1Hand').classList.add('loser');document.getElementById('bjDealerHand').classList.add('winner')}
+    else{payout=bet;badge='<span class="badge push">НИЧЬЯ</span>';msg='Ничья — возврат';cls='info';sndWin();
+      document.getElementById('bjP1Hand').classList.add('winner');document.getElementById('bjDealerHand').classList.add('winner')}
     if(payout>0){setWallet(getWallet()+payout);updateWalletUI()}
     document.getElementById('bjP1Badge').innerHTML=badge;
     setMsg(msg,cls);
     if(cls==='win'){vibPattern([60,40,60,40,120]);spawnConfetti(payout>bet*2?100:50);spawnCoins(6)}
     phase='done';updateUI();
   }
+
   function finish2(){
     var s1=hscore(p1),s2=hscore(p2);
     var bank=p1Bet+p2Bet;
@@ -1125,18 +1196,23 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
     else if(s1>s2){result='p1';reason='🔵 '+s1+'>'+s2}
     else if(s2>s1){result='p2';reason='🟣 '+s2+'>'+s1}
     else{result='push';reason='Ничья'}
+
     if(result==='p1'){
       setWallet(getWallet()+bank);addWin('bj',1);
-      document.getElementById('bjP1Hand').classList.add('winner');document.getElementById('bjP2Hand').classList.add('loser');
+      document.getElementById('bjP1Hand').classList.add('winner');
+      document.getElementById('bjP2Hand').classList.add('loser');
       document.getElementById('bjP1Badge').innerHTML='<span class="badge win">ЗАБРАЛ '+fmt(bank)+'</span>';
       document.getElementById('bjP2Badge').innerHTML='<span class="badge lose">−'+fmt(p2Bet)+'</span>';
-      setMsg(reason+' +'+fmt(bank-p1Bet),'win');sndBig();spawnConfetti(100);spawnCoins(12);flashScreen();
+      setMsg(reason+' +'+fmt(bank-p1Bet),'win');
+      sndBig();spawnConfetti(100);spawnCoins(12);flashScreen();
     } else if(result==='p2'){
       setWallet(getWallet()+bank);addWin('bj',2);
-      document.getElementById('bjP2Hand').classList.add('winner');document.getElementById('bjP1Hand').classList.add('loser');
+      document.getElementById('bjP2Hand').classList.add('winner');
+      document.getElementById('bjP1Hand').classList.add('loser');
       document.getElementById('bjP2Badge').innerHTML='<span class="badge win">ЗАБРАЛ '+fmt(bank)+'</span>';
       document.getElementById('bjP1Badge').innerHTML='<span class="badge lose">−'+fmt(p1Bet)+'</span>';
-      setMsg(reason+' +'+fmt(bank-p2Bet),'win');sndBig();spawnConfetti(100);spawnCoins(12);flashScreen();
+      setMsg(reason+' +'+fmt(bank-p2Bet),'win');
+      sndBig();spawnConfetti(100);spawnCoins(12);flashScreen();
     } else {
       setWallet(getWallet()+p1Bet+p2Bet);
       document.getElementById('bjP1Badge').innerHTML='<span class="badge push">НИЧЬЯ</span>';
@@ -1145,6 +1221,22 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
     }
     updateWalletUI();phase='done';updateUI();
   }
+
+  // === ВОТ ГЛАВНЫЙ ФИКС: обработчик кнопки "Новый раунд" через addEventListener ===
+  function bindNewRound(){
+    var btn=document.getElementById('bjNewRoundBtn');
+    if(!btn)return;
+    // Удаляем старый onclick и вешаем новый
+    btn.onclick=null;
+    btn.addEventListener('click',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      newRound();
+      return false;
+    });
+  }
+  bindNewRound();
+
   document.getElementById('bjP1BetUp').onclick=function(){if(phase!=='bet')return;p1Bet=Math.min(p1Bet+100,10000);sndClick();document.getElementById('bjP1BetVal').textContent=p1Bet;updateBank()};
   document.getElementById('bjP1BetDown').onclick=function(){if(phase!=='bet')return;p1Bet=Math.max(p1Bet-100,100);sndClick();document.getElementById('bjP1BetVal').textContent=p1Bet;updateBank()};
   document.getElementById('bjP2BetUp').onclick=function(){if(phase!=='bet')return;p2Bet=Math.min(p2Bet+100,10000);sndClick();document.getElementById('bjP2BetVal').textContent=p2Bet;updateBank()};
@@ -1153,7 +1245,7 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
   document.getElementById('bjHitBtn').onclick=hit;
   document.getElementById('bjStandBtn').onclick=stand;
   document.getElementById('bjDoubleBtn').onclick=double;
-  document.getElementById('bjNewRoundBtn').onclick=function(e){if(e){e.preventDefault();e.stopPropagation()}newRound()};
+
   document.getElementById('bjMode1').onclick=function(){
     GAME_MODE=1;showScreen('bjGame');
     document.getElementById('bjGameTitle').textContent='🃏 Против дилера';
