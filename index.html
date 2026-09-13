@@ -49,19 +49,17 @@ body{font-family:Arial,sans-serif;user-select:none;color:#fff;position:relative}
 #menu{padding:0;overflow:hidden}
 .menu-header{padding:16px 16px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0}
 .menu-header h1{font-size:26px;letter-spacing:3px;background:linear-gradient(90deg,#4fc3f7,#ffd54f,#ba68c8,#4fc3f7);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:bold;animation:logoShift 4s linear infinite}
-.profile-row{display:flex;gap:8px;width:100%;max-width:440px;align-items:center}
-.balance-mini{flex:1;background:linear-gradient(145deg,rgba(42,30,77,.9),rgba(26,16,53,.9));border:2px solid #ffd54f;border-radius:14px;padding:8px 12px;font-size:14px;font-weight:bold;color:#ffd54f;display:flex;align-items:center;justify-content:center;gap:6px;animation:balancePulse 2.4s ease-in-out infinite alternate}
+.balance-mini{background:linear-gradient(145deg,rgba(42,30,77,.9),rgba(26,16,53,.9));border:2px solid #ffd54f;border-radius:14px;padding:8px 22px;font-size:16px;font-weight:bold;color:#ffd54f;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 0 18px rgba(255,213,79,.5);animation:balancePulse 2.4s ease-in-out infinite alternate}
 @keyframes balancePulse{from{box-shadow:0 0 12px rgba(255,213,79,.3)}to{box-shadow:0 0 22px rgba(255,213,79,.7)}}
-.score-mini{flex:1;background:linear-gradient(145deg,rgba(74,46,90,.9),rgba(42,30,58,.9));border:2px solid #ba68c8;border-radius:14px;padding:8px 12px;font-size:14px;font-weight:bold;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
-.score-mini .lbl{color:#ba68c8;font-size:10px}
 .player-names-row{display:flex;gap:8px;width:100%;max-width:440px;margin-top:2px}
 .player-names-row .pn{flex:1;font-size:11px;font-weight:bold;padding:5px 10px;border-radius:10px;background:rgba(26,16,53,.85);border:1.5px solid;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .player-names-row .pn.p1{border-color:#4fc3f7;color:#4fc3f7}
 .player-names-row .pn.p2{border-color:#ba68c8;color:#ba68c8}
-.tabs{display:flex;gap:6px;padding:8px 16px 10px;flex-shrink:0;max-width:440px;width:100%;margin:0 auto}
-.tab-btn{flex:1;padding:10px 8px;background:rgba(26,16,53,.7);border:2px solid #2d4070;border-radius:14px;color:#7ba8d6;font-size:13px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .3s ease}
-.tab-btn.active{background:linear-gradient(145deg,rgba(79,195,247,.25),rgba(186,104,200,.25));border-color:#4fc3f7;color:#fff}
+.tabs{display:flex;gap:5px;padding:8px 12px 10px;flex-shrink:0;max-width:480px;width:100%;margin:0 auto}
+.tab-btn{flex:1;padding:9px 4px;background:rgba(26,16,53,.7);border:2px solid #2d4070;border-radius:14px;color:#7ba8d6;font-size:11px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all .3s ease}
+.tab-btn.active{background:linear-gradient(145deg,rgba(79,195,247,.25),rgba(186,104,200,.25));border-color:#4fc3f7;color:#fff;box-shadow:0 0 14px rgba(79,195,247,.5)}
 .tab-btn .tab-ico{font-size:18px}
+.tab-btn .tab-lbl{font-size:10px;letter-spacing:.3px}
 .tab-content{flex:1;display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y!important;padding:6px 16px 30px;height:0;min-height:0}
 .tab-content::-webkit-scrollbar{width:0}
 .tab-content.active{display:block}
@@ -71,6 +69,10 @@ body{font-family:Arial,sans-serif;user-select:none;color:#fff;position:relative}
 .game-tile .g-ico{font-size:40px}
 .game-tile .g-name{font-size:14px;font-weight:bold;color:#fff}
 .game-tile .g-desc{font-size:10px;color:#7ba8d6}
+/* СТАТИСТИКА вкладка */
+#tabStats .stats-total{margin:0 auto 12px}
+#tabStats .stats-block{margin:0 auto 12px}
+#tabStats .reset-stats-btn{display:block;margin:14px auto 0}
 .list-btn{display:flex;align-items:center;gap:14px;width:100%;max-width:440px;margin:0 auto 10px;padding:14px 16px;background:linear-gradient(145deg,rgba(30,42,74,.9),rgba(22,33,62,.9));border:2px solid #2d4070;border-radius:16px;color:#fff;font-size:15px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif}
 .list-btn:active{transform:scale(.97);border-color:#4fc3f7}
 .list-btn .lb-ico{font-size:26px}
@@ -262,28 +264,59 @@ body{font-family:Arial,sans-serif;user-select:none;color:#fff;position:relative}
 .dice-choice-btn.less:active{background:rgba(127,0,0,.4);transform:scale(.94);box-shadow:0 0 26px rgba(255,82,82,.7)}
 .dice-choice-btn:disabled{opacity:.4;cursor:not-allowed}
 /* CRASH */
-.crash-stage{flex:1;display:flex;flex-direction:column;position:relative;overflow:hidden;min-height:0;background:radial-gradient(ellipse at 50% 100%,#1a1035 0%,#0a0e1a 60%,#05080f 100%)}
-.crash-sky{position:absolute;inset:0;background:radial-gradient(2px 2px at 20% 30%,#fff,transparent),radial-gradient(2px 2px at 60% 70%,#fff,transparent),radial-gradient(1px 1px at 80% 20%,#ffd54f,transparent),radial-gradient(2px 2px at 30% 80%,#4fc3f7,transparent),radial-gradient(1px 1px at 90% 60%,#fff,transparent),radial-gradient(1px 1px at 45% 15%,#ba68c8,transparent),radial-gradient(2px 2px at 15% 60%,#fff,transparent),radial-gradient(1px 1px at 75% 90%,#ffd54f,transparent);background-size:100% 100%;animation:crashStars 20s linear infinite;opacity:.7;z-index:1;pointer-events:none}
-@keyframes crashStars{0%{background-position:0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0}100%{background-position:-100px 200px,-80px 300px,-120px 250px,-90px 320px,-70px 200px,-110px 280px,-60px 350px,-100px 220px}}
-.crash-grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(79,195,247,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(79,195,247,.08) 1px,transparent 1px);background-size:40px 40px;z-index:1;pointer-events:none}
-.crash-history-overlay{position:absolute;top:10px;left:0;right:0;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;font-size:11px;padding:0 12px;z-index:6;pointer-events:none}
-.crash-history-overlay span{padding:3px 9px;border-radius:10px;background:rgba(10,14,26,.85);border:1px solid #3d2d70;color:#7ba8d6;font-weight:bold;backdrop-filter:blur(4px)}
-.crash-history-overlay span.hi{border-color:#ffd54f;color:#ffd54f}
-.crash-history-overlay span.lo{border-color:#ff5252;color:#ff5252}
-.crash-multiplier{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:80px;font-weight:bold;background:linear-gradient(90deg,#4fc3f7,#ffd54f,#ba68c8);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:logoShift 3s linear infinite;font-family:Arial,sans-serif;letter-spacing:2px;z-index:4;pointer-events:none;opacity:.35;text-align:center;transition:transform .15s ease}
+.crash-stage{flex:1;display:flex;flex-direction:column;position:relative;overflow:hidden;min-height:0;background:radial-gradient(ellipse at 50% 100%,#1a1035 0%,#0a0e1a 70%,#05080f 100%)}
+.crash-sky{position:absolute;inset:0;background:radial-gradient(2px 2px at 20% 30%,#fff,transparent),radial-gradient(2px 2px at 60% 70%,#fff,transparent),radial-gradient(1px 1px at 80% 20%,#ffd54f,transparent),radial-gradient(2px 2px at 30% 80%,#4fc3f7,transparent),radial-gradient(1px 1px at 90% 60%,#fff,transparent),radial-gradient(1px 1px at 45% 15%,#ba68c8,transparent);animation:crashStars 20s linear infinite;opacity:.7;z-index:1;pointer-events:none}
+@keyframes crashStars{0%{background-position:0 0,0 0,0 0,0 0,0 0,0 0}100%{background-position:-100px 200px,-80px 300px,-120px 250px,-90px 320px,-70px 200px,-110px 280px}}
+.crash-canvas-wrap{
+  flex:1; position:relative; margin:14px;
+  border:2px solid #3d2d70; border-radius:20px;
+  background:linear-gradient(180deg, rgba(10,14,26,.6), rgba(21,12,43,.3));
+  overflow:hidden; z-index:2; min-height:0;
+}
+#crashCanvas{position:absolute;inset:0;width:100%;height:100%}
+.crash-rocket-el{
+  position:absolute;
+  font-size:32px;
+  z-index:5;
+  pointer-events:none;
+  transition:left .05s linear, top .05s linear;
+  transform:translate(-50%,-50%) rotate(-45deg);
+  filter:drop-shadow(0 0 14px rgba(255,213,79,1));
+}
+.crash-rocket-el.crashed{animation:crashExplode .8s ease forwards}
+@keyframes crashExplode{0%{transform:translate(-50%,-50%) rotate(-45deg) scale(1);opacity:1}50%{transform:translate(-50%,-50%) rotate(-90deg) scale(2);opacity:.8;filter:drop-shadow(0 0 40px #ff5252)}100%{transform:translate(-50%,-50%) rotate(-180deg) scale(0.2);opacity:0}}
+.crash-multiplier{
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  font-size:60px; font-weight:bold;
+  background:linear-gradient(90deg,#4fc3f7,#ffd54f,#ba68c8);
+  background-size:300% 100%;
+  -webkit-background-clip:text; background-clip:text;
+  color:transparent;
+  animation:logoShift 3s linear infinite;
+  letter-spacing:2px;
+  z-index:4;
+  pointer-events:none;
+  opacity:.35;
+  transition:transform .15s ease;
+}
 .crash-multiplier.win{-webkit-text-fill-color:#66bb6a;background:none;opacity:1;text-shadow:0 0 30px rgba(102,187,106,.9)}
 .crash-multiplier.crashed{-webkit-text-fill-color:#ff5252;background:none;opacity:1;animation:crashShake .6s ease}
 @keyframes crashShake{0%,100%{transform:translate(-50%,-50%) rotate(0)}25%{transform:translate(-52%,-50%) rotate(-3deg)}75%{transform:translate(-48%,-50%) rotate(3deg)}}
-.crash-svg{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
-.crash-line{fill:none;stroke:#ffd54f;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 12px #ffd54f) drop-shadow(0 0 22px rgba(255,213,79,.6))}
-.crash-line-fill{fill:url(#crashGrad);opacity:.35}
-.crash-rocket-wrap{position:absolute;z-index:5;pointer-events:none;transition:left .05s linear,top .05s linear;transform:translate(-50%,-50%)}
-.crash-rocket-emoji{font-size:44px;filter:drop-shadow(0 0 20px rgba(255,213,79,1));animation:rocketBob .8s ease-in-out infinite alternate}
-@keyframes rocketBob{from{transform:translateY(-2px) rotate(-45deg)}to{transform:translateY(2px) rotate(-45deg)}}
-.crash-rocket-wrap.crashed .crash-rocket-emoji{animation:crashExplode .8s ease forwards}
-@keyframes crashExplode{0%{transform:scale(1) rotate(-45deg);opacity:1}50%{transform:scale(2) rotate(-90deg);opacity:.8;filter:drop-shadow(0 0 40px #ff5252)}100%{transform:scale(0.2) rotate(-180deg);opacity:0}}
-.crash-info-overlay{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:6;font-size:12px;color:#7ba8d6;text-align:center;pointer-events:none;background:rgba(10,14,26,.7);padding:4px 14px;border-radius:12px;backdrop-filter:blur(4px);border:1px solid #2d4070}
-.crash-info-overlay b{color:#ffd54f}
+.crash-history-overlay{
+  position:absolute; top:8px; left:0; right:0;
+  display:flex; gap:5px; flex-wrap:wrap;
+  justify-content:center; font-size:10px;
+  padding:0 10px; z-index:6; pointer-events:none;
+}
+.crash-history-overlay span{
+  padding:2px 8px; border-radius:8px;
+  background:rgba(10,14,26,.9);
+  border:1px solid #3d2d70;
+  color:#7ba8d6; font-weight:bold;
+}
+.crash-history-overlay span.hi{border-color:#ffd54f;color:#ffd54f}
+.crash-history-overlay span.lo{border-color:#ff5252;color:#ff5252}
 /* МИНЁР */
 .mines-info{display:flex;justify-content:space-between;width:100%;max-width:460px;padding:0 4px;font-size:13px;font-weight:bold}
 .mines-info .mi-left{color:#4fc3f7}
@@ -352,22 +385,21 @@ body{font-family:Arial,sans-serif;user-select:none;color:#fff;position:relative}
 <div class="modal-overlay" id="techModal"><div class="modal" id="techModalBox"><h3>🔧 Технический вход</h3><p>Введите пароль для входа в онлайн</p><input type="password" id="techInput" inputmode="numeric" maxlength="10" placeholder="••"><div class="modal-actions"><button class="m-cancel" id="techCancel">Отмена</button><button class="m-ok" id="techOk" style="background:linear-gradient(145deg,#4fc3f7,#2196f3)">Войти</button></div></div></div>
 <div class="modal-overlay" id="changeNameModal"><div class="modal" id="changeNameModalBox"><h3>✏️ Смена ника</h3><p>Введи новый ник</p><input type="text" id="changeNameInput" maxlength="20" placeholder="Новый ник" style="letter-spacing:1px;font-size:16px;text-align:left"><div class="modal-actions"><button class="m-cancel" id="changeNameCancel">Отмена</button><button class="m-ok" id="changeNameOk" style="background:linear-gradient(145deg,#ba68c8,#9c27b0)">Сохранить</button></div></div></div>
 
+<!-- ГЛАВНОЕ МЕНЮ С 4 ВКЛАДКАМИ -->
 <div class="screen active" id="menu">
   <div class="menu-header">
     <h1>🎰 КАЗИК</h1>
-    <div class="profile-row">
-      <div class="balance-mini">💰 <span id="menuBalance">100 000</span></div>
-      <div class="score-mini" id="openStatsBtn"><span class="lbl">🏆</span><span class="val" id="menuScoreVal">0 : 0</span></div>
-    </div>
+    <div class="balance-mini">💰 <span id="menuBalance">100 000</span></div>
     <div class="player-names-row">
       <div class="pn p1" id="menuNameP1">🔵 Игрок 1</div>
       <div class="pn p2" id="menuNameP2">🟣 Игрок 2</div>
     </div>
   </div>
   <div class="tabs">
-    <button class="tab-btn active" data-tab="games"><span class="tab-ico">🎮</span><span>Игры</span></button>
-    <button class="tab-btn" data-tab="online"><span class="tab-ico">🌐</span><span>Онлайн</span></button>
-    <button class="tab-btn" data-tab="more"><span class="tab-ico">⚙️</span><span>Ещё</span></button>
+    <button class="tab-btn active" data-tab="games"><span class="tab-ico">🎮</span><span class="tab-lbl">Игры</span></button>
+    <button class="tab-btn" data-tab="online"><span class="tab-ico">🌐</span><span class="tab-lbl">Онлайн</span></button>
+    <button class="tab-btn" data-tab="stats"><span class="tab-ico">🏆</span><span class="tab-lbl">Счёт</span></button>
+    <button class="tab-btn" data-tab="more"><span class="tab-ico">⚙️</span><span class="tab-lbl">Ещё</span></button>
   </div>
   <div class="tab-content active" id="tabGames">
     <div class="games-grid">
@@ -389,18 +421,35 @@ body{font-family:Arial,sans-serif;user-select:none;color:#fff;position:relative}
       <button class="tech-enter-btn" id="techEnterBtn">🔧 Технический вход</button>
     </div>
   </div>
+  <div class="tab-content" id="tabStats">
+    <div class="stats-total">
+      <h3>🏆 Общий счёт за сессию</h3>
+      <div class="stats-total-row">
+        <div class="stats-total-player p1"><div class="p-name" id="statsTotalName1">Игрок 1</div><div class="p-wins" id="statsTotalWins1">0</div></div>
+        <div class="stats-vs">VS</div>
+        <div class="stats-total-player p2"><div class="p-name" id="statsTotalName2">Игрок 2</div><div class="p-wins" id="statsTotalWins2">0</div></div>
+      </div>
+    </div>
+    <div class="stats-block"><h3>💎 20 ячеек</h3>
+      <div class="stats-row"><span class="name p1" id="statsLuckyName1">—</span><span class="score" id="statsLuckyWins1">0</span></div>
+      <div class="stats-row"><span class="name p2" id="statsLuckyName2">—</span><span class="score" id="statsLuckyWins2">0</span></div>
+    </div>
+    <div class="stats-block"><h3>🃏 Блэкджек</h3>
+      <div class="stats-row"><span class="name p1" id="statsBJName1">—</span><span class="score" id="statsBJWins1">0</span></div>
+      <div class="stats-row"><span class="name p2" id="statsBJName2">—</span><span class="score" id="statsBJWins2">0</span></div>
+    </div>
+    <button class="reset-stats-btn" id="resetStatsBtn">🗑️ Сбросить статистику</button>
+  </div>
   <div class="tab-content" id="tabMore">
     <button class="list-btn" id="openSettingsBtn"><div class="lb-ico">⚙️</div><div class="lb-info"><div class="lb-n">Настройки</div><div class="lb-d">Звук, вибрация, имена, сброс</div></div><div class="lb-arrow">›</div></button>
     <button class="list-btn" id="openAboutBtn"><div class="lb-ico">ℹ️</div><div class="lb-info"><div class="lb-n">О игре</div><div class="lb-d">Что это и как играть</div></div><div class="lb-arrow">›</div></button>
-    <div style="text-align:center;color:#555;font-size:11px;margin-top:16px;">версия 0.8</div>
+    <div style="text-align:center;color:#555;font-size:11px;margin-top:16px;">версия 0.9</div>
   </div>
 </div>
 
-<div class="screen game-screen" id="statsScreen"><div class="top-bar"><button class="back-btn" data-back>◀ Меню</button><div class="game-title">🏆 Статистика</div><div style="width:60px"></div></div><div class="scroll-content"><div class="stats-total"><h3>🏆 Общий счёт</h3><div class="stats-total-row"><div class="stats-total-player p1"><div class="p-name" id="statsTotalName1">Игрок 1</div><div class="p-wins" id="statsTotalWins1">0</div></div><div class="stats-vs">VS</div><div class="stats-total-player p2"><div class="p-name" id="statsTotalName2">Игрок 2</div><div class="p-wins" id="statsTotalWins2">0</div></div></div></div><div class="stats-block"><h3>💎 20 ячеек</h3><div class="stats-row"><span class="name p1" id="statsLuckyName1">—</span><span class="score" id="statsLuckyWins1">0</span></div><div class="stats-row"><span class="name p2" id="statsLuckyName2">—</span><span class="score" id="statsLuckyWins2">0</span></div></div><div class="stats-block"><h3>🃏 Блэкджек</h3><div class="stats-row"><span class="name p1" id="statsBJName1">—</span><span class="score" id="statsBJWins1">0</span></div><div class="stats-row"><span class="name p2" id="statsBJName2">—</span><span class="score" id="statsBJWins2">0</span></div></div><button class="reset-stats-btn" id="resetStatsBtn">🗑️ Сбросить статистику</button></div></div>
-
 <div class="screen game-screen" id="settingsScreen"><div class="top-bar"><button class="back-btn" id="settingsBack">◀ Назад</button><div class="game-title">⚙️ Настройки</div><div style="width:60px"></div></div><div class="scroll-content"><div class="settings-card"><div class="settings-title">🔊 Звук и вибрация</div><div class="settings-row"><span>Звуки</span><button class="toggle-btn" id="toggleSound">ВКЛ</button></div><div class="settings-row"><span>Вибрация</span><button class="toggle-btn" id="toggleVib">ВКЛ</button></div></div><div class="settings-card"><div class="settings-title">✏️ Имена игроков</div><input class="name-input p1" id="setInputName1" maxlength="14" placeholder="Игрок 1" style="margin-bottom:8px"><input class="name-input p2" id="setInputName2" maxlength="14" placeholder="Игрок 2"><button class="btn-deal" id="setSaveNames" style="margin-top:12px;font-size:14px;padding:12px 24px;width:100%">💾 Сохранить</button></div><div class="settings-card" style="border-color:#ff5252"><div class="settings-title" style="color:#ff5252">⚠️ Опасная зона</div><button class="reset-stats-btn" id="resetBalBtn" style="width:100%">🔄 Сбросить баланс</button></div></div></div>
 
-<div class="screen game-screen" id="aboutScreen"><div class="top-bar"><button class="back-btn" id="aboutBack">◀ Назад</button><div class="game-title">ℹ️ О игре</div><div style="width:60px"></div></div><div class="scroll-content"><div class="about-card"><div class="about-icon">🎰</div><h2>КАЗИК</h2><p class="about-version">версия 0.8 · by zyza</p><p class="about-love">💖 с любовью от Зюзи 💖</p></div><div class="about-block"><h3>🎯 Что это?</h3><p>Мини-казино внутри Telegram. Играй в разные мини-игры, соревнуйся с друзьями и ботом.</p></div><div class="about-block"><h3>💰 Как играть?</h3><p>Один общий баланс. Делай ставки — выигрывай монеты. Всё бесплатно.</p></div><div class="about-block"><h3>🌐 Онлайн</h3><p>Создавай лобби, приглашай друзей по 6-значному ID, общайся в чате и играй вместе!</p></div><div class="about-block" style="border-color:#66bb6a"><p style="color:#66bb6a;text-align:center">💚 Спасибо что играешь!</p></div></div></div>
+<div class="screen game-screen" id="aboutScreen"><div class="top-bar"><button class="back-btn" id="aboutBack">◀ Назад</button><div class="game-title">ℹ️ О игре</div><div style="width:60px"></div></div><div class="scroll-content"><div class="about-card"><div class="about-icon">🎰</div><h2>КАЗИК</h2><p class="about-version">версия 0.9 · by zyza</p><p class="about-love">💖 с любовью от Зюзи 💖</p></div><div class="about-block"><h3>🎯 Что это?</h3><p>Мини-казино внутри Telegram. Играй в разные мини-игры, соревнуйся с друзьями и ботом.</p></div><div class="about-block"><h3>💰 Как играть?</h3><p>Один общий баланс. Делай ставки — выигрывай монеты. Всё бесплатно.</p></div><div class="about-block"><h3>🌐 Онлайн</h3><p>Создавай лобби, приглашай друзей по 6-значному ID, общайся в чате и играй вместе!</p></div><div class="about-block" style="border-color:#66bb6a"><p style="color:#66bb6a;text-align:center">💚 Спасибо что играешь!</p></div></div></div>
 
 <div class="screen game-screen" id="onlineRegisterScreen"><div class="top-bar"><button class="back-btn" data-back>◀ Меню</button><div class="game-title">🌐 Регистрация</div><div style="width:60px"></div></div><div class="scroll-content" style="justify-content:center"><div style="font-size:70px;text-align:center">🌐</div><h2 style="text-align:center;font-size:22px;color:#4fc3f7">Вход в онлайн</h2><p id="onlineRegHint" style="text-align:center;color:#7ba8d6;font-size:13px;max-width:340px">Введи имя.</p><input class="name-input p1" id="onlineNameInput" maxlength="20" placeholder="Например: Вася" style="margin-top:14px;max-width:340px"><button class="btn-deal" id="onlineRegisterBtn" style="margin-top:14px;max-width:340px;width:100%">🚀 Начать</button><div id="onlineRegError" style="color:#ff5252;font-size:12px;margin-top:8px;min-height:16px;text-align:center"></div></div></div>
 
@@ -420,7 +469,7 @@ body{font-family:Arial,sans-serif;user-select:none;color:#fff;position:relative}
 
 <div class="screen game-screen" id="diceGame"><div class="top-bar"><button class="back-btn" data-back>◀ Меню</button><div class="game-title">🎲 Кости 3D</div><button class="top-score-btn" id="diceGameScoreBtn"><span class="lbl">🏆 </span><span class="val top-score-val">0 : 0</span></button></div><div style="background:linear-gradient(90deg,rgba(36,26,72,.9),rgba(61,45,112,.9));padding:7px;text-align:center;font-size:13px;font-weight:bold;color:#ffd54f" id="diceBankRow">💰 Банк: 0</div><div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly;padding:10px 12px;gap:10px;overflow-y:auto"><div style="text-align:center;color:#a08cd0;font-size:14px;font-weight:bold" id="diceInfo">Нажми «Бросить» чтобы начать</div><div class="dice-3d-stage" id="diceStage"><div class="die-3d" id="die3d_1"><div class="face" data-face="1"><span class="pip"></span></div><div class="face" data-face="2"><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="3"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="4"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="5"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="6"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div></div><div class="die-3d" id="die3d_2"><div class="face" data-face="1"><span class="pip"></span></div><div class="face" data-face="2"><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="3"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="4"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="5"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="6"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div></div></div><div style="text-align:center;font-size:17px;font-weight:bold;color:#ffd54f;min-height:26px" id="diceResultOne">—</div><div class="msg-bar info" id="diceMsg">Сделай ставку и бросай!</div></div><div style="padding:8px 12px 14px;display:flex;flex-direction:column;gap:10px"><div style="display:flex;gap:8px;justify-content:center"><div class="bet-item p1"><span class="lbl">Ставка</span><button id="diceP1BetDown">−</button><span class="val" id="diceP1BetVal">500</span><button id="diceP1BetUp">+</button></div></div><div class="dice-choice-row" id="diceChoices" style="display:none"><button class="dice-choice-btn more" id="diceMoreBtn"><span class="big-arrow">⬆️</span>Больше</button><button class="dice-choice-btn less" id="diceLessBtn"><span class="big-arrow">⬇️</span>Меньше</button></div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn-deal" id="diceRollBtn">🎲 Бросить</button><button class="btn-deal" id="diceNextBtn" style="display:none;background:linear-gradient(145deg,#4fc3f7,#2196f3);color:#0a0e1a">▶ Продолжить</button><button class="btn-deal" id="diceCashoutBtn" style="display:none;background:linear-gradient(145deg,#66bb6a,#2e7d32)">💰 Забрать</button></div></div></div>
 
-<div class="screen game-screen" id="crashGame"><div class="top-bar"><button class="back-btn" data-back>◀ Меню</button><div class="game-title">🚀 Crash</div><div class="bal-mini">💰 <span id="crashBal">100 000</span></div></div><div class="crash-stage" id="crashStage"><div class="crash-sky"></div><div class="crash-grid-bg"></div><div class="crash-history-overlay" id="crashHistory"></div><svg class="crash-svg" id="crashSvg" preserveAspectRatio="none"><defs><linearGradient id="crashGrad" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stop-color="#ffd54f" stop-opacity="0.05"/><stop offset="100%" stop-color="#ffd54f" stop-opacity="0.7"/></linearGradient></defs><path id="crashLineFill" class="crash-line-fill" d=""/><path id="crashLine" class="crash-line" d=""/></svg><div class="crash-multiplier" id="crashMultiplier">×1.00</div><div class="crash-rocket-wrap" id="crashRocket" style="left:30px;top:calc(100% - 30px);"><div class="crash-rocket-emoji">🚀</div></div><div class="crash-info-overlay">Успей забрать до краха!</div></div><div style="padding:8px 12px 14px;display:flex;flex-direction:column;gap:10px;background:#0a0e1a;flex-shrink:0"><div style="display:flex;gap:8px;justify-content:center"><div class="bet-item p1"><span class="lbl">Ставка</span><button id="crashBetDown">−</button><span class="val" id="crashBetVal">500</span><button id="crashBetUp">+</button></div></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn-deal" id="crashStartBtn">🚀 Запустить</button><button class="btn-deal" id="crashCashoutBtn" style="display:none;background:linear-gradient(145deg,#66bb6a,#2e7d32)">💰 Забрать</button></div><div class="msg-bar info" id="crashMsg" style="margin-top:0">Сделай ставку и запусти ракету!</div></div></div>
+<div class="screen game-screen" id="crashGame"><div class="top-bar"><button class="back-btn" data-back>◀ Меню</button><div class="game-title">🚀 Crash</div><div class="bal-mini">💰 <span id="crashBal">100 000</span></div></div><div class="crash-stage"><div class="crash-sky"></div><div class="crash-canvas-wrap" id="crashWrap"><canvas id="crashCanvas" width="800" height="600"></canvas><div class="crash-multiplier" id="crashMultiplier">×1.00</div><div class="crash-rocket-el" id="crashRocket" style="left:30px;top:calc(100% - 30px);">🚀</div><div class="crash-history-overlay" id="crashHistory"></div></div></div><div style="padding:8px 12px 14px;display:flex;flex-direction:column;gap:10px;background:#0a0e1a;flex-shrink:0"><div style="display:flex;gap:8px;justify-content:center"><div class="bet-item p1"><span class="lbl">Ставка</span><button id="crashBetDown">−</button><span class="val" id="crashBetVal">500</span><button id="crashBetUp">+</button></div></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn-deal" id="crashStartBtn">🚀 Запустить</button><button class="btn-deal" id="crashCashoutBtn" style="display:none;background:linear-gradient(145deg,#66bb6a,#2e7d32)">💰 Забрать</button></div><div class="msg-bar info" id="crashMsg" style="margin-top:0">Сделай ставку и запусти ракету!</div></div></div>
 
 <div class="screen game-screen" id="minesGame"><div class="top-bar"><button class="back-btn" data-back>◀ Меню</button><div class="game-title">💣 Минёр</div><div class="bal-mini">💰 <span id="minesBal">100 000</span></div></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;gap:12px;overflow-y:auto"><div class="mines-info"><div class="mi-left">💣 Мин: <span id="minesBombsCount">3</span></div><div class="mi-mid">📊 ×<span id="minesMultiplier">1.00</span></div><div class="mi-right">💰 Выигрыш: <span id="minesPotential">0</span></div></div><div class="mines-grid" id="minesGrid"></div><div style="font-size:14px;font-weight:bold;text-align:center;min-height:22px;color:#4fc3f7" id="minesMsg">Выбери ставку и начни игру</div></div><div style="padding:8px 12px 14px;display:flex;flex-direction:column;gap:10px"><div class="mines-mode-row" id="minesBombPicker"><button class="mines-mode-btn" data-bombs="1">1 мина</button><button class="mines-mode-btn active" data-bombs="3">3 мины</button><button class="mines-mode-btn" data-bombs="5">5 мин</button></div><div style="display:flex;gap:8px;justify-content:center"><div class="bet-item p1"><span class="lbl">Ставка</span><button id="minesBetDown">−</button><span class="val" id="minesBetVal">500</span><button id="minesBetUp">+</button></div></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn-deal" id="minesStartBtn">💣 Начать</button><button class="btn-deal" id="minesCashoutBtn" style="display:none;background:linear-gradient(145deg,#66bb6a,#2e7d32)">💰 Забрать</button></div></div></div>
 
@@ -483,15 +532,15 @@ document.querySelectorAll('.tab-btn').forEach(function(btn){
     this.classList.add('active');
     document.querySelectorAll('.tab-content').forEach(function(c){c.classList.remove('active')});
     document.getElementById('tab'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add('active');
+    if(tab==='stats')renderStatsScreen();
     sndClick();
   });
 });
 var stats={lucky:{p1:0,p2:0},bj:{p1:0,p2:0}};
-function addWin(g,p){if(!stats[g])return;if(p===1)stats[g].p1++;else if(p===2)stats[g].p2++;updateMenuScore()}
+function addWin(g,p){if(!stats[g])return;if(p===1)stats[g].p1++;else if(p===2)stats[g].p2++;updateMenuScore();renderStatsScreen()}
 function getTotalWins(p){var t=0;for(var g in stats)t+=stats[g]['p'+p]||0;return t}
 function updateMenuScore(){
   var v=getTotalWins(1)+' : '+getTotalWins(2);
-  var el=document.getElementById('menuScoreVal');if(el)el.textContent=v;
   document.querySelectorAll('.top-score-val').forEach(function(x){x.textContent=v});
 }
 function renderStatsScreen(){
@@ -568,7 +617,6 @@ function showScreen(id){
   document.getElementById(id).classList.add('active');
   setTimeout(function(){
     if(id==='menu'){updateWalletUI();updateNamesUI();updateMenuScore()}
-    if(id==='statsScreen')renderStatsScreen();
     if(id==='settingsScreen')openSettings();
     updateMenuScore();
   },30);
@@ -586,7 +634,6 @@ document.querySelectorAll('.game-tile').forEach(function(b){
   });
 });
 document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',function(){showScreen('menu')})});
-document.getElementById('openStatsBtn').addEventListener('click',function(){renderStatsScreen();showScreen('statsScreen')});
 document.getElementById('openSettingsBtn').addEventListener('click',function(){showScreen('settingsScreen')});
 document.getElementById('openAboutBtn').addEventListener('click',function(){showScreen('aboutScreen')});
 document.getElementById('settingsBack').addEventListener('click',backToMore);
@@ -598,7 +645,6 @@ function backToMore(){
   document.querySelectorAll('.tab-content').forEach(function(c){c.classList.remove('active')});
   document.getElementById('tabMore').classList.add('active');
 }
-document.querySelectorAll('.top-score-btn').forEach(function(b){b.addEventListener('click',function(){renderStatsScreen();showScreen('statsScreen')})});
 document.getElementById('resetStatsBtn').addEventListener('click',function(){if(!confirm('Сбросить статистику?'))return;resetStats();showToast('Сброшено')});
 function openSettings(){
   document.getElementById('setInputName1').value=player1Name===defaultName1?'':player1Name;
@@ -1131,31 +1177,42 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
   showFace(document.getElementById('die3d_2'),1);
 })();
 
-/* CRASH — ROCKET FULLSCREEN */
+/* CRASH — компактный, ракета летит по диагонали на canvas */
 (function(){
   var bet=500,spinning=false,multiplier=1,timer=null,crashAt=1,history=[];
-  var stage=document.getElementById('crashStage');
-  var svgLine=document.getElementById('crashLine');
-  var svgFill=document.getElementById('crashLineFill');
+  var canvas=document.getElementById('crashCanvas');
+  var ctx=canvas.getContext('2d');
   var rocket=document.getElementById('crashRocket');
   var multEl=document.getElementById('crashMultiplier');
-  var points=[];
-  var W=0,H=0;
-  var MAX_MULT=10;
-  function measure(){W=stage.clientWidth;H=stage.clientHeight}
-  function multToPct(m){
-    var xRatio=Math.min(m,MAX_MULT)/MAX_MULT;
-    var yRatio=Math.pow(xRatio,0.85);
-    return {x:xRatio*100,y:100-yRatio*90};
+
+  function resizeCanvas(){
+    var wrap=document.getElementById('crashWrap');
+    canvas.width=wrap.clientWidth;
+    canvas.height=wrap.clientHeight;
   }
-  function buildSvgPath(){
-    if(points.length===0){svgLine.setAttribute('d','');svgFill.setAttribute('d','');return}
-    var d='M '+points[0].x+' '+points[0].y;
-    for(var i=1;i<points.length;i++)d+=' L '+points[i].x+' '+points[i].y;
-    svgLine.setAttribute('d',d);
-    var df=d+' L '+points[points.length-1].x+' 100 L '+points[0].x+' 100 Z';
-    svgFill.setAttribute('d',df);
+
+  function resetStage(){
+    resizeCanvas();
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawGrid();
+    rocket.style.left='30px';
+    rocket.style.top='calc(100% - 30px)';
+    rocket.classList.remove('crashed');
   }
+
+  function drawGrid(){
+    ctx.strokeStyle='rgba(79,195,247,0.08)';
+    ctx.lineWidth=1;
+    for(var i=1;i<5;i++){
+      var y=(canvas.height/5)*i;
+      ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();
+    }
+    for(var j=1;j<6;j++){
+      var x=(canvas.width/6)*j;
+      ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();
+    }
+  }
+
   function updateUI(){document.getElementById('crashBal').textContent=fmt(getWallet());updateWalletUI()}
   function renderHistory(){
     var el=document.getElementById('crashHistory');el.innerHTML='';
@@ -1167,48 +1224,65 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
       el.appendChild(s);
     }
   }
-  function resetStage(){
-    points=[{x:0,y:100}];
-    buildSvgPath();
-    rocket.style.left='30px';
-    rocket.style.top='calc(100% - 30px)';
-    rocket.classList.remove('crashed');
-  }
   document.getElementById('crashBetUp').onclick=function(){if(spinning)return;bet=Math.min(bet+100,10000);sndClick();document.getElementById('crashBetVal').textContent=bet};
   document.getElementById('crashBetDown').onclick=function(){if(spinning)return;bet=Math.max(bet-100,100);sndClick();document.getElementById('crashBetVal').textContent=bet};
+
   document.getElementById('crashStartBtn').onclick=function(){
     if(spinning)return;
     if(getWallet()<bet){showToast('Мало монет');return}
     setWallet(getWallet()-bet);updateUI();
     spinning=true;multiplier=1.00;
-    multEl.textContent='×1.00';multEl.className='crash-multiplier';
+    multEl.textContent='×1.00';
+    multEl.className='crash-multiplier';
     rocket.classList.remove('crashed');
+
     var r=Math.random();
     if(r<0.50)crashAt=1.0+Math.random()*0.6;
     else if(r<0.80)crashAt=1.6+Math.random()*0.9;
     else if(r<0.94)crashAt=2.5+Math.random()*2.5;
     else crashAt=5+Math.random()*8;
     crashAt=Math.round(crashAt*100)/100;
+
     document.getElementById('crashStartBtn').style.display='none';
     document.getElementById('crashCashoutBtn').style.display='inline-block';
     document.getElementById('crashMsg').textContent='🚀 Летим! Успей забрать';
     document.getElementById('crashMsg').className='msg-bar info';
-    measure();resetStage();
+
+    resetStage();
+
     var start=performance.now();
+    var lastX=0,lastY=canvas.height;
+
     timer=setInterval(function(){
       var elapsed=(performance.now()-start)/1000;
       multiplier=1.00+elapsed*0.4;
       multiplier=Math.round(multiplier*100)/100;
+
+      // прогресс 0..1 (по логарифму для плавности)
+      var progress=Math.log(multiplier)/Math.log(Math.max(crashAt,multiplier)*1.5);
+      progress=Math.min(1,progress);
+
+      // позиция ракеты в canvas (с отступами)
+      var padX=30,padY=30;
+      var cx=padX+(canvas.width-padX*2)*progress;
+      var cy=(canvas.height-padY)-(canvas.height-padY*2)*progress;
+
+      // рисование линии от последней точки
+      ctx.strokeStyle='#ffd54f';
+      ctx.lineWidth=3;
+      ctx.shadowColor='#ffd54f';
+      ctx.shadowBlur=12;
+      ctx.beginPath();
+      ctx.moveTo(lastX,lastY);
+      ctx.lineTo(cx,cy);
+      ctx.stroke();
+      ctx.shadowBlur=0;
+      lastX=cx;lastY=cy;
+
       multEl.textContent='×'+multiplier.toFixed(2);
-      var p=multToPct(multiplier);
-      if(p.x>100)p.x=100;
-      if(p.y<5)p.y=5;
-      points.push(p);
-      buildSvgPath();
-      var px=p.x/100*W;
-      var py=p.y/100*H;
-      rocket.style.left=px+'px';
-      rocket.style.top=py+'px';
+      rocket.style.left=cx+'px';
+      rocket.style.top=cy+'px';
+
       if(multiplier>=crashAt){
         multiplier=crashAt;
         multEl.textContent='×'+multiplier.toFixed(2);
@@ -1224,8 +1298,9 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
         setTimeout(function(){spinning=false;document.getElementById('crashStartBtn').style.display='inline-block'},1800);
         return;
       }
-    },40);
+    },50);
   };
+
   document.getElementById('crashCashoutBtn').onclick=function(){
     if(!spinning)return;
     clearInterval(timer);
@@ -1241,8 +1316,10 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
     spinning=false;
     setTimeout(function(){document.getElementById('crashStartBtn').style.display='inline-block'},1200);
   };
-  window.addEventListener('resize',function(){measure()});
-  measure();renderHistory();resetStage();
+
+  window.addEventListener('resize',function(){if(!spinning){resizeCanvas();drawGrid()}});
+  renderHistory();
+  resetStage();
 })();
 
 /* МИНЁР */
