@@ -11,7 +11,17 @@ app = Flask(__name__, static_folder='.')
 sock = Sock(app)
 
 # ============================================================
-#  ХРАНИЛИЩЕ
+#  CORS — разрешаем запросы с GitHub Pages
+# ============================================================
+@app.after_request
+def add_cors(resp):
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    resp.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return resp
+
+# ============================================================
+#  ХРАНИЛИЩЕ В ПАМЯТИ
 # ============================================================
 players = {}
 guests = {}
@@ -49,8 +59,11 @@ def static_files(path):
 # ============================================================
 #  РЕГИСТРАЦИЯ
 # ============================================================
-@app.route('/api/register', methods=['POST'])
+@app.route('/api/register', methods=['POST', 'OPTIONS'])
 def register():
+    if request.method == 'OPTIONS':
+        return '', 204
+
     data = request.get_json() or {}
     name = (data.get('name') or '').strip()[:20]
     guest_id = data.get('guest_id')
@@ -82,8 +95,11 @@ def register():
 # ============================================================
 #  ЛОББИ
 # ============================================================
-@app.route('/api/lobby/create', methods=['POST'])
+@app.route('/api/lobby/create', methods=['POST', 'OPTIONS'])
 def create_lobby():
+    if request.method == 'OPTIONS':
+        return '', 204
+
     data = request.get_json() or {}
     guest_id = data.get('guest_id')
 
@@ -114,8 +130,11 @@ def create_lobby():
     return jsonify({'lobby_id': lobby_id, 'host': player})
 
 
-@app.route('/api/lobby/join', methods=['POST'])
+@app.route('/api/lobby/join', methods=['POST', 'OPTIONS'])
 def join_lobby():
+    if request.method == 'OPTIONS':
+        return '', 204
+
     lobby_id = (request.args.get('lobby_id') or '').strip()
     data = request.get_json() or {}
     guest_id = data.get('guest_id')
@@ -156,8 +175,11 @@ def join_lobby():
     return jsonify(result)
 
 
-@app.route('/api/lobby/leave', methods=['POST'])
+@app.route('/api/lobby/leave', methods=['POST', 'OPTIONS'])
 def leave_lobby():
+    if request.method == 'OPTIONS':
+        return '', 204
+
     lobby_id = (request.args.get('lobby_id') or '').strip()
     data = request.get_json() or {}
     guest_id = data.get('guest_id')
@@ -195,10 +217,13 @@ def lobby_state():
 
 
 # ============================================================
-#  ИГРОВЫЕ ДЕЙСТВИЯ (ходы, ставки, кубики и т.д.)
+#  ИГРОВЫЕ ДЕЙСТВИЯ
 # ============================================================
-@app.route('/api/lobby/action', methods=['POST'])
+@app.route('/api/lobby/action', methods=['POST', 'OPTIONS'])
 def lobby_action():
+    if request.method == 'OPTIONS':
+        return '', 204
+
     data = request.get_json() or {}
     lobby_id = data.get('lobby_id', '')
     guest_id = data.get('guest_id')
