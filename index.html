@@ -566,7 +566,6 @@ var settings=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{"sound":true,"vib"
 function saveSettings(){localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings))}
 var WALLET_KEY='casino_common_wallet_v2';
 var START_BALANCE=5000;
-/* Reset balance once if it was higher than start (to apply new start) */
 (function(){
   var cur=parseInt(localStorage.getItem(WALLET_KEY)||'0');
   if(isNaN(cur)||cur>START_BALANCE){localStorage.setItem(WALLET_KEY,String(START_BALANCE))}
@@ -866,12 +865,12 @@ function startRouletteMusic(){
 function stopRouletteMusic(){if(musicInterval){clearInterval(musicInterval);musicInterval=null}}
 
 /* ОНЛАЙН */
-var API_URL='https://game-kazik-by-zyza.onrender.com';
+var API_URL='https://kazik-server.onrender.com';
 var ONLINE_KEY='kazik_online_profile_v1';
 var GUEST_KEY='kazik_guest_id';
 var onlineProfile=null;
 try{onlineProfile=JSON.parse(localStorage.getItem(ONLINE_KEY)||'null')}catch(e){}
-fetch(API_URL+'/',{method:'GET'}).catch(function(){});
+fetch(API_URL+'/health',{method:'GET'}).catch(function(){});
 function getInitData(){try{if(window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initData)return window.Telegram.WebApp.initData}catch(e){}return ''}
 function getGuestId(){var gid=localStorage.getItem(GUEST_KEY);if(!gid||gid.length<8){var chars='abcdef0123456789';gid='';for(var i=0;i<16;i++)gid+=chars[Math.floor(Math.random()*chars.length)];localStorage.setItem(GUEST_KEY,gid)}return gid}
 function saveOnlineProfile(p){onlineProfile=p;localStorage.setItem(ONLINE_KEY,JSON.stringify(p))}
@@ -945,7 +944,7 @@ document.getElementById('joinLobbyConfirmBtn').addEventListener('click',function
   fetch(API_URL+'/api/lobby/join?lobby_id='+lid,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getInitData(),guest_id:getGuestId()})})
   .then(function(r){return r.json()})
   .then(function(data){
-    if(data.error){var m={not_found:'Лобби не найдено',own_lobby:'Это твоё лобби',closed:'Закрыто'};document.getElementById('joinLobbyError').textContent=m[data.error]||data.error;return}
+    if(data.error){var m={not_found:'Лобби не найдено',own_lobby:'Это твоё лобби',full:'Лобби заполнено',closed:'Закрыто'};document.getElementById('joinLobbyError').textContent=m[data.error]||data.error;return}
     currentLobby={lobby_id:data.lobby_id,host:data.host,guest:data.guest,game_type:'rps'};
     isHost=false;openLobbyScreen();
   }).catch(function(){document.getElementById('joinLobbyError').textContent='Сервер не отвечает'});
@@ -973,16 +972,49 @@ function connectLobbyWs(){
   var url=API_URL.replace('https://','wss://').replace('http://','ws://')+'/ws/lobby/'+currentLobby.lobby_id;
   try{
     lobbySocket=new WebSocket(url);
-    lobbySocket.onopen=function(){lobbySocket.send(JSON.stringify({action:'hello',player_id:String(onlineProfile.game_id),name:onlineProfile.name}))};
+    lobbySocket.onopen=function(){
+      lobbySocket.send(JSON.stringify({action:'hello',player_id:String(onlineProfile.game_id),name:onlineProfile.name}));
+      if(window._lobbyPingInt)clearInterval(window._lobbyPingInt);
+      window._lobbyPingInt=setInterval(function(){
+        if(lobbySocket&&lobbySocket.readyState===WebSocket.OPEN){
+          lobbySocket.send(JSON.stringify({action:'ping'}));
+        }
+      },20000);
+    };
     lobbySocket.onmessage=function(e){try{handleLobbyMessage(JSON.parse(e.data))}catch(err){}};
-    lobbySocket.onerror=function(){};lobbySocket.onclose=function(){};
+    lobbySocket.onerror=function(){};
+    lobbySocket.onclose=function(){
+      if(window._lobbyPingInt){clearInterval(window._lobbyPingInt);window._lobbyPingInt=null}
+    };
   }catch(e){}
 }
 function handleLobbyMessage(msg){
   if(msg.type==='system')appendChatMessage('system',msg.text,'');
   else if(msg.type==='chat')appendChatMessage('user',msg.text,msg.name);
-  else if(msg.type==='players'){if(msg.players&&msg.players.length>1&&!currentLobby.guest){for(var i=0;i<msg.players.length;i++){if(String(msg.players[i].id)!==String(onlineProfile.game_id)){currentLobby.guest={name:msg.players[i].name,game_id:msg.players[i].id};break}}renderLobbyPlayers();renderLobbyActions()}}
-  else if(msg.type==='game_start'){sndBig();spawnConfetti(60);showToast('Игра началась')}
+  else if(msg.type==='pong'){}
+  else if(msg.type==='players'){
+    if(msg.players){
+      for(var i=0;i<msg.players.length;i++){
+        if(String(msg.players[i].id)!==String(onlineProfile.game_id)){
+          currentLobby.guest={name:msg.players[i].name,game_id:msg.players[i].id};
+          break;
+        }
+      }
+      renderLobbyPlayers();
+      renderLobbyActions();
+    }
+  }
+  else if(msg.type==='game_start'){
+    sndBig();
+    spawnConfetti(60);
+    showToast('Игра началась!');
+  }
+  else if(msg.type==='action'){
+    handleRemoteAction(msg.from, msg.action, msg.payload);
+  }
+}
+function handleRemoteAction(fromPlayer, action, payload){
+  console.log('Remote action:', fromPlayer.name, action, payload);
 }
 function appendChatMessage(type,text,author){var chat=document.getElementById('lobbyChat');var div=document.createElement('div');if(type==='system'){div.className='chat-msg chat-system';div.textContent='⚙ '+text}else{div.className='chat-msg chat-user';div.innerHTML='<b>'+author+':</b> '+text}chat.appendChild(div);chat.scrollTop=chat.scrollHeight}
 document.getElementById('chatSendBtn').addEventListener('click',sendChat);
@@ -1193,7 +1225,7 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
   newRound();
 })();
 
-/* LUCKY 20 — уменьшена награда */
+/* LUCKY 20 */
 (function(){
   var TOTAL=20,MAX=3,MODE=1;
   var winIdx=-1,triesLeft=MAX,over=false,turn=1;
@@ -1252,7 +1284,7 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
   setupBetInput('luckyBetInput','luckyBetUp','luckyBetDown',function(v){bet=v});
 })();
 
-/* DICE — уменьшен множитель */
+/* DICE */
 (function(){
   var MODE=1;
   var p1Bet=500,p2Bet=500;
@@ -1460,7 +1492,7 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
   showFace(document.getElementById('die3d_2'),1);
 })();
 
-/* CRASH — оставлен в коде, но заблокирован в меню */
+/* CRASH */
 (function(){
   var bet=500,spinning=false,multiplier=1,rafId=null,crashAt=1,history=[],startTime=0;
   var crashed=false;
@@ -1538,7 +1570,7 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
   renderHistory();resetStage();
 })();
 
-/* MINES — уменьшены множители */
+/* MINES */
 (function(){
   var bombsCount=3,bet=500,playing=false,revealed=0,multiplier=1.00;
   var TOTAL=25;
@@ -1547,7 +1579,6 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
   function newGame(){bombs=[];for(var i=0;i<TOTAL;i++)bombs.push(false);var placed=0;while(placed<bombsCount){var idx=Math.floor(Math.random()*TOTAL);if(!bombs[idx]){bombs[idx]=true;placed++}}}
   function buildGrid(){var g=document.getElementById('minesGrid');g.innerHTML='';for(var i=0;i<TOTAL;i++){var c=document.createElement('div');c.className='mine-cell';c.setAttribute('data-index',i);c.textContent='❓';c.addEventListener('click',onClick);g.appendChild(c)}}
   function updateInfo(){document.getElementById('minesMultiplier').textContent=multiplier.toFixed(2);document.getElementById('minesPotential').textContent=fmt(Math.floor(bet*multiplier));document.getElementById('minesBombsCount').textContent=bombsCount;document.getElementById('minesBal').textContent=fmt(getWallet())}
-  /* Снижен множитель: базовый прирост 0.10 вместо 0.15, и множитель мягче */
   function calcMultiplier(revealed){
     if(revealed<=0)return 1;
     var safeCells=TOTAL-bombsCount;
@@ -1636,7 +1667,7 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
   buildGrid();updateInfo();
 })();
 
-/* SLOTS 3D — уменьшены выплаты */
+/* SLOTS 3D */
 (function(){
   var SYM=['🍒','🍋','🍇','⭐','💎','7️⃣'];
   var bet=500,spinning=false;
@@ -1684,7 +1715,6 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
     var machine=document.getElementById('slotsMachine');machine.classList.add('spinning-machine');
     document.getElementById('slotSpin').disabled=true;
     document.getElementById('slotMsg').textContent='Крутим...';document.getElementById('slotMsg').style.color='#00e5ff';
-    /* Символы генерируются так, чтобы реже были тройки */
     function pickSym(){var r=Math.random();if(r<0.55)return SYM[Math.floor(Math.random()*3)];if(r<0.80)return SYM[3];if(r<0.94)return SYM[4];return SYM[5]}
     var finalA=pickSym(),finalB=pickSym(),finalC=pickSym();
     for(var r=0;r<3;r++){
@@ -1699,7 +1729,6 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
       finishSlots(finalA,finalB,finalC);
     });
   };
-  /* Снижены множители и шанс пары */
   function finishSlots(a,b,c){
     var m=0,label='';
     if(a===b&&b===c){
@@ -1722,7 +1751,7 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
   }
 })();
 
-/* ==== COIN FLIP 3D — монета летит вверх, иконки О/Р */
+/* COIN FLIP 3D */
 (function(){
   var bet=500,side='heads',flipping=false;
   function setMsg(t,c){var m=document.getElementById('coinMsg');m.textContent=t;m.style.color=(c==='win')?'#22d3ee':(c==='lose')?'#ff5252':'#00e5ff'}
@@ -1754,8 +1783,6 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
     coin.classList.remove('flipping');
     coin.style.transform='translateY(0) rotateX(0deg) rotateY(0deg)';
     void coin.offsetWidth;
-    /* Углы: heads — X кратен 720 и Y кратен 720, чтобы лицо heads было впереди
-       tails — X = +180°, чтобы показать обратную сторону */
     var fx,fy;
     if(result==='heads'){fx=2160;fy=720}
     else{fx=2160+180;fy=720+180}
@@ -1788,7 +1815,7 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
   };
 })();
 
-/* ==== HORSE RACE — медленнее бегут */
+/* HORSE RACE */
 (function(){
   var bet=500,playing=false,winnerIdx=-1;
   var selectedIdx=-1;
@@ -1841,7 +1868,6 @@ function startOnlineGame(){if(lobbySocket&&isHost&&lobbySocket.readyState===WebS
     winnerIdx=winner;
 
     var positions=[];for(var i=0;i<horses.length;i++)positions.push(0);
-    /* Гораздо медленнее: базовая скорость 0.003 вместо 0.015 */
     var speeds=[];for(var i=0;i<horses.length;i++)speeds.push(0.003+Math.random()*0.002);
     speeds[winner]+=0.0025;
 
