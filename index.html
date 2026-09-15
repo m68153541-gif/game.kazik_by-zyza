@@ -94,11 +94,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 .game-tile .g-desc{font-size:10px;color:#a78bfa;position:relative;z-index:1}
 .game-tile .g-badge{position:absolute;top:6px;right:6px;font-size:9px;padding:2px 8px;border-radius:8px;background:#22c55e;color:#fff;font-weight:bold;letter-spacing:1.5px;z-index:3;box-shadow:0 0 10px rgba(34,197,94,.6);animation:newBadgePulse 1.6s ease-in-out infinite alternate}
 @keyframes newBadgePulse{from{box-shadow:0 0 8px rgba(34,197,94,.5)}to{box-shadow:0 0 18px rgba(34,197,94,.9)}}
-.game-tile.disabled{opacity:.5;cursor:not-allowed}
-.game-tile.disabled::after{content:'';position:absolute;top:50%;left:8%;right:8%;height:3px;background:#ff5252;transform:rotate(-8deg);z-index:2;border-radius:2px;box-shadow:0 0 10px #ff5252;pointer-events:none}
-.game-tile.disabled:active{transform:none;border-color:#3d2d70;box-shadow:none}
-.game-tile.disabled .g-badge{background:#ff5252;box-shadow:0 0 10px rgba(255,82,82,.6);animation:newBadgePulse2 1.6s ease-in-out infinite alternate}
-@keyframes newBadgePulse2{from{box-shadow:0 0 8px rgba(255,82,82,.5)}to{box-shadow:0 0 18px rgba(255,82,82,.9)}}
 .list-btn{display:flex;align-items:center;gap:14px;width:100%;max-width:440px;margin:0 auto 10px;padding:16px 18px;background:linear-gradient(145deg,rgba(30,20,60,.95),rgba(20,12,44,.95));border:2px solid #3d2d70;border-radius:16px;color:#fff;font-size:15px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;transition:all .3s ease}
 .list-btn:active{transform:scale(.97);border-color:#00e5ff;box-shadow:0 0 20px rgba(0,229,255,.4)}
 .list-btn .lb-ico{font-size:26px}
@@ -118,22 +113,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 .back-btn:active{transform:scale(.93);background:#ff2d95;color:#fff;box-shadow:0 0 15px rgba(255,45,149,.6)}
 .back-btn.locked{opacity:.4;pointer-events:none}
 .game-title{flex:1;text-align:center;font-size:16px;font-weight:bold;color:#00e5ff;text-shadow:0 0 10px rgba(0,229,255,.4)}
-.top-score-btn{background:linear-gradient(145deg,#4a2e5a,#2a1e3a);border:2px solid #a855f7;border-radius:22px;padding:6px 14px;font-size:12px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;color:#fff;flex-shrink:0;transition:all .25s ease}
-.top-score-btn:active{transform:scale(.93);box-shadow:0 0 15px rgba(168,85,247,.5)}
-.top-score-btn .lbl{color:#a855f7}
 .bal-mini{background:#1e2a4a;border:1px solid #00e5ff;border-radius:16px;padding:6px 12px;font-size:12px;font-weight:bold;color:#00e5ff;box-shadow:0 0 10px rgba(0,229,255,.3)}
 .scroll-content{flex:1;overflow-y:scroll!important;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y!important;display:flex;flex-direction:column;align-items:center;padding:20px 20px 70px;gap:12px;height:0;min-height:0}
 .scroll-content::-webkit-scrollbar{width:0}
-.stats-block,.settings-card,.about-block{width:100%;max-width:400px;background:linear-gradient(145deg,rgba(26,16,53,.95),rgba(21,12,43,.95));border:2px solid #3d2d70;border-radius:18px;padding:16px 18px;margin-bottom:12px}
-.stats-block h3{font-size:15px;color:#00e5ff;margin-bottom:12px}
-.stats-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:14px}
-.stats-row:last-child{border-bottom:none}
-.stats-row .name{font-weight:bold}
-.stats-row .name.p1{color:#ff2d95}
-.stats-row .name.p2{color:#00e5ff}
-.stats-row .score{font-size:16px;font-weight:bold;color:#fff}
-.reset-stats-btn{margin-top:10px;padding:11px 28px;background:transparent;border:2px solid #ff5252;color:#ff5252;border-radius:22px;font-size:13px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;transition:all .25s ease}
-.reset-stats-btn:active{background:#ff5252;color:#fff;box-shadow:0 0 15px rgba(255,82,82,.6)}
+.settings-card,.about-block,.shop-card,.bonus-card{width:100%;max-width:400px;background:linear-gradient(145deg,rgba(26,16,53,.95),rgba(21,12,43,.95));border:2px solid #3d2d70;border-radius:18px;padding:16px 18px;margin-bottom:12px}
 .settings-title{font-size:14px;color:#00e5ff;font-weight:bold;margin-bottom:12px}
 .settings-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:14px}
 .settings-row:last-child{border-bottom:none}
@@ -167,13 +150,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 .modal-overlay{position:fixed;inset:0;background:rgba(5,8,18,.85);z-index:500;display:none;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .35s ease;backdrop-filter:blur(8px)}
 .modal-overlay.show{display:flex;opacity:1}
 .modal{width:100%;max-width:340px;background:linear-gradient(145deg,#241a48,#1a1035);border:2px solid #00e5ff;border-radius:22px;padding:24px 22px;text-align:center;box-shadow:0 0 40px rgba(0,229,255,.3)}
-.modal.shake{animation:shake .5s ease both}
-@keyframes shake{10%,90%{transform:translateX(-4px)}20%,80%{transform:translateX(6px)}30%,50%,70%{transform:translateX(-10px)}40%,60%{transform:translateX(10px)}}
 .modal h3{font-size:18px;color:#00e5ff;margin-bottom:6px}
 .modal p{font-size:12px;color:#a78bfa;margin-bottom:10px;line-height:1.5}
 .modal input{width:100%;padding:14px 18px;background:rgba(10,14,26,.9);border:2px solid #3d2d70;border-radius:14px;color:#fff;font-size:18px;font-weight:bold;text-align:center;letter-spacing:6px;outline:none;font-family:Arial,sans-serif;margin-bottom:8px}
 .modal input:focus{border-color:#00e5ff}
-.modal input.error{border-color:#ff5252}
 .modal-actions{display:flex;gap:10px;margin-top:16px}
 .modal-actions button{flex:1;padding:12px 0;border-radius:20px;border:none;font-size:14px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif}
 .modal-actions .m-cancel{background:transparent;color:#aaa;border:2px solid #3d2d70}
@@ -188,137 +168,101 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 .flash{position:fixed;inset:0;background:white;pointer-events:none;opacity:0;z-index:145}
 .flash.flash-in{animation:flashIn .5s ease-out}
 @keyframes flashIn{0%{opacity:.7}100%{opacity:0}}
-.bet-item{background:rgba(26,16,53,.9);border-radius:18px;padding:7px 12px;border:1px solid #3d2d70;display:flex;align-items:center;gap:6px;transition:opacity .3s ease}
+.bet-item{background:rgba(26,16,53,.9);border-radius:18px;padding:7px 12px;border:1px solid #3d2d70;display:flex;align-items:center;gap:6px}
 .bet-item.locked{opacity:.4;pointer-events:none}
 .bet-item.p1{border-color:#ff2d95}
 .bet-item.p2{border-color:#00e5ff}
 .bet-item .lbl{font-size:11px;color:#a78bfa;font-weight:bold;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bet-item.p1 .lbl{color:#ff2d95}
 .bet-item.p2 .lbl{color:#00e5ff}
-.bet-item button{width:30px;height:30px;border-radius:50%;background:linear-gradient(145deg,#3d2d70,#2a1e4d);color:#fff;border:none;font-size:16px;font-weight:bold;cursor:pointer;transition:all .2s ease}
-.bet-item button:active{background:#ff2d95;color:#fff;transform:scale(.88)}
-.bet-item input.bet-input{width:64px;height:30px;background:transparent;border:1px solid #3d2d70;border-radius:8px;color:#00e5ff;font-size:13px;font-weight:bold;text-align:center;font-family:Arial,sans-serif;outline:none;padding:0 4px}
-.bet-item input.bet-input:focus{border-color:#00e5ff;box-shadow:0 0 10px rgba(0,229,255,.4)}
+.bet-item button{width:30px;height:30px;border-radius:50%;background:linear-gradient(145deg,#3d2d70,#2a1e4d);color:#fff;border:none;font-size:16px;font-weight:bold;cursor:pointer}
+.bet-item button:active{background:#ff2d95;transform:scale(.88)}
+.bet-item input.bet-input{width:64px;height:30px;background:transparent;border:1px solid #3d2d70;border-radius:8px;color:#00e5ff;font-size:13px;font-weight:bold;text-align:center;outline:none;padding:0 4px}
 .bet-opt{padding:9px 15px;border-radius:22px;border:2px solid #3d2d70;background:#241a48;color:#fff;font-size:13px;font-weight:bold;cursor:pointer;transition:all .25s ease}
 .bet-opt.active{border-color:#00e5ff;background:#3d2d70;box-shadow:0 0 12px rgba(0,229,255,.4)}
-.bet-opt.red{border-color:#ff5252;color:#ff5252}
-.bet-opt.red.active{background:#7f0000;color:#fff}
-.bet-opt.black{border-color:#666;color:#aaa}
-.bet-opt.black.active{background:#222;color:#fff;border-color:#fff}
-.bet-opt.green{border-color:#22d3ee;color:#22d3ee}
-.bet-opt.green.active{background:#1b5e20;color:#fff}
-.msg-bar{text-align:center;font-size:13px;font-weight:bold;padding:9px;min-height:36px;border-radius:12px;background:rgba(21,12,43,.9);display:flex;align-items:center;justify-content:center;border:1px solid rgba(61,45,112,.5)}
+.msg-bar{text-align:center;font-size:13px;font-weight:bold;padding:9px;min-height:36px;border-radius:12px;background:rgba(21,12,43,.9);display:flex;align-items:center;justify-content:center}
 .msg-bar.info{color:#00e5ff}
 .msg-bar.win{color:#22d3ee}
 .msg-bar.lose{color:#ff5252}
-.msg-bar.p1{color:#ff2d95}
-.msg-bar.p2{color:#00e5ff}
 
 /* BLACKJACK */
-.bj-table{flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:10px 12px;gap:10px;overflow-y:auto;background:radial-gradient(ellipse at 50% 0%,rgba(34,197,94,.08) 0%,transparent 60%)}
-.bj-hand{border-radius:18px;padding:12px 14px;border:2px solid #3d2d70;background:linear-gradient(145deg,rgba(26,16,53,.95),rgba(21,12,43,.95));transition:all .5s cubic-bezier(.2,.7,.3,1.2);position:relative;transform:translateZ(0)}
-.bj-hand.active-p1{border-color:#ff2d95;box-shadow:0 0 35px rgba(255,45,149,.85),inset 0 0 20px rgba(255,45,149,.15);transform:scale(1.02)}
-.bj-hand.active-p2{border-color:#00e5ff;box-shadow:0 0 35px rgba(0,229,255,.85),inset 0 0 20px rgba(0,229,255,.15);transform:scale(1.02)}
-.bj-hand.active-dealer{border-color:#ff5252;box-shadow:0 0 35px rgba(255,82,82,.85),inset 0 0 20px rgba(255,82,82,.15);transform:scale(1.02)}
-.bj-hand.dimmed{opacity:.5;filter:grayscale(.4)}
-.bj-hand.winner{border-color:#22d3ee!important;box-shadow:0 0 40px rgba(34,211,238,.9)!important;animation:bjWinPulse .8s ease}
-@keyframes bjWinPulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+.bj-table{flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:10px 12px;gap:10px;overflow-y:auto}
+.bj-hand{border-radius:18px;padding:12px 14px;border:2px solid #3d2d70;background:linear-gradient(145deg,rgba(26,16,53,.95),rgba(21,12,43,.95));transition:all .5s ease}
+.bj-hand.active-p1{border-color:#ff2d95;box-shadow:0 0 35px rgba(255,45,149,.85);transform:scale(1.02)}
+.bj-hand.active-p2{border-color:#00e5ff;box-shadow:0 0 35px rgba(0,229,255,.85);transform:scale(1.02)}
+.bj-hand.active-dealer{border-color:#ff5252;box-shadow:0 0 35px rgba(255,82,82,.85);transform:scale(1.02)}
+.bj-hand.dimmed{opacity:.5}
+.bj-hand.winner{border-color:#22d3ee!important;box-shadow:0 0 40px rgba(34,211,238,.9)!important}
 .bj-hand.loser{opacity:.45}
 .bj-hand-head{font-size:12px;color:#a78bfa;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .bj-hand-head .bj-name{display:flex;align-items:center;gap:6px;font-weight:bold}
-.bj-hand.active-p1 .bj-name{color:#ff2d95}
-.bj-hand.active-p2 .bj-name{color:#00e5ff}
-.bj-hand.active-dealer .bj-name{color:#ff5252}
-.bj-score{color:#00e5ff;font-weight:900;background:#2a1e4d;padding:4px 14px;border-radius:14px;font-size:14px;min-width:44px;text-align:center;box-shadow:inset 0 0 10px rgba(0,229,255,.15)}
+.bj-score{color:#00e5ff;font-weight:900;background:#2a1e4d;padding:4px 14px;border-radius:14px;font-size:14px;min-width:44px;text-align:center}
 .bj-cards{display:flex;gap:6px;flex-wrap:wrap;min-height:66px;align-items:center;perspective:800px}
-.card{width:48px;height:68px;background:linear-gradient(145deg,#fff,#f0f0f0);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#000;font-weight:bold;box-shadow:0 4px 10px rgba(0,0,0,.55),inset 0 -2px 4px rgba(0,0,0,.08);animation:cardDeal .6s cubic-bezier(.34,1.4,.55,1) both;position:relative;transform-style:preserve-3d;border:1px solid #ccc}
-.card::before{content:'';position:absolute;inset:2px;border-radius:6px;background:linear-gradient(135deg,rgba(255,255,255,.6),transparent 40%);pointer-events:none}
+.card{width:48px;height:68px;background:linear-gradient(145deg,#fff,#f0f0f0);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#000;font-weight:bold;box-shadow:0 4px 10px rgba(0,0,0,.55);animation:cardDeal .6s cubic-bezier(.34,1.4,.55,1) both;position:relative;border:1px solid #ccc}
 @keyframes cardDeal{0%{opacity:0;transform:translateY(-80px) rotateY(-180deg) scale(.4)}60%{opacity:1;transform:translateY(8px) rotateY(10deg) scale(1.08)}100%{opacity:1;transform:translateY(0) rotateY(0) scale(1)}}
 .card.red{color:#d32f2f}
 .card .r{font-size:16px;line-height:1;font-weight:900}
 .card .s{font-size:20px;line-height:1;margin-top:2px}
-.card.back{background:repeating-linear-gradient(45deg,#ff2d95,#ff2d95 5px,#a855f7 5px,#a855f7 10px);color:transparent;border:1px solid #3d2d70}
+.card.back{background:repeating-linear-gradient(45deg,#ff2d95,#ff2d95 5px,#a855f7 5px,#a855f7 10px);color:transparent}
 .card.back::after{content:'🂠';position:absolute;font-size:24px;color:rgba(255,255,255,.6)}
 .badge{display:inline-block;padding:3px 10px;border-radius:11px;font-size:11px;font-weight:bold;margin-left:6px}
 .badge.win{background:#1b5e20;color:#81c784}
 .badge.lose{background:#7f0000;color:#ff8a80}
 .badge.push{background:#3d2d70;color:#00e5ff}
-.badge.bj{background:linear-gradient(145deg,#ff2d95,#a855f7);color:#fff;box-shadow:0 0 12px rgba(255,45,149,.6)}
 
-/* SLOTS 3D */
-.slots-3d-stage{perspective:1200px;display:flex;justify-content:center;align-items:center;padding:20px 0;width:100%}
-.slots-machine-3d{position:relative;transform-style:preserve-3d;padding:26px 22px;border-radius:28px;background:linear-gradient(160deg,#2a1a4a 0%,#1a0e2e 50%,#0a0618 100%);border:3px solid #ff2d95;box-shadow:0 20px 60px rgba(255,45,149,.35),0 0 40px rgba(0,229,255,.25),inset 0 0 40px rgba(255,45,149,.08);transform:rotateX(6deg);transition:transform .4s ease}
-.slots-machine-3d.spinning-machine{animation:machineShake .35s linear infinite}
-@keyframes machineShake{0%,100%{transform:rotateX(6deg) translate(0,0)}25%{transform:rotateX(6deg) translate(-2px,1px)}50%{transform:rotateX(6deg) translate(2px,-1px)}75%{transform:rotateX(6deg) translate(-1px,-1px)}}
-.slots-reels-3d{display:flex;gap:10px;background:linear-gradient(180deg,#0a0a1a,#050208);padding:16px;border-radius:20px;box-shadow:inset 0 8px 30px rgba(0,0,0,.9),inset 0 -8px 30px rgba(0,0,0,.7),0 0 20px rgba(0,229,255,.15)}
-.reel-window{width:74px;height:96px;background:linear-gradient(180deg,#000 0%,#0a0a1a 50%,#000 100%);border-radius:12px;overflow:hidden;position:relative;border:2px solid #3d2d70;box-shadow:inset 0 0 20px rgba(0,0,0,1);perspective:400px}
+/* SLOTS */
+.reel-window{width:74px;height:96px;background:#0a0a1a;border-radius:12px;overflow:hidden;position:relative;border:2px solid #3d2d70;perspective:400px}
 .reel-window::before,.reel-window::after{content:'';position:absolute;left:0;right:0;height:20px;pointer-events:none;z-index:5}
 .reel-window::before{top:0;background:linear-gradient(180deg,rgba(0,0,0,.9),transparent)}
 .reel-window::after{bottom:0;background:linear-gradient(0deg,rgba(0,0,0,.9),transparent)}
-.reel-window.spinning{border-color:#ff2d95;box-shadow:0 0 22px rgba(255,45,149,.7),inset 0 0 20px rgba(0,0,0,1)}
-.reel-strip-3d{position:absolute;top:0;left:0;right:0;display:flex;flex-direction:column;will-change:transform;transform-style:preserve-3d}
-.reel-cell-3d{width:100%;height:96px;display:flex;align-items:center;justify-content:center;font-size:48px;flex-shrink:0;filter:drop-shadow(0 0 10px rgba(0,229,255,.6));text-shadow:0 0 12px currentColor;transition:transform .15s ease}
-.slots-payline{position:absolute;top:50%;left:22px;right:22px;height:3px;background:linear-gradient(90deg,transparent,#ff2d95,#00e5ff,#ff2d95,transparent);transform:translateY(-50%);z-index:6;pointer-events:none;box-shadow:0 0 15px #00e5ff;animation:paylinePulse 1.4s ease-in-out infinite alternate}
-@keyframes paylinePulse{from{opacity:.7}to{opacity:1;box-shadow:0 0 25px #00e5ff}}
-.slots-lights{position:absolute;top:-10px;left:0;right:0;display:flex;justify-content:space-around;padding:0 20px;pointer-events:none}
+.reel-window.spinning{border-color:#ff2d95;box-shadow:0 0 22px rgba(255,45,149,.7)}
+.reel-strip-3d{position:absolute;top:0;left:0;right:0;display:flex;flex-direction:column;will-change:transform}
+.reel-cell-3d{width:100%;height:96px;display:flex;align-items:center;justify-content:center;font-size:48px;flex-shrink:0;text-shadow:0 0 12px currentColor}
+.slots-machine-3d{position:relative;padding:26px 22px;border-radius:28px;background:linear-gradient(160deg,#2a1a4a,#1a0e2e,#0a0618);border:3px solid #ff2d95;box-shadow:0 20px 60px rgba(255,45,149,.35),0 0 40px rgba(0,229,255,.25)}
+.slots-machine-3d.spinning-machine{animation:machineShake .35s linear infinite}
+@keyframes machineShake{0%,100%{transform:translate(0,0)}25%{transform:translate(-2px,1px)}50%{transform:translate(2px,-1px)}75%{transform:translate(-1px,-1px)}}
+.slots-reels-3d{display:flex;gap:10px;background:linear-gradient(180deg,#0a0a1a,#050208);padding:16px;border-radius:20px;box-shadow:inset 0 8px 30px rgba(0,0,0,.9)}
+.slots-payline{position:absolute;top:50%;left:22px;right:22px;height:3px;background:linear-gradient(90deg,transparent,#ff2d95,#00e5ff,#ff2d95,transparent);transform:translateY(-50%);z-index:6;box-shadow:0 0 15px #00e5ff}
+.slots-lights{position:absolute;top:-10px;left:0;right:0;display:flex;justify-content:space-around;padding:0 20px}
 .slots-lights span{width:10px;height:10px;border-radius:50%;background:#ff2d95;box-shadow:0 0 12px #ff2d95;animation:lightBlink 1s ease-in-out infinite alternate}
-.slots-lights span:nth-child(2n){background:#00e5ff;box-shadow:0 0 12px #00e5ff;animation-delay:-.3s}
-.slots-lights span:nth-child(3n){background:#a855f7;box-shadow:0 0 12px #a855f7;animation-delay:-.6s}
+.slots-lights span:nth-child(2n){background:#00e5ff;box-shadow:0 0 12px #00e5ff}
+.slots-lights span:nth-child(3n){background:#a855f7;box-shadow:0 0 12px #a855f7}
 @keyframes lightBlink{from{opacity:.4;transform:scale(.85)}to{opacity:1;transform:scale(1.1)}}
+.slots-3d-stage{perspective:1200px;display:flex;justify-content:center;align-items:center;padding:20px 0;width:100%}
 
 /* CRASH */
 .crash-stage{flex:1;display:flex;flex-direction:column;position:relative;overflow:hidden;min-height:0;background:radial-gradient(ellipse at 50% 100%,#1a0e2e 0%,#0a0e1a 70%,#05080f 100%)}
-.crash-sky{position:absolute;inset:0;background:radial-gradient(2px 2px at 20% 30%,#fff,transparent),radial-gradient(2px 2px at 60% 70%,#fff,transparent),radial-gradient(1px 1px at 80% 20%,#00e5ff,transparent),radial-gradient(2px 2px at 30% 80%,#ff2d95,transparent),radial-gradient(1px 1px at 90% 60%,#fff,transparent),radial-gradient(1px 1px at 45% 15%,#a855f7,transparent);animation:crashStars 20s linear infinite;opacity:.7;z-index:1;pointer-events:none}
-@keyframes crashStars{0%{background-position:0 0,0 0,0 0,0 0,0 0,0 0}100%{background-position:-100px 200px,-80px 300px,-120px 250px,-90px 320px,-70px 200px,-110px 280px}}
-.crash-canvas-wrap{flex:1;position:relative;margin:14px;border:2px solid #3d2d70;border-radius:20px;background:linear-gradient(180deg,rgba(10,14,26,.6),rgba(21,12,43,.3));overflow:hidden;z-index:2;min-height:0;box-shadow:inset 0 0 40px rgba(0,229,255,.1)}
+.crash-sky{position:absolute;inset:0;background:radial-gradient(2px 2px at 20% 30%,#fff,transparent),radial-gradient(2px 2px at 60% 70%,#fff,transparent),radial-gradient(1px 1px at 80% 20%,#00e5ff,transparent),radial-gradient(2px 2px at 30% 80%,#ff2d95,transparent);animation:crashStars 20s linear infinite;opacity:.7;pointer-events:none}
+@keyframes crashStars{0%{background-position:0 0,0 0,0 0,0 0}100%{background-position:-100px 200px,-80px 300px,-120px 250px,-90px 320px}}
+.crash-canvas-wrap{flex:1;position:relative;margin:14px;border:2px solid #3d2d70;border-radius:20px;background:linear-gradient(180deg,rgba(10,14,26,.6),rgba(21,12,43,.3));overflow:hidden;z-index:2;min-height:0}
 #crashCanvas{position:absolute;inset:0;width:100%;height:100%}
-.crash-rocket-el{position:absolute;font-size:36px;z-index:5;pointer-events:none;filter:drop-shadow(0 0 14px rgba(0,229,255,1));will-change:left,top,transform}
+.crash-rocket-el{position:absolute;font-size:36px;z-index:5;pointer-events:none;filter:drop-shadow(0 0 14px #00e5ff)}
 .crash-rocket-el.crashed{animation:crashExplode .8s ease forwards}
-@keyframes crashExplode{0%{opacity:1;filter:drop-shadow(0 0 14px #ff5252)}50%{opacity:.8;filter:drop-shadow(0 0 40px #ff5252)}100%{opacity:0;filter:drop-shadow(0 0 40px #ff5252)}}
-.crash-multiplier{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:60px;font-weight:900;background:linear-gradient(90deg,#ff2d95,#00e5ff,#a855f7);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:logoShift 3s linear infinite;letter-spacing:2px;z-index:4;pointer-events:none;opacity:.4;transition:transform .15s ease;font-family:'Segoe UI',Arial,sans-serif}
+@keyframes crashExplode{0%{opacity:1}50%{opacity:.8;filter:drop-shadow(0 0 40px #ff5252)}100%{opacity:0}}
+.crash-multiplier{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:60px;font-weight:900;background:linear-gradient(90deg,#ff2d95,#00e5ff,#a855f7);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:logoShift 3s linear infinite;z-index:4;opacity:.4}
 .crash-multiplier.win{-webkit-text-fill-color:#22d3ee;background:none;opacity:1;text-shadow:0 0 30px rgba(34,211,238,.9)}
-.crash-multiplier.crashed{-webkit-text-fill-color:#ff5252;background:none;opacity:1;animation:crashShake .6s ease}
-@keyframes crashShake{0%,100%{transform:translate(-50%,-50%) rotate(0)}25%{transform:translate(-52%,-50%) rotate(-3deg)}75%{transform:translate(-48%,-50%) rotate(3deg)}}
+.crash-multiplier.crashed{-webkit-text-fill-color:#ff5252;background:none;opacity:1}
 .crash-history-overlay{position:absolute;top:8px;left:0;right:0;display:flex;gap:5px;flex-wrap:wrap;justify-content:center;font-size:10px;padding:0 10px;z-index:6;pointer-events:none}
 .crash-history-overlay span{padding:2px 8px;border-radius:8px;background:rgba(10,14,26,.9);border:1px solid #3d2d70;color:#a78bfa;font-weight:bold}
 .crash-history-overlay span.hi{border-color:#00e5ff;color:#00e5ff}
 .crash-history-overlay span.lo{border-color:#ff5252;color:#ff5252}
 
-/* MINES */
+/* MINES/LUCKY */
+.mines-grid,.lucky-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;width:100%;max-width:460px;aspect-ratio:1/1;margin:0 auto}
+.mine-cell,.lucky-cell{background:linear-gradient(145deg,#1e2a4a,#16213e);border:2px solid #2d4070;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:bold;color:#00e5ff;cursor:pointer;transition:all .35s ease}
+.mine-cell.safe,.lucky-cell.win{background:linear-gradient(145deg,#22d3ee,#0891b2)!important;border-color:#22d3ee!important;color:#fff;box-shadow:0 0 30px #22d3ee}
+.mine-cell.bomb{background:linear-gradient(145deg,#b71c1c,#7f0000)!important;border-color:#ff5252!important}
+.mine-cell.opened,.lucky-cell.p1-open,.lucky-cell.p2-open{cursor:default;opacity:.55}
 .mines-info{display:flex;justify-content:space-between;width:100%;max-width:460px;padding:0 4px;font-size:13px;font-weight:bold}
-.mines-info .mi-left{color:#ff2d95}
-.mines-info .mi-mid{color:#00e5ff}
-.mines-info .mi-right{color:#22d3ee}
-.mines-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;width:100%;max-width:460px;aspect-ratio:1/1;margin:0 auto;perspective:800px}
-.mine-cell{background:linear-gradient(145deg,#1e2a4a,#16213e);border:2px solid #2d4070;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:bold;cursor:pointer;transition:all .35s cubic-bezier(.2,.7,.3,1.2);animation:cellIn3D .5s ease both;position:relative;transform-style:preserve-3d}
-.mine-cell::before{content:'';position:absolute;inset:0;border-radius:12px;background:linear-gradient(145deg,rgba(255,255,255,.12),transparent 50%,rgba(0,0,0,.2));pointer-events:none}
-@keyframes cellIn3D{0%{opacity:0;transform:scale(.5) rotateY(-90deg)}60%{transform:scale(1.08) rotateY(10deg)}100%{opacity:1;transform:scale(1) rotateY(0)}}
-.mine-cell:active{transform:scale(.9) rotateY(-15deg)}
-.mine-cell.safe{background:linear-gradient(145deg,#0891b2,#0e7490)!important;border-color:#22d3ee!important;box-shadow:0 0 25px rgba(34,211,238,.7)!important;animation:cellPop3D .5s ease both;color:#fff}
-@keyframes cellPop3D{0%{transform:scale(1) rotateY(0)}50%{transform:scale(1.2) rotateY(180deg)}100%{transform:scale(1) rotateY(360deg)}}
-.mine-cell.bomb{background:linear-gradient(145deg,#b71c1c,#7f0000)!important;border-color:#ff5252!important;box-shadow:0 0 30px rgba(255,82,82,.9)!important;animation:bombShake .5s ease}
-@keyframes bombShake{0%,25%,50%,75%,100%{transform:translate(0,0) rotate(0)}20%{transform:translate(-3px,-3px) rotate(-5deg)}40%{transform:translate(3px,3px) rotate(5deg)}60%{transform:translate(-3px,3px) rotate(-5deg)}80%{transform:translate(3px,-3px) rotate(5deg)}}
-.mine-cell.opened{cursor:default}
 .mines-mode-row{display:flex;gap:8px;justify-content:center;padding:0 16px;flex-wrap:wrap}
-.mines-mode-btn{padding:10px 16px;border-radius:14px;background:rgba(26,16,53,.9);border:2px solid #3d2d70;color:#fff;font-weight:bold;font-size:13px;cursor:pointer;font-family:Arial,sans-serif;transition:all .25s ease}
+.mines-mode-btn{padding:10px 16px;border-radius:14px;background:rgba(26,16,53,.9);border:2px solid #3d2d70;color:#fff;font-weight:bold;font-size:13px;cursor:pointer}
 .mines-mode-btn.active{border-color:#00e5ff;background:rgba(61,45,112,.9);box-shadow:0 0 16px rgba(0,229,255,.6)}
 
-/* LUCKY 20 */
-.lucky-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;width:100%;max-width:460px;aspect-ratio:1/1;margin:0 auto;perspective:900px}
-.lucky-cell{background:linear-gradient(145deg,#1e2a4a,#16213e);border:2px solid #2d4070;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:bold;color:#00e5ff;cursor:pointer;transition:all .35s cubic-bezier(.2,.7,.3,1.2);animation:cellIn3D .5s ease both;position:relative;transform-style:preserve-3d;box-shadow:inset 0 -4px 8px rgba(0,0,0,.5),0 4px 8px rgba(0,0,0,.4)}
-.lucky-cell::before{content:'';position:absolute;inset:0;border-radius:12px;background:linear-gradient(145deg,rgba(255,255,255,.12),transparent 50%,rgba(0,0,0,.2));pointer-events:none}
-.lucky-cell:active{transform:scale(.9) rotateY(-15deg)}
-.lucky-cell.p1-open{background:linear-gradient(145deg,#4a1a3a,#2a0f22)!important;border-color:#ff2d95!important;color:#ff2d95;transform:rotateY(20deg) scale(.95)}
-.lucky-cell.p2-open{background:linear-gradient(145deg,#1a3a4a,#0f2230)!important;border-color:#00e5ff!important;color:#00e5ff;transform:rotateY(-20deg) scale(.95)}
-.lucky-cell.win{background:linear-gradient(145deg,#22d3ee,#0891b2)!important;border-color:#22d3ee!important;box-shadow:0 0 44px #22d3ee!important;animation:winPop3D .9s ease both;color:#fff}
-@keyframes winPop3D{0%{transform:scale(1) rotateY(0)}40%{transform:scale(1.3) rotateY(180deg)}70%{transform:scale(1.15) rotateY(360deg)}100%{transform:scale(1) rotateY(360deg)}}
-
-/* DICE 3D */
+/* DICE */
 .dice-3d-stage{perspective:1200px;display:flex;gap:50px;justify-content:center;align-items:center;padding:40px 20px;min-height:200px}
-.die-3d{width:90px;height:90px;position:relative;transform-style:preserve-3d;transition:transform 1.2s cubic-bezier(.2,.7,.3,1.2);will-change:transform}
-.die-3d .face{position:absolute;width:90px;height:90px;background:linear-gradient(145deg,#ffffff,#e8e8e8);border:2px solid #999;border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 20px rgba(0,0,0,.15),0 0 20px rgba(0,229,255,.4);backface-visibility:hidden}
-.die-3d .face::before{content:'';position:absolute;inset:5px;border-radius:9px;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.8),transparent 60%);pointer-events:none}
-.die-3d .face .pip{width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#555,#1a1a1a);box-shadow:inset 0 1px 3px rgba(255,255,255,.35);position:absolute}
+.die-3d{width:90px;height:90px;position:relative;transform-style:preserve-3d;transition:transform 1.2s cubic-bezier(.2,.7,.3,1.2)}
+.die-3d .face{position:absolute;width:90px;height:90px;background:linear-gradient(145deg,#ffffff,#e8e8e8);border:2px solid #999;border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 20px rgba(0,0,0,.15);backface-visibility:hidden}
+.die-3d .face .pip{width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#555,#1a1a1a);position:absolute}
 .die-3d .face[data-face="1"] .pip{top:50%;left:50%;transform:translate(-50%,-50%)}
 .die-3d .face[data-face="2"] .pip:nth-child(1){top:20%;left:20%}
 .die-3d .face[data-face="2"] .pip:nth-child(2){bottom:20%;right:20%}
@@ -347,68 +291,53 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 .die-3d .face[data-face="3"]{transform:rotateX(90deg) translateZ(45px)}
 .die-3d .face[data-face="4"]{transform:rotateX(-90deg) translateZ(45px)}
 .die-3d.rolling{animation:diceRoll3d 1.6s linear infinite}
-@keyframes diceRoll3d{0%{transform:rotateX(0deg) rotateY(0deg) rotateZ(0deg)}25%{transform:rotateX(180deg) rotateY(90deg) rotateZ(45deg)}50%{transform:rotateX(360deg) rotateY(180deg) rotateZ(90deg)}75%{transform:rotateX(540deg) rotateY(270deg) rotateZ(135deg)}100%{transform:rotateX(720deg) rotateY(360deg) rotateZ(180deg)}}
+@keyframes diceRoll3d{0%{transform:rotateX(0deg) rotateY(0deg)}25%{transform:rotateX(180deg) rotateY(90deg)}50%{transform:rotateX(360deg) rotateY(180deg)}75%{transform:rotateX(540deg) rotateY(270deg)}100%{transform:rotateX(720deg) rotateY(360deg)}}
 .dice-choice-row{display:flex;gap:14px;justify-content:center;padding:0 16px}
-.dice-choice-btn{flex:1;max-width:160px;padding:18px 20px;background:linear-gradient(145deg,rgba(36,26,72,.95),rgba(26,16,53,.95));border:2px solid #3d2d70;border-radius:18px;color:#fff;font-size:15px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .3s ease}
-.dice-choice-btn .big-arrow{font-size:28px}
+.dice-choice-btn{flex:1;max-width:160px;padding:18px 20px;background:linear-gradient(145deg,rgba(36,26,72,.95),rgba(26,16,53,.95));border:2px solid #3d2d70;border-radius:18px;color:#fff;font-size:15px;font-weight:bold;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
 .dice-choice-btn.more{border-color:#22d3ee}
-.dice-choice-btn.more:active{background:rgba(34,211,238,.3);transform:scale(.94);box-shadow:0 0 26px rgba(34,211,238,.7)}
 .dice-choice-btn.less{border-color:#ff5252}
-.dice-choice-btn.less:active{background:rgba(127,0,0,.4);transform:scale(.94);box-shadow:0 0 26px rgba(255,82,82,.7)}
-.dice-choice-btn:disabled{opacity:.4;cursor:not-allowed}
 
-/* ROULETTE 3D */
+/* ROULETTE */
 .roulette-3d-scene{width:300px;height:300px;position:relative;perspective:1100px;margin:10px auto}
-.roulette-3d-wheel{width:100%;height:100%;position:relative;transform-style:preserve-3d;transform:rotateX(52deg)}
-.roulette-3d-wheel canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;filter:drop-shadow(0 0 30px rgba(255,45,149,.55)) drop-shadow(0 0 60px rgba(0,229,255,.4))}
-.roulette-3d-shadow{position:absolute;bottom:-35px;left:50%;transform:translateX(-50%);width:220px;height:44px;background:radial-gradient(ellipse,rgba(255,45,149,.6),transparent 70%);filter:blur(12px);z-index:-1}
-.roulette-pointer{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:40px;color:#ffd700;z-index:20;filter:drop-shadow(0 0 12px #ffd700);pointer-events:none;animation:pointerBob 1.6s ease-in-out infinite alternate}
-@keyframes pointerBob{from{transform:translateX(-50%) translateY(0)}to{transform:translateX(-50%) translateY(-4px)}}
+.roulette-3d-wheel{width:100%;height:100%;position:relative;transform:rotateX(52deg)}
+.roulette-3d-wheel canvas{width:100%;height:100%;border-radius:50%;filter:drop-shadow(0 0 30px rgba(255,45,149,.55))}
+.roulette-pointer{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:40px;color:#ffd700;z-index:20;filter:drop-shadow(0 0 12px #ffd700)}
+.roulette-3d-shadow{position:absolute;bottom:-35px;left:50%;transform:translateX(-50%);width:220px;height:44px;background:radial-gradient(ellipse,rgba(255,45,149,.6),transparent 70%);filter:blur(12px)}
 
 /* COIN FLIP */
 .coin-3d-scene{width:260px;height:320px;position:relative;perspective:1200px;margin:10px auto;display:flex;align-items:center;justify-content:center}
-.coin-3d{width:160px;height:160px;position:relative;transform-style:preserve-3d;transform:translateY(0)}
+.coin-3d{width:160px;height:160px;position:relative;transform-style:preserve-3d}
 .coin-3d.flipping{animation:coinFlip 2.2s cubic-bezier(.3,.5,.4,1) forwards}
-@keyframes coinFlip{
-  0%{transform:translateY(0) rotateX(0deg) rotateY(0deg) scale(1)}
-  20%{transform:translateY(-180px) rotateX(540deg) rotateY(180deg) scale(1.15)}
-  50%{transform:translateY(-240px) rotateX(1260deg) rotateY(360deg) scale(1.2)}
-  80%{transform:translateY(-100px) rotateX(1800deg) rotateY(540deg) scale(1.1)}
-  100%{transform:translateY(0) rotateX(var(--final-x,2160deg)) rotateY(var(--final-y,720deg)) scale(1)}
-}
-.coin-3d .coin-face{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:70px;font-weight:900;backface-visibility:hidden;box-shadow:0 0 40px rgba(255,45,149,.5),inset 0 0 40px rgba(0,0,0,.3);border:4px solid}
-.coin-3d .coin-face.heads{background:radial-gradient(circle at 35% 30%,#ffe066,#f59e0b 60%,#92400e);color:#78350f;transform:rotateY(0deg) translateZ(8px);border-color:#fbbf24;text-shadow:0 2px 0 rgba(255,255,255,.3),0 4px 8px rgba(0,0,0,.3)}
-.coin-3d .coin-face.tails{background:radial-gradient(circle at 35% 30%,#e0f2fe,#38bdf8 60%,#0369a1);color:#0c4a6e;transform:rotateY(180deg) translateZ(8px);border-color:#0ea5e9;text-shadow:0 2px 0 rgba(255,255,255,.3),0 4px 8px rgba(0,0,0,.3)}
-.coin-3d .coin-edge{position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(#92400e 0 5deg,#fbbf24 5deg 10deg);transform:translateZ(0);box-shadow:0 0 20px rgba(251,191,36,.5)}
-.coin-shadow{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);width:150px;height:24px;background:radial-gradient(ellipse,rgba(255,45,149,.7),transparent 70%);filter:blur(10px);transition:all .3s ease}
-.coin-3d.flipping ~ .coin-shadow{animation:shadowFlip 2.2s cubic-bezier(.3,.5,.4,1) forwards}
-@keyframes shadowFlip{0%,100%{transform:translateX(-50%) scale(1);opacity:.7}50%{transform:translateX(-50%) scale(.5);opacity:.3}}
+@keyframes coinFlip{0%{transform:translateY(0) rotateX(0) rotateY(0) scale(1)}20%{transform:translateY(-180px) rotateX(540deg) rotateY(180deg) scale(1.15)}50%{transform:translateY(-240px) rotateX(1260deg) rotateY(360deg) scale(1.2)}80%{transform:translateY(-100px) rotateX(1800deg) rotateY(540deg) scale(1.1)}100%{transform:translateY(0) rotateX(var(--final-x,2160deg)) rotateY(var(--final-y,720deg)) scale(1)}}
+.coin-3d .coin-face{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:70px;font-weight:900;backface-visibility:hidden;border:4px solid}
+.coin-3d .coin-face.heads{background:radial-gradient(circle at 35% 30%,#ffe066,#f59e0b 60%,#92400e);color:#78350f;transform:rotateY(0deg) translateZ(8px);border-color:#fbbf24}
+.coin-3d .coin-face.tails{background:radial-gradient(circle at 35% 30%,#e0f2fe,#38bdf8 60%,#0369a1);color:#0c4a6e;transform:rotateY(180deg) translateZ(8px);border-color:#0ea5e9}
+.coin-3d .coin-edge{position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(#92400e 0 5deg,#fbbf24 5deg 10deg)}
+.coin-shadow{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);width:150px;height:24px;background:radial-gradient(ellipse,rgba(255,45,149,.7),transparent 70%);filter:blur(10px)}
 
 /* HORSE RACE */
-.race-track{flex:1;display:flex;flex-direction:column;position:relative;padding:14px;gap:6px;overflow:hidden;background:radial-gradient(ellipse at 50% 100%,#1a0e2e 0%,#0a0e1a 70%,#05080f 100%);border-radius:16px;margin:14px}
+.race-track{flex:1;display:flex;flex-direction:column;position:relative;padding:14px;gap:6px;overflow:hidden;background:radial-gradient(ellipse at 50% 100%,#1a0e2e 0%,#0a0e1a 70%);border-radius:16px;margin:14px}
 .race-lane{position:relative;height:44px;background:linear-gradient(90deg,rgba(26,16,53,.7),rgba(21,12,43,.5));border-radius:12px;border:1px solid #3d2d70;overflow:hidden;display:flex;align-items:center;padding:0 8px}
-.race-lane .lane-num{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:bold;color:#a78bfa;z-index:1;pointer-events:none}
-.race-lane .lane-mult{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:bold;color:#00e5ff;z-index:1;pointer-events:none;background:rgba(10,14,26,.8);padding:2px 8px;border-radius:8px}
-.race-lane .lane-horse{position:absolute;left:0;top:50%;transform:translate(0,-50%);font-size:30px;filter:drop-shadow(0 0 8px rgba(0,229,255,.6));z-index:2}
-.race-lane .lane-horse.winner{animation:horseWin .8s ease infinite alternate}
-@keyframes horseWin{from{transform:translate(0,-50%) scale(1)}to{transform:translate(0,-50%) scale(1.15)}}
+.race-lane .lane-num{position:absolute;left:8px;font-size:11px;font-weight:bold;color:#a78bfa;z-index:1}
+.race-lane .lane-mult{position:absolute;right:8px;font-size:12px;font-weight:bold;color:#00e5ff;z-index:1;background:rgba(10,14,26,.8);padding:2px 8px;border-radius:8px}
+.race-lane .lane-horse{position:absolute;left:0;top:50%;transform:translate(0,-50%);font-size:30px;z-index:2}
 .race-lane.leading{box-shadow:inset 0 0 20px rgba(255,45,149,.4);border-color:#ff2d95}
 .race-lane.won{border-color:#22d3ee;box-shadow:0 0 20px rgba(34,211,238,.6)}
-.race-finish-line{position:absolute;right:60px;top:0;bottom:0;width:4px;background:repeating-linear-gradient(0deg,#fff 0 6px,#000 6px 12px);z-index:3;pointer-events:none;opacity:.7}
-.race-result{text-align:center;font-size:16px;font-weight:bold;padding:10px;min-height:40px;display:flex;align-items:center;justify-content:center;background:rgba(21,12,43,.9);border-radius:12px;border:1px solid rgba(61,45,112,.5);color:#00e5ff}
+.race-finish-line{position:absolute;right:60px;top:0;bottom:0;width:4px;background:repeating-linear-gradient(0deg,#fff 0 6px,#000 6px 12px);z-index:3;opacity:.7}
+.race-result{text-align:center;font-size:16px;font-weight:bold;padding:10px;min-height:40px;display:flex;align-items:center;justify-content:center;background:rgba(21,12,43,.9);border-radius:12px}
 
 /* PLINKO */
 .plinko-stage{flex:1;display:flex;flex-direction:column;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 0%,#1a0e2e 0%,#0a0e1a 70%,#05080f 100%)}
 #plinkoCanvas{flex:1;width:100%;display:block;touch-action:none}
-.plinko-mult-row{display:flex;justify-content:center;gap:4px;padding:0 8px 6px;flex-wrap:nowrap;overflow-x:auto}
+.plinko-mult-row{display:flex;justify-content:center;gap:4px;padding:0 8px 6px;overflow-x:auto}
 .plinko-mult-cell{padding:6px 8px;border-radius:10px;font-size:11px;font-weight:bold;text-align:center;min-width:38px;color:#fff;background:linear-gradient(145deg,#ff2d95,#a855f7);box-shadow:0 0 10px rgba(255,45,149,.4)}
-.plinko-mult-cell.low{background:linear-gradient(145deg,#7f0000,#b71c1c);box-shadow:0 0 10px rgba(255,82,82,.4)}
-.plinko-mult-cell.mid{background:linear-gradient(145deg,#a855f7,#6366f1);box-shadow:0 0 10px rgba(168,85,247,.5)}
-.plinko-mult-cell.high{background:linear-gradient(145deg,#0891b2,#22d3ee);box-shadow:0 0 14px rgba(34,211,238,.6)}
+.plinko-mult-cell.low{background:linear-gradient(145deg,#7f0000,#b71c1c)}
+.plinko-mult-cell.mid{background:linear-gradient(145deg,#a855f7,#6366f1)}
+.plinko-mult-cell.high{background:linear-gradient(145deg,#0891b2,#22d3ee)}
 .plinko-mult-cell.max{background:linear-gradient(145deg,#f59e0b,#ffd700);color:#78350f;box-shadow:0 0 18px rgba(255,215,0,.7)}
 
 /* LOBBY */
-.lobby-players{display:flex;align-items:center;justify-content:center;gap:12px;padding:14px;flex-shrink:0;flex-wrap:wrap}
+.lobby-players{display:flex;align-items:center;justify-content:center;gap:12px;padding:14px;flex-wrap:wrap}
 .lobby-player{flex:1;min-width:100px;max-width:150px;background:linear-gradient(145deg,rgba(26,16,53,.95),rgba(21,12,43,.95));border:2px solid #3d2d70;border-radius:16px;padding:12px 10px;text-align:center}
 .lobby-player.host{border-color:#ff2d95}
 .lobby-player.guest{border-color:#00e5ff}
@@ -416,55 +345,32 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 .lobby-player .lp-avatar{font-size:32px;margin-bottom:6px}
 .lobby-player .lp-name{font-size:13px;font-weight:bold;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lobby-player .lp-badge{font-size:10px;font-weight:bold;margin-top:4px;padding:2px 8px;border-radius:8px;background:rgba(255,255,255,.08);color:#a78bfa;display:inline-block}
-.lobby-vs{font-size:20px;font-weight:bold;color:#00e5ff}
 .lobby-chat{flex:1;overflow-y:auto;background:rgba(10,14,26,.6);border-radius:16px;padding:12px;margin:0 16px;display:flex;flex-direction:column;gap:6px;min-height:100px}
-.lobby-chat::-webkit-scrollbar{width:0}
 .chat-msg{font-size:13px;padding:8px 12px;border-radius:12px;max-width:85%;word-wrap:break-word}
 .chat-msg.chat-user{background:linear-gradient(145deg,rgba(255,45,149,.25),rgba(168,85,247,.25));color:#fff;align-self:flex-start;border:1px solid rgba(255,45,149,.4)}
 .chat-msg.chat-system{background:rgba(61,45,112,.5);color:#a78bfa;font-style:italic;font-size:12px;align-self:center;text-align:center}
-.lobby-chat-input{display:flex;gap:8px;padding:12px 16px;flex-shrink:0}
-.lobby-chat-input input{flex:1;padding:12px 16px;background:rgba(26,16,53,.9);border:2px solid #3d2d70;border-radius:24px;color:#fff;font-size:14px;outline:none;font-family:Arial,sans-serif}
-.lobby-chat-input input:focus{border-color:#00e5ff}
-.lobby-chat-input button{width:48px;height:48px;border-radius:50%;background:linear-gradient(145deg,#ff2d95,#a855f7);border:none;color:#fff;font-size:20px;cursor:pointer;flex-shrink:0}
-.lobby-actions{padding:0 16px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0}
+.lobby-chat-input{display:flex;gap:8px;padding:12px 16px}
+.lobby-chat-input input{flex:1;padding:12px 16px;background:rgba(26,16,53,.9);border:2px solid #3d2d70;border-radius:24px;color:#fff;font-size:14px;outline:none}
+.lobby-chat-input button{width:48px;height:48px;border-radius:50%;background:linear-gradient(145deg,#ff2d95,#a855f7);border:none;color:#fff;font-size:20px;cursor:pointer}
+.lobby-actions{padding:0 16px 16px;display:flex;flex-direction:column;align-items:center;gap:8px}
 .lobby-hint{font-size:12px;color:#a78bfa;text-align:center;padding:8px 14px;background:rgba(26,16,53,.6);border-radius:12px;max-width:340px}
 .lobby-hint b{color:#00e5ff;letter-spacing:2px}
 
-/* ONLINE GAME */
+/* ONLINE */
 .online-stage{width:100%;max-width:480px}
-.online-cell{background:linear-gradient(145deg,#1e2a4a,#16213e);border:2px solid #2d4070;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;color:#00e5ff;cursor:pointer;transition:all .25s ease}
+.online-cell{background:linear-gradient(145deg,#1e2a4a,#16213e);border:2px solid #2d4070;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;color:#00e5ff;cursor:pointer}
 .online-cell.opened{opacity:.5;cursor:default}
-.online-cell.win{background:linear-gradient(145deg,#22d3ee,#0891b2)!important;border-color:#22d3ee!important;color:#fff;animation:winPop3D .9s ease both}
-.online-horse-btn{width:100%;max-width:340px;padding:12px;background:linear-gradient(145deg,rgba(36,26,72,.9),rgba(26,16,53,.9));border:2px solid #3d2d70;border-radius:14px;color:#fff;font-weight:bold;font-size:15px;cursor:pointer;font-family:Arial,sans-serif;display:flex;align-items:center;gap:12px;transition:all .25s ease}
-.online-horse-btn:active{transform:scale(.97)}
+.online-cell.win{background:linear-gradient(145deg,#22d3ee,#0891b2)!important;border-color:#22d3ee!important;color:#fff}
+.online-horse-btn{width:100%;max-width:340px;padding:12px;background:linear-gradient(145deg,rgba(36,26,72,.9),rgba(26,16,53,.9));border:2px solid #3d2d70;border-radius:14px;color:#fff;font-weight:bold;font-size:15px;cursor:pointer;display:flex;align-items:center;gap:12px}
 .online-horse-btn.picked{border-color:#ff2d95;box-shadow:0 0 20px rgba(255,45,149,.6)}
-
-/* SHOP */
-.shop-card{width:100%;max-width:400px;background:linear-gradient(145deg,rgba(42,30,77,.95),rgba(26,16,53,.95));border:2px solid #ffd700;border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 0 25px rgba(255,215,0,.25)}
-.shop-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:14px}
-.shop-row:last-child{border-bottom:none}
-.shop-row .sr-left{display:flex;align-items:center;gap:10px;font-weight:bold}
-.shop-row .sr-coins{color:#ffd700;font-size:15px}
-.shop-buy-btn{padding:8px 16px;border-radius:16px;border:2px solid #ffd700;background:transparent;color:#ffd700;font-weight:bold;font-size:13px;cursor:pointer;font-family:Arial,sans-serif;transition:all .2s ease;white-space:nowrap}
-.shop-buy-btn:active{background:#ffd700;color:#0a0e1a;transform:scale(.95)}
-
-/* BONUS */
-.bonus-card{width:100%;max-width:400px;background:linear-gradient(145deg,rgba(42,30,77,.95),rgba(26,16,53,.95));border:2px solid #22d3ee;border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 0 25px rgba(34,211,238,.3);text-align:center}
-.bonus-card h3{font-size:15px;color:#22d3ee;margin-bottom:8px}
-.bonus-card .bonus-amount{font-size:32px;font-weight:900;color:#ffd700;text-shadow:0 0 20px rgba(255,215,0,.5);margin:8px 0}
-.bonus-card .bonus-hint{font-size:11px;color:#a78bfa;margin-bottom:10px}
 
 /* ADMIN */
 .admin-player-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px;flex-wrap:wrap}
-.admin-player-row:last-child{border-bottom:none}
 .admin-player-row .ap-info{flex:1;min-width:150px;text-align:left}
 .admin-player-row .ap-name{font-weight:bold;color:#fff;font-size:14px}
 .admin-player-row .ap-id{font-size:11px;color:#a78bfa}
 .admin-player-row .ap-balance{font-weight:bold;color:#ffd700;font-size:13px}
-.admin-player-row .ap-actions{display:flex;gap:4px}
-.admin-player-row .ap-actions button{padding:6px 10px;border-radius:12px;border:2px solid #00e5ff;background:transparent;color:#00e5ff;font-weight:bold;font-size:11px;cursor:pointer;font-family:Arial,sans-serif}
-.admin-player-row .ap-actions button.danger{border-color:#ff5252;color:#ff5252}
-.admin-player-row .ap-actions button:active{transform:scale(.9)}
+.admin-player-row .ap-actions button{padding:6px 10px;border-radius:12px;border:2px solid #00e5ff;background:transparent;color:#00e5ff;font-weight:bold;font-size:11px;cursor:pointer}
 
 /* TECH BREAK */
 .tech-break-overlay{position:fixed;inset:0;z-index:9998;background:rgba(5,8,18,.96);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:20px;text-align:center}
@@ -472,6 +378,16 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 .tech-break-box{max-width:420px;background:linear-gradient(145deg,#241a48,#1a1035);border:2px solid #ff5252;border-radius:24px;padding:32px 24px;box-shadow:0 0 60px rgba(255,82,82,.5)}
 .tech-break-box h2{font-size:24px;color:#ff5252;margin-bottom:16px;letter-spacing:2px}
 .tech-break-box p{font-size:13px;color:#cbd5e1;line-height:1.7;white-space:pre-line;margin-bottom:20px}
+
+/* SHOP & BONUS */
+.shop-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:14px}
+.shop-row:last-child{border-bottom:none}
+.shop-row .sr-coins{color:#ffd700;font-size:15px}
+.shop-buy-btn{padding:8px 16px;border-radius:16px;border:2px solid #ffd700;background:transparent;color:#ffd700;font-weight:bold;font-size:13px;cursor:pointer;white-space:nowrap}
+.bonus-card{text-align:center}
+.bonus-card h3{font-size:15px;color:#22d3ee;margin-bottom:8px}
+.bonus-card .bonus-amount{font-size:32px;font-weight:900;color:#ffd700;margin:8px 0}
+.bonus-card .bonus-hint{font-size:11px;color:#a78bfa;margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -509,11 +425,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 </div>
 
 <!-- MODALS -->
-<div class="modal-overlay" id="passModal"><div class="modal" id="passModalBox"><h3>🔒 Пароль</h3><p>Пароль для сброса баланса</p><input type="password" id="passInput" inputmode="numeric" maxlength="10" placeholder="•••••"><div class="modal-actions"><button class="m-cancel" id="passCancel">Отмена</button><button class="m-ok" id="passOk">Сбросить</button></div></div></div>
 <div class="modal-overlay" id="changeNameModal"><div class="modal" id="changeNameModalBox"><h3>✏️ Смена ника</h3><p>Введи новый ник</p><input type="text" id="changeNameInput" maxlength="20" placeholder="Новый ник" style="letter-spacing:1px;font-size:16px;text-align:left"><div class="modal-actions"><button class="m-cancel" id="changeNameCancel">Отмена</button><button class="m-ok" id="changeNameOk" style="background:linear-gradient(145deg,#a855f7,#ff2d95)">Сохранить</button></div></div></div>
 <div class="modal-overlay" id="bugModal"><div class="modal" style="border-color:#ff5252"><h3 id="bugTitle">🐛 Игра недоступна</h3><p style="color:#00e5ff;font-weight:bold;font-size:14px">В игре найдены баги 😔</p><p>Игра будет обновлена, переделана или удалена и заменена другой.</p><p style="color:#22d3ee">Разработчик старается как можно быстрее всё исправить!</p><div class="modal-actions"><button class="m-ok" id="bugOk" style="background:linear-gradient(145deg,#00e5ff,#a855f7)">Понятно</button></div></div></div>
 <div class="modal-overlay" id="adminLoginModal"><div class="modal" id="adminLoginBox" style="border-color:#ffd700"><h3>🔐 Вход в админ-панель</h3><p>Только для администратора</p><input type="text" id="adminLoginInput" placeholder="Логин" style="letter-spacing:2px;font-size:16px;margin-bottom:8px"><input type="password" id="adminPassInput" placeholder="Пароль" style="letter-spacing:2px;font-size:16px;margin-bottom:0"><div class="modal-actions"><button class="m-cancel" id="adminLoginCancel">Отмена</button><button class="m-ok" id="adminLoginOk" style="background:linear-gradient(145deg,#ffd700,#f59e0b);color:#0a0e1a">Войти</button></div></div></div>
-<div class="modal-overlay" id="adminEditModal"><div class="modal" id="adminEditBox" style="border-color:#ffd700"><h3 id="adminEditTitle">💰 Баланс</h3><p id="adminEditSub">Игрок</p><input type="text" id="adminEditAmount" inputmode="numeric" placeholder="Сумма" style="letter-spacing:2px;font-size:18px"><div class="modal-actions" style="flex-wrap:wrap"><button class="m-cancel" id="adminEditCancel">Отмена</button><button id="adminEditSet" style="background:linear-gradient(145deg,#22d3ee,#0891b2);color:#fff;flex:1;padding:12px 0;border-radius:20px;border:none;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif">📌 Задать</button><button id="adminEditAdd" style="background:linear-gradient(145deg,#22c55e,#15803d);color:#fff;flex:1;padding:12px 0;border-radius:20px;border:none;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif">➕ Добавить</button></div></div></div>
+<div class="modal-overlay" id="adminEditModal"><div class="modal" id="adminEditBox" style="border-color:#ffd700"><h3 id="adminEditTitle">💰 Баланс</h3><p id="adminEditSub">Игрок</p><input type="text" id="adminEditAmount" inputmode="numeric" placeholder="Сумма" style="letter-spacing:2px;font-size:18px"><div class="modal-actions" style="flex-wrap:wrap"><button class="m-cancel" id="adminEditCancel">Отмена</button><button id="adminEditSet" style="background:linear-gradient(145deg,#22d3ee,#0891b2);color:#fff;flex:1;padding:12px 0;border-radius:20px;border:none;font-weight:bold;cursor:pointer">📌 Задать</button><button id="adminEditAdd" style="background:linear-gradient(145deg,#22c55e,#15803d);color:#fff;flex:1;padding:12px 0;border-radius:20px;border:none;font-weight:bold;cursor:pointer">➕ Добавить</button></div></div></div>
 
 <!-- ===== MAIN MENU ===== -->
 <div class="screen active" id="menu">
@@ -532,7 +447,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
   </div>
   <div class="tab-content active" id="tabGames">
     <div class="games-grid">
-      <!-- New games first -->
       <div class="game-tile" data-game="plinko"><div class="g-badge">НОВИНКА</div><div class="g-ico">🎯</div><div class="g-name">Plinko</div><div class="g-desc">Падающий шарик</div></div>
       <div class="game-tile" data-game="crash"><div class="g-badge">НОВИНКА</div><div class="g-ico">🚀</div><div class="g-name">Crash</div><div class="g-desc">Успей забрать</div></div>
       <div class="game-tile" data-game="bj"><div class="g-ico">🃏</div><div class="g-name">Blackjack</div><div class="g-desc">21 и победа</div></div>
@@ -557,9 +471,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
   <div class="tab-content" id="tabMore">
     <button class="list-btn" id="openShopBtn"><div class="lb-ico">🛒</div><div class="lb-info"><div class="lb-n">Магазин монет</div><div class="lb-d">Купить монеты за звёзды Telegram</div></div><div class="lb-arrow">›</div></button>
     <button class="list-btn" id="openBonusBtn"><div class="lb-ico">🎁</div><div class="lb-info"><div class="lb-n">Почасовой бонус</div><div class="lb-d">0.2 монеты в час · Забрать от 50</div></div><div class="lb-arrow">›</div></button>
-    <button class="list-btn" id="openSettingsBtn"><div class="lb-ico">⚙️</div><div class="lb-info"><div class="lb-n">Настройки</div><div class="lb-d">Звук, вибрация, имена, сброс</div></div><div class="lb-arrow">›</div></button>
+    <button class="list-btn" id="openSettingsBtn"><div class="lb-ico">⚙️</div><div class="lb-info"><div class="lb-n">Настройки</div><div class="lb-d">Звук, вибрация, имена</div></div><div class="lb-arrow">›</div></button>
     <button class="list-btn" id="openAboutBtn"><div class="lb-ico">ℹ️</div><div class="lb-info"><div class="lb-n">О игре</div><div class="lb-d">Что это и как играть</div></div><div class="lb-arrow">›</div></button>
-    <div style="text-align:center;color:#555;font-size:11px;margin-top:16px;">версия 1.1</div>
+    <div style="text-align:center;color:#555;font-size:11px;margin-top:16px;">версия 1.2</div>
   </div>
 </div>
 
@@ -582,10 +496,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
       <div class="settings-title">🔐 Панель администратора</div>
       <button class="btn-deal" id="openAdminBtn" style="width:100%;background:linear-gradient(145deg,#ffd700,#f59e0b);color:#0a0e1a">🔐 Войти в админ-панель</button>
     </div>
-    <div class="settings-card" style="border-color:#ff5252">
-      <div class="settings-title" style="color:#ff5252">⚠️ Опасная зона</div>
-      <button class="reset-stats-btn" id="resetBalBtn" style="width:100%">🔄 Сбросить баланс</button>
-    </div>
   </div>
 </div>
 
@@ -593,7 +503,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 <div class="screen game-screen" id="aboutScreen">
   <div class="top-bar"><button class="back-btn" id="aboutBack">◀ Назад</button><div class="game-title">ℹ️ О игре</div><div style="width:60px"></div></div>
   <div class="scroll-content">
-    <div class="about-card"><div class="about-icon">🎰</div><h2>КАЗИК</h2><p class="about-version">версия 1.1 · by zyza</p><p class="about-love">💖 с любовью от Зюзи 💖</p></div>
+    <div class="about-card"><div class="about-icon">🎰</div><h2>КАЗИК</h2><p class="about-version">версия 1.2 · by zyza</p><p class="about-love">💖 с любовью от Зюзи 💖</p></div>
     <div class="about-block"><h3>🎯 Что это?</h3><p>Мини-казино внутри Telegram. Играй в разные мини-игры, соревнуйся с друзьями и ботом.</p></div>
     <div class="about-block"><h3>💰 Как играть?</h3><p>Один общий баланс. Делай ставки — выигрывай монеты. Всё бесплатно.</p></div>
     <div class="about-block"><h3>🌐 Онлайн</h3><p>Создавай лобби, приглашай друзей по 6-значному ID, общайся в чате и играй вместе!</p></div>
@@ -605,15 +515,15 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 <div class="screen game-screen" id="shopScreen">
   <div class="top-bar"><button class="back-btn" id="shopBack">◀ Назад</button><div class="game-title">🛒 Магазин монет</div><div style="width:60px"></div></div>
   <div class="scroll-content">
-    <div class="about-card" style="border-color:#ffd700;box-shadow:0 0 30px rgba(255,215,0,.3)"><div class="about-icon">🛒</div><h2 style="font-size:22px;color:#ffd700">Магазин монет</h2><p class="about-version">Оплата звёздами Telegram ⭐</p></div>
+    <div class="about-card" style="border-color:#ffd700"><div class="about-icon">🛒</div><h2 style="font-size:22px;color:#ffd700">Магазин монет</h2><p class="about-version">Оплата звёздами Telegram ⭐</p></div>
     <div class="shop-card">
       <h3 style="color:#ffd700;margin-bottom:10px">💎 Наборы монет</h3>
-      <div class="shop-row"><div class="sr-left">💰 <span class="sr-coins">100 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(100,25)">25 ⭐</button></div>
-      <div class="shop-row"><div class="sr-left">💰 <span class="sr-coins">200 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(200,50)">50 ⭐</button></div>
-      <div class="shop-row"><div class="sr-left">💰 <span class="sr-coins">500 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(500,100)">100 ⭐</button></div>
-      <div class="shop-row"><div class="sr-left">💰 <span class="sr-coins">1 000 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(1000,180)">180 ⭐</button></div>
-      <div class="shop-row"><div class="sr-left">💰 <span class="sr-coins">2 500 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(2500,400)">400 ⭐</button></div>
-      <div class="shop-row"><div class="sr-left">💰 <span class="sr-coins">5 000 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(5000,750)">750 ⭐</button></div>
+      <div class="shop-row"><div><span class="sr-coins">💰 100 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(100,25)">25 ⭐</button></div>
+      <div class="shop-row"><div><span class="sr-coins">💰 200 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(200,50)">50 ⭐</button></div>
+      <div class="shop-row"><div><span class="sr-coins">💰 500 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(500,100)">100 ⭐</button></div>
+      <div class="shop-row"><div><span class="sr-coins">💰 1 000 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(1000,180)">180 ⭐</button></div>
+      <div class="shop-row"><div><span class="sr-coins">💰 2 500 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(2500,400)">400 ⭐</button></div>
+      <div class="shop-row"><div><span class="sr-coins">💰 5 000 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(5000,750)">750 ⭐</button></div>
     </div>
     <div class="about-block" style="border-color:#ffd700"><h3 style="color:#ffd700">ℹ️ О звёздах Telegram</h3><p>Оплата звёздами работает только внутри Telegram-бота. Открой игру через бота, чтобы покупать монеты. В браузере функция недоступна.</p></div>
   </div>
@@ -640,7 +550,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
     <div class="shop-card" style="border-color:#ffd700">
       <h3 style="color:#ffd700;margin-bottom:10px">🔧 Тех-перерыв</h3>
       <div class="shop-row">
-        <div class="sr-left">Статус: <span id="techBreakStatus" style="color:#22c55e">ВЫКЛ</span></div>
+        <div>Статус: <span id="techBreakStatus" style="color:#22c55e;font-weight:bold">ВЫКЛ</span></div>
         <button class="shop-buy-btn" id="toggleTechBreak">Включить</button>
       </div>
       <div style="margin-top:10px">
@@ -733,7 +643,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
   </div>
 </div>
 
-<!-- ===== LUCKY 20 (offline) ===== -->
+<!-- ===== LUCKY 20 ===== -->
 <div class="screen game-screen" id="luckyModeScreen"><div class="top-bar"><button class="back-btn" data-back>◀ Меню</button><div class="game-title">💎 Lucky 20</div><div style="width:60px"></div></div><div class="scroll-content" style="justify-content:center"><h2 style="color:#00e5ff">Выбери режим</h2><div class="bj-mode-btn" id="luckyMode1"><div class="ico">👤</div><div class="info"><div class="n">Один игрок</div><div class="d">3 попытки · найди алмаз</div></div></div><div class="bj-mode-btn" id="luckyMode2"><div class="ico">👥</div><div class="info"><div class="n">Два игрока</div><div class="d">Ходят по очереди</div></div></div></div></div>
 
 <div class="screen game-screen" id="luckyGame"><div class="top-bar"><button class="back-btn" id="luckyMenuBtn">◀ Режим</button><div class="game-title" id="luckyGameTitle">💎 Lucky 20</div><div style="width:60px"></div></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;gap:12px;overflow-y:auto"><div style="display:flex;justify-content:space-between;width:100%;max-width:460px;font-size:13px;font-weight:bold"><div style="color:#ff2d95" id="luckyLeft">🎯 Попытки: <span id="luckyTries">3</span></div><div style="color:#00e5ff" id="luckyMid">💎 <span id="luckyWins1">0</span> : <span id="luckyWins2">0</span></div><div style="color:#22d3ee" id="luckyRight">Ход: <span id="luckyTurn">🔵 Игрок 1</span></div></div><div class="bet-item p1" id="luckyBetBox" style="align-self:center"><span class="lbl">Ставка</span><button id="luckyBetDown">−</button><input class="bet-input" id="luckyBetInput" type="tel" inputmode="numeric" value="500"><button id="luckyBetUp">+</button></div><div style="font-size:16px;font-weight:bold;text-align:center;color:#00e5ff;min-height:22px" id="luckyTitle">Найди 💎 среди 20 ячеек!</div><div class="lucky-grid" id="grid"></div><div style="font-size:14px;font-weight:bold;text-align:center;min-height:22px;color:#00e5ff" id="luckyMsg">Выбери ячейку</div><button class="btn-deal" id="luckyRestart" style="display:none">🎲 Играть снова</button></div></div>
@@ -747,10 +657,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 <div class="screen game-screen" id="crashGame"><div class="top-bar"><button class="back-btn" data-back>◀ Меню</button><div class="game-title">🚀 Crash</div><div class="bal-mini">💰 <span id="crashBal">5 000</span></div></div><div class="crash-stage"><div class="crash-sky"></div><div class="crash-canvas-wrap" id="crashWrap"><canvas id="crashCanvas" width="800" height="600"></canvas><div class="crash-multiplier" id="crashMultiplier">×1.00</div><div class="crash-rocket-el" id="crashRocket" style="left:40px;top:calc(100% - 40px);">🚀</div><div class="crash-history-overlay" id="crashHistory"></div></div></div><div style="padding:8px 12px 14px;display:flex;flex-direction:column;gap:10px;background:#0a0e1a;flex-shrink:0"><div style="display:flex;gap:8px;justify-content:center"><div class="bet-item p1" id="crashBetBox"><span class="lbl">Ставка</span><button id="crashBetDown">−</button><input class="bet-input" id="crashBetInput" type="tel" inputmode="numeric" value="500"><button id="crashBetUp">+</button></div></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn-deal" id="crashStartBtn">🚀 Запустить</button><button class="btn-deal" id="crashCashoutBtn" style="display:none;background:linear-gradient(145deg,#22d3ee,#0891b2)">💰 Забрать</button></div><div class="msg-bar info" id="crashMsg" style="margin-top:0">Сделай ставку и запусти ракету!</div></div></div>
 
 <!-- ===== MINES ===== -->
-<div class="screen game-screen" id="minesGame"><div class="top-bar"><button class="back-btn" data-back>◀ Меню</button><div class="game-title">💣 Mines</div><div class="bal-mini">💰 <span id="minesBal">5 000</span></div></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;gap:12px;overflow-y:auto"><div class="mines-info"><div class="mi-left">💣 Мин: <span id="minesBombsCount">3</span></div><div class="mi-mid">📊 ×<span id="minesMultiplier">1.00</span></div><div class="mi-right">💰 Выигрыш: <span id="minesPotential">0</span></div></div><div class="mines-grid" id="minesGrid"></div><div style="font-size:14px;font-weight:bold;text-align:center;min-height:22px;color:#00e5ff" id="minesMsg">Выбери ставку и начни игру</div></div><div style="padding:8px 12px 14px;display:flex;flex-direction:column;gap:10px"><div class="mines-mode-row" id="minesBombPicker"><button class="mines-mode-btn" data-bombs="1">1 мина</button><button class="mines-mode-btn active" data-bombs="3">3 мины</button><button class="mines-mode-btn" data-bombs="5">5 мин</button></div><div style="display:flex;gap:8px;justify-content:center"><div class="bet-item p1" id="minesBetBox"><span class="lbl">Ставка</span><button id="minesBetDown">−</button><input class="bet-input" id="minesBetInput" type="tel" inputmode="numeric" value="500"><button id="minesBetUp">+</button></div></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn-deal" id="minesStartBtn">💣 Начать</button><button class="btn-deal" id="minesCashoutBtn" style="display:none;background:linear-gradient(145deg,#22d3ee,#0891b2)">💰 Забрать</button></div></div></div>
+<div class="screen game-screen" id="minesGame"><div class="top-bar"><button class="back-btn" data-back>◀ Меню</button><div class="game-title">💣 Mines</div><div class="bal-mini">💰 <span id="minesBal">5 000</span></div></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;gap:12px;overflow-y:auto"><div class="mines-info"><div style="color:#ff2d95">💣 Мин: <span id="minesBombsCount">3</span></div><div style="color:#00e5ff">📊 ×<span id="minesMultiplier">1.00</span></div><div style="color:#22d3ee">💰 Выигрыш: <span id="minesPotential">0</span></div></div><div class="mines-grid" id="minesGrid"></div><div style="font-size:14px;font-weight:bold;text-align:center;min-height:22px;color:#00e5ff" id="minesMsg">Выбери ставку и начни игру</div></div><div style="padding:8px 12px 14px;display:flex;flex-direction:column;gap:10px"><div class="mines-mode-row" id="minesBombPicker"><button class="mines-mode-btn" data-bombs="1">1 мина</button><button class="mines-mode-btn active" data-bombs="3">3 мины</button><button class="mines-mode-btn" data-bombs="5">5 мин</button></div><div style="display:flex;gap:8px;justify-content:center"><div class="bet-item p1" id="minesBetBox"><span class="lbl">Ставка</span><button id="minesBetDown">−</button><input class="bet-input" id="minesBetInput" type="tel" inputmode="numeric" value="500"><button id="minesBetUp">+</button></div></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn-deal" id="minesStartBtn">💣 Начать</button><button class="btn-deal" id="minesCashoutBtn" style="display:none;background:linear-gradient(145deg,#22d3ee,#0891b2)">💰 Забрать</button></div></div></div>
 
 <!-- ===== SLOTS ===== -->
-<div class="screen game-screen" id="slotsGame"><div class="top-bar"><button class="back-btn" data-back>◀ Меню</button><div class="game-title">🎰 Slots</div><div class="bal-mini">💰 <span id="slotsBal">5 000</span></div></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:14px;overflow-y:auto"><div class="slots-3d-stage"><div class="slots-machine-3d" id="slotsMachine"><div class="slots-lights"><span></span><span></span><span></span><span></span><span></span></div><div class="slots-payline"></div><div class="slots-reels-3d"><div class="reel-window" id="rw1"></div><div class="reel-window" id="rw2"></div><div class="reel-window" id="rw3"></div></div></div></div><div style="display:flex;align-items:center;gap:10px;background:#1a1035;padding:10px 18px;border-radius:22px;border:1px solid #3d2d70" id="slotsBetBox"><span style="font-size:12px;color:#a78bfa">Ставка:</span><button data-bet-down style="width:36px;height:36px;border-radius:50%;background:linear-gradient(145deg,#3d2d70,#2a1e4d);color:#fff;border:none;font-size:18px;font-weight:bold;cursor:pointer">−</button><input class="bet-input" id="slotsBetInput" type="tel" inputmode="numeric" value="500" style="width:80px;height:36px;background:transparent;border:1px solid #3d2d70;border-radius:8px;color:#00e5ff;font-size:15px;font-weight:bold;text-align:center;font-family:Arial,sans-serif;outline:none"><button data-bet-up style="width:36px;height:36px;border-radius:50%;background:linear-gradient(145deg,#3d2d70,#2a1e4d);color:#fff;border:none;font-size:18px;font-weight:bold;cursor:pointer">+</button></div><button class="btn-deal" id="slotSpin" style="font-size:18px;padding:15px 44px">🎰 Крутить</button><div style="font-size:17px;font-weight:bold;text-align:center;min-height:26px;color:#00e5ff" id="slotMsg">Нажми «Крутить»</div></div></div>
+<div class="screen game-screen" id="slotsGame"><div class="top-bar"><button class="back-btn" data-back>◀ Меню</button><div class="game-title">🎰 Slots</div><div class="bal-mini">💰 <span id="slotsBal">5 000</span></div></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:14px;overflow-y:auto"><div class="slots-3d-stage"><div class="slots-machine-3d" id="slotsMachine"><div class="slots-lights"><span></span><span></span><span></span><span></span><span></span></div><div class="slots-payline"></div><div class="slots-reels-3d"><div class="reel-window" id="rw1"></div><div class="reel-window" id="rw2"></div><div class="reel-window" id="rw3"></div></div></div></div><div style="display:flex;align-items:center;gap:10px;background:#1a1035;padding:10px 18px;border-radius:22px;border:1px solid #3d2d70" id="slotsBetBox"><span style="font-size:12px;color:#a78bfa">Ставка:</span><button data-bet-down style="width:36px;height:36px;border-radius:50%;background:linear-gradient(145deg,#3d2d70,#2a1e4d);color:#fff;border:none;font-size:18px;font-weight:bold;cursor:pointer">−</button><input class="bet-input" id="slotsBetInput" type="tel" inputmode="numeric" value="500" style="width:80px;height:36px;background:transparent;border:1px solid #3d2d70;border-radius:8px;color:#00e5ff;font-size:15px;font-weight:bold;text-align:center;outline:none"><button data-bet-up style="width:36px;height:36px;border-radius:50%;background:linear-gradient(145deg,#3d2d70,#2a1e4d);color:#fff;border:none;font-size:18px;font-weight:bold;cursor:pointer">+</button></div><button class="btn-deal" id="slotSpin" style="font-size:18px;padding:15px 44px">🎰 Крутить</button><div style="font-size:17px;font-weight:bold;text-align:center;min-height:26px;color:#00e5ff" id="slotMsg">Нажми «Крутить»</div></div></div>
 
 <!-- ===== BLACKJACK ===== -->
 <div class="screen game-screen" id="bjModeScreen"><div class="top-bar"><button class="back-btn" data-back>◀ Меню</button><div class="game-title">🃏 Blackjack</div><div style="width:60px"></div></div><div class="scroll-content" style="justify-content:center"><h2 style="color:#00e5ff">Выбери режим</h2><div class="bj-mode-btn" id="bjMode1"><div class="ico">👤</div><div class="info"><div class="n">Один игрок</div><div class="d">Против дилера</div></div></div><div class="bj-mode-btn" id="bjMode2"><div class="ico">👥</div><div class="info"><div class="n">Два игрока + Дилер</div><div class="d">Кто ближе к 21 — тот и забрал</div></div></div></div></div>
@@ -769,8 +679,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:14px;overflow-y:auto">
     <div class="roulette-3d-scene"><div class="roulette-3d-wheel" id="rouletteWheel"><canvas id="wheelCanvas" width="460" height="460"></canvas></div><div class="roulette-pointer">▼</div><div class="roulette-3d-shadow"></div></div>
     <div style="font-size:17px;font-weight:bold;text-align:center;min-height:26px;color:#00e5ff" id="rouletteMsg">Сделай ставку и крути</div>
-    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:7px;max-width:380px"><div class="bet-opt red" data-bet="red">🔴 Красное ×2</div><div class="bet-opt black" data-bet="black">⚫ Чёрное ×2</div><div class="bet-opt green" data-bet="green">🟢 Зеро ×14</div><div class="bet-opt" data-bet="even">Чётное ×2</div><div class="bet-opt" data-bet="odd">Нечётное ×2</div><div class="bet-opt" data-bet="1-18">1–18 ×2</div><div class="bet-opt" data-bet="19-36">19–36 ×2</div><div class="bet-opt" data-bet="num">🎯 Число ×36</div></div>
-    <div style="display:flex;align-items:center;gap:10px;background:#1a1035;padding:10px 18px;border-radius:22px;border:1px solid #3d2d70" id="rouletteBetBox"><span style="font-size:12px;color:#a78bfa">Ставка:</span><button data-bet-down style="width:36px;height:36px;border-radius:50%;background:linear-gradient(145deg,#3d2d70,#2a1e4d);color:#fff;border:none;font-size:18px;font-weight:bold;cursor:pointer">−</button><input class="bet-input" id="rouletteBetInput" type="tel" inputmode="numeric" value="500" style="width:80px;height:36px;background:transparent;border:1px solid #3d2d70;border-radius:8px;color:#00e5ff;font-size:15px;font-weight:bold;text-align:center;font-family:Arial,sans-serif;outline:none"><button data-bet-up style="width:36px;height:36px;border-radius:50%;background:linear-gradient(145deg,#3d2d70,#2a1e4d);color:#fff;border:none;font-size:18px;font-weight:bold;cursor:pointer">+</button></div>
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:7px;max-width:380px"><div class="bet-opt" data-bet="red" style="border-color:#ff5252;color:#ff5252">🔴 Красное ×2</div><div class="bet-opt" data-bet="black" style="border-color:#666;color:#aaa">⚫ Чёрное ×2</div><div class="bet-opt" data-bet="green" style="border-color:#22d3ee;color:#22d3ee">🟢 Зеро ×14</div><div class="bet-opt" data-bet="even">Чётное ×2</div><div class="bet-opt" data-bet="odd">Нечётное ×2</div><div class="bet-opt" data-bet="1-18">1–18 ×2</div><div class="bet-opt" data-bet="19-36">19–36 ×2</div><div class="bet-opt" data-bet="num">🎯 Число ×36</div></div>
+    <div style="display:flex;align-items:center;gap:10px;background:#1a1035;padding:10px 18px;border-radius:22px;border:1px solid #3d2d70" id="rouletteBetBox"><span style="font-size:12px;color:#a78bfa">Ставка:</span><button data-bet-down style="width:36px;height:36px;border-radius:50%;background:linear-gradient(145deg,#3d2d70,#2a1e4d);color:#fff;border:none;font-size:18px;font-weight:bold;cursor:pointer">−</button><input class="bet-input" id="rouletteBetInput" type="tel" inputmode="numeric" value="500" style="width:80px;height:36px;background:transparent;border:1px solid #3d2d70;border-radius:8px;color:#00e5ff;font-size:15px;font-weight:bold;text-align:center;outline:none"><button data-bet-up style="width:36px;height:36px;border-radius:50%;background:linear-gradient(145deg,#3d2d70,#2a1e4d);color:#fff;border:none;font-size:18px;font-weight:bold;cursor:pointer">+</button></div>
     <div style="display:none;align-items:center;gap:10px;background:#1a1035;padding:10px 18px;border-radius:22px;border:1px solid #3d2d70" id="numPicker"><span style="font-size:12px;color:#a78bfa">Число:</span><button id="numDown" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(145deg,#3d2d70,#2a1e4d);color:#fff;border:none;font-size:18px;font-weight:bold;cursor:pointer">−</button><span style="font-size:17px;font-weight:bold;color:#00e5ff;min-width:56px;text-align:center" id="numVal">17</span><button id="numUp" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(145deg,#3d2d70,#2a1e4d);color:#fff;border:none;font-size:18px;font-weight:bold;cursor:pointer">+</button></div>
     <button class="btn-deal" id="rouletteSpin" style="font-size:18px;padding:15px 44px">🎡 Крутить</button>
   </div>
@@ -803,7 +713,7 @@ function saveSettings(){localStorage.setItem(SETTINGS_KEY,JSON.stringify(setting
 
 var WALLET_KEY='casino_common_wallet_v2';
 var START_BALANCE=5000;
-var BALANCE_IS_SERVER=false; // станет true после регистрации в онлайне
+var BALANCE_IS_SERVER=false;
 
 function getWallet(){
   if(BALANCE_IS_SERVER && onlineProfile && typeof onlineProfile.balance==='number'){
@@ -1007,21 +917,16 @@ function vibPattern(p){if(settings.vib&&navigator.vibrate)navigator.vibrate(p)}
 /* ============================================================
    TOAST
    ============================================================ */
-function showToast(text){var t=document.getElementById('toast');t.textContent=text;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('show')},1800)}
+function showToast(text){var t=document.getElementById('toast');t.textContent=text;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('show')},2200)}
 
 /* ============================================================
-   МЕНЮ
+   МЕНЮ / НАВИГАЦИЯ
    ============================================================ */
 document.getElementById('bugOk').addEventListener('click',function(){document.getElementById('bugModal').classList.remove('show')});
 document.getElementById('bugModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show')});
 
 document.querySelectorAll('.game-tile').forEach(function(b){
   b.addEventListener('click',function(){
-    if(this.classList.contains('disabled')){
-      document.getElementById('bugModal').classList.add('show');
-      sndLose();
-      return;
-    }
     var g=this.dataset.game;
     if(g==='lucky')showScreen('luckyModeScreen');
     if(g==='bj')showScreen('bjModeScreen');
@@ -1070,31 +975,14 @@ document.getElementById('setSaveNames').addEventListener('click',function(){
 });
 
 /* ============================================================
-   ПАРОЛЬ НА СБРОС БАЛАНСА
-   ============================================================ */
-var PASS_CODE='12345';
-document.getElementById('passCancel').addEventListener('click',closePassModal);
-document.getElementById('passModal').addEventListener('click',function(e){if(e.target===this)closePassModal()});
-document.getElementById('passOk').addEventListener('click',tryPass);
-document.getElementById('passInput').addEventListener('keydown',function(e){if(e.key==='Enter')tryPass()});
-function openPassModal(){var ov=document.getElementById('passModal');var inp=document.getElementById('passInput');inp.value='';inp.classList.remove('error');ov.classList.add('show');setTimeout(function(){inp.focus()},300)}
-function closePassModal(){document.getElementById('passModal').classList.remove('show');document.getElementById('passInput').value='';document.getElementById('passModalBox').classList.remove('shake')}
-function tryPass(){
-  var inp=document.getElementById('passInput');
-  if(inp.value.trim()===PASS_CODE){closePassModal();setTimeout(function(){setWallet(START_BALANCE);updateWalletUI();showToast('Баланс сброшен на '+fmt(START_BALANCE));spawnConfetti(40)},250)}
-  else{inp.classList.add('error');var box=document.getElementById('passModalBox');box.classList.remove('shake');void box.offsetWidth;box.classList.add('shake');vib(80);setTimeout(function(){inp.classList.remove('error')},900)}
-}
-document.getElementById('resetBalBtn').addEventListener('click',openPassModal);
-
-/* ============================================================
    СМЕНА НИКА
    ============================================================ */
-function openChangeNameModal(){if(!onlineProfile)return;var ov=document.getElementById('changeNameModal'),inp=document.getElementById('changeNameInput');inp.value=onlineProfile.name||'';inp.classList.remove('error');ov.classList.add('show');setTimeout(function(){inp.focus();inp.select()},300)}
-function closeChangeNameModal(){document.getElementById('changeNameModal').classList.remove('show');document.getElementById('changeNameModalBox').classList.remove('shake')}
+function openChangeNameModal(){if(!onlineProfile)return;var ov=document.getElementById('changeNameModal'),inp=document.getElementById('changeNameInput');inp.value=onlineProfile.name||'';ov.classList.add('show');setTimeout(function(){inp.focus();inp.select()},300)}
+function closeChangeNameModal(){document.getElementById('changeNameModal').classList.remove('show')}
 function saveNewName(){
   var inp=document.getElementById('changeNameInput');
   var newName=inp.value.trim();
-  if(newName.length<2){inp.classList.add('error');var box=document.getElementById('changeNameModalBox');box.classList.remove('shake');void box.offsetWidth;box.classList.add('shake');vib(80);return}
+  if(newName.length<2){showToast('Имя минимум 2 символа');return}
   fetch(API_URL+'/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getInitData(),name:newName,guest_id:getGuestId()})})
   .then(function(r){return r.json()})
   .then(function(data){
@@ -1108,7 +996,6 @@ document.getElementById('changeNameBtn').addEventListener('click',openChangeName
 document.getElementById('changeNameCancel').addEventListener('click',closeChangeNameModal);
 document.getElementById('changeNameOk').addEventListener('click',saveNewName);
 document.getElementById('changeNameModal').addEventListener('click',function(e){if(e.target===this)closeChangeNameModal()});
-document.getElementById('changeNameInput').addEventListener('keydown',function(e){if(e.key==='Enter')saveNewName()});
 
 /* ============================================================
    ОНЛАЙН — КОНСТАНТЫ
@@ -1150,7 +1037,6 @@ function autoReregister(cb){
   })
   .catch(function(){});
 }
-
 (function(){
   if(onlineProfile && onlineProfile.game_id){
     setTimeout(function(){autoReregister();}, 2500);
@@ -1158,7 +1044,7 @@ function autoReregister(cb){
 })();
 
 /* ============================================================
-   ГЛОБАЛЬНЫЙ СТАТУС (тех-перерыв)
+   ТЕХ-ПЕРЕРЫВ
    ============================================================ */
 var GLOBAL_TECH_BREAK=false;
 function checkGlobalStatus(){
@@ -1252,11 +1138,7 @@ function buyCoins(coins,stars){
   fetch(API_URL+'/api/shop/buy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({guest_id:getGuestId(),coins:coins,stars:stars})})
   .then(function(r){return r.json()})
   .then(function(data){
-    if(data.error){
-      var reason=data.reason||'';
-      showToast('Оплата недоступна: '+reason);
-      return;
-    }
+    if(data.error){showToast('Оплата недоступна: '+(data.reason||data.error));return}
     if(data.invoice_link){
       tg.openInvoice(data.invoice_link,function(status){
         if(status==='paid'){
@@ -1281,9 +1163,7 @@ function loadBonusState(){
     if(data.error==='not_registered'){autoReregister(function(){loadBonusState()});return}
     if(data.error)return;
     document.getElementById('bonusAmount').textContent=(data.pending_bonus||0).toFixed(2);
-    if(typeof data.balance==='number'){
-      setWallet(data.balance);updateWalletUI();
-    }
+    if(typeof data.balance==='number'){setWallet(data.balance);updateWalletUI()}
   })
   .catch(function(){});
 }
@@ -1395,7 +1275,7 @@ var ADMIN_EDIT_PID=null;
 function openAdminEdit(pid,name,balance){
   ADMIN_EDIT_PID=pid;
   document.getElementById('adminEditTitle').textContent='💰 '+name;
-  document.getElementById('adminEditSub').textContent='ID: '+pid+' · Текущий баланс: '+fmt(balance);
+  document.getElementById('adminEditSub').textContent='ID: '+pid+' · Текущий: '+fmt(balance);
   document.getElementById('adminEditAmount').value='';
   document.getElementById('adminEditModal').classList.add('show');
 }
@@ -1408,13 +1288,10 @@ document.getElementById('adminEditSet').addEventListener('click',function(){
   .then(function(r){return r.json()})
   .then(function(data){
     if(data.error){showToast('Ошибка');return}
-    showToast('Баланс установлен: '+fmt(data.balance));
+    showToast('Установлено: '+fmt(data.balance));
     document.getElementById('adminEditModal').classList.remove('show');
     loadAdminPlayers();
-    // Если это я — обновим локально
-    if(onlineProfile && onlineProfile.game_id===ADMIN_EDIT_PID){
-      setWallet(data.balance);updateWalletUI();
-    }
+    if(onlineProfile && onlineProfile.game_id===ADMIN_EDIT_PID){setWallet(data.balance);updateWalletUI()}
   });
 });
 document.getElementById('adminEditAdd').addEventListener('click',function(){
@@ -1427,14 +1304,12 @@ document.getElementById('adminEditAdd').addEventListener('click',function(){
     showToast('+'+fmt(amt)+' → '+fmt(data.balance));
     document.getElementById('adminEditModal').classList.remove('show');
     loadAdminPlayers();
-    if(onlineProfile && onlineProfile.game_id===ADMIN_EDIT_PID){
-      setWallet(data.balance);updateWalletUI();
-    }
+    if(onlineProfile && onlineProfile.game_id===ADMIN_EDIT_PID){setWallet(data.balance);updateWalletUI()}
   });
 });
 
 /* ============================================================
-   ЛОББИ (2-3 игрока)
+   ЛОББИ
    ============================================================ */
 var currentLobby=null,lobbySocket=null,isHost=false,onlineGameState=null;
 
@@ -1532,18 +1407,20 @@ function handleLobbyMessage(msg){
   else if(msg.type==='pong'){}
   else if(msg.type==='players'){
     if(msg.players){
-      var players=msg.players;
-      currentLobby.host=players[0];
-      currentLobby.guests=players.slice(1);
+      currentLobby.host=msg.players[0];
+      currentLobby.guests=msg.players.slice(1);
       renderLobbyPlayers();renderLobbyActions();
     }
   }
-  else if(msg.type==='game_start'){sndBig();showToast('Выбрана игра!')}
   else if(msg.type==='game_init'||msg.type==='game_start_real'||msg.type==='game_update'||msg.type==='game_reset'){
     handleOnlineGameState(msg.game_state);
   }
   else if(msg.type==='admin_balance_update'){
-    if(typeof msg.balance==='number'){setWallet(msg.balance);updateWalletUI();showToast('Баланс обновлён администратором')}
+    if(typeof msg.balance==='number'){
+      setWallet(msg.balance);updateWalletUI();
+      showToast('💰 Администрация изменила ваш баланс');
+      sndBig();spawnCoins(10);
+    }
   }
 }
 function appendChatMessage(type,text,author){
@@ -1569,9 +1446,6 @@ document.getElementById('lobbyLeaveBtn').addEventListener('click',function(){
   showScreen('onlineMenuScreen');
 });
 
-/* ============================================================
-   СТАРТ ОНЛАЙН-ИГРЫ
-   ============================================================ */
 function startOnlineGame(gameType){
   if(!isHost){showToast('Только хост');return}
   if(!currentLobby||currentLobby.guests.length===0){showToast('Нужен хотя бы 1 игрок');return}
@@ -1599,9 +1473,7 @@ function handleOnlineGameState(gs){
   onlineGameState=gs;
   var title=document.getElementById('onlineGameTitle');
   var stage=document.getElementById('onlineGameStage');
-  if(!document.getElementById('onlineGameScreen').classList.contains('active')){
-    showScreen('onlineGameScreen');
-  }
+  if(!document.getElementById('onlineGameScreen').classList.contains('active'))showScreen('onlineGameScreen');
   if(gs.type==='lucky20'){title.textContent='💎 Lucky 20';renderOnlineLucky20(stage,gs)}
   else if(gs.type==='horserace'){title.textContent='🐎 Скачки';renderOnlineHorseRace(stage,gs)}
   else if(gs.type==='dice'){title.textContent='🎲 Кости';renderOnlineDice(stage,gs)}
@@ -1613,10 +1485,9 @@ function handleOnlineGameState(gs){
 function renderOnlineLucky20(stage,gs){
   var html='<div style="text-align:center;padding:12px">';
   if(gs.phase==='done'){
-    var winIdx=gs.win_idx;
-    html+='<div style="font-size:18px;font-weight:bold;color:#22d3ee;margin-bottom:8px">🎉 Игра окончена</div>';
-    html+='<div style="font-size:14px;color:#a78bfa;margin-bottom:12px">Алмаз был в ячейке №'+(winIdx+1)+'</div>';
     var iWin=(gs.winner===onlineProfile.game_id);
+    html+='<div style="font-size:18px;font-weight:bold;color:#22d3ee;margin-bottom:8px">🎉 Игра окончена</div>';
+    html+='<div style="font-size:14px;color:#a78bfa;margin-bottom:12px">Алмаз был в ячейке №'+(gs.win_idx+1)+'</div>';
     html+='<div style="font-size:16px;font-weight:bold;color:'+(iWin?'#22d3ee':'#ff5252')+';margin:12px 0">'+(iWin?'🏆 Ты победил!':'😔 Ты проиграл')+'</div>';
     html+=renderLucky20Grid(gs,true);
     html+='<div style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap">'+(isHost?'<button class="btn-deal" onclick="onlineResetGame()" style="padding:12px 24px">🔄 Ещё раз</button>':'')+'<button class="btn-deal" onclick="backToLobby()" style="padding:12px 24px;background:linear-gradient(145deg,#00e5ff,#a855f7)">🏠 В лобби</button></div>';
@@ -1664,24 +1535,22 @@ function renderOnlineHorseRace(stage,gs){
   if(gs.phase==='done'){
     html+='<div style="text-align:center;padding:16px">';
     html+='<div style="font-size:20px;font-weight:bold;color:#22d3ee;margin-bottom:16px">🏁 Гонка завершена</div>';
-    html+='<div style="font-size:14px;color:#a78bfa;margin-bottom:12px">Победил конь: 🐎 '+horses[gs.winner_horse]+'</div>';
+    html+='<div style="font-size:14px;color:#a78bfa;margin-bottom:12px">Победил: 🐎 '+horses[gs.winner_horse]+'</div>';
     var winners=gs.winners||[];
-    if(winners.indexOf(onlineProfile.game_id)>=0){
-      html+='<div style="font-size:16px;font-weight:bold;color:#22d3ee;margin:12px 0">🏆 Ты угадал!</div>';
-      sndBig();spawnConfetti(80);spawnCoins(10);
-    } else {
-      html+='<div style="font-size:16px;font-weight:bold;color:#ff5252;margin:12px 0">😔 Не угадал</div>';
-      sndLose();
-    }
+    var iWin=winners.indexOf(onlineProfile.game_id)>=0;
+    html+='<div style="font-size:16px;font-weight:bold;color:'+(iWin?'#22d3ee':'#ff5252')+';margin:12px 0">'+(iWin?'🏆 Ты угадал!':'😔 Не угадал')+'</div>';
     html+='<div style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap">'+(isHost?'<button class="btn-deal" onclick="onlineResetGame()" style="padding:12px 24px">🔄 Ещё раз</button>':'')+'<button class="btn-deal" onclick="backToLobby()" style="padding:12px 24px;background:linear-gradient(145deg,#00e5ff,#a855f7)">🏠 В лобби</button></div>';
     html+='</div>';
-  } else if(myPick===undefined||myPick===null){
+    stage.innerHTML=html;
+    if(iWin){sndBig();spawnConfetti(80);spawnCoins(10)}
+    else sndLose();
+    return;
+  }
+  if(myPick===undefined||myPick===null){
     html+='<div style="text-align:center;padding:12px">';
     html+='<div style="font-size:15px;font-weight:bold;color:#00e5ff;margin-bottom:12px">🏁 Выбери коня!</div>';
     html+='<div style="display:flex;flex-direction:column;gap:8px;max-width:340px;margin:0 auto">';
-    for(var i=0;i<6;i++){
-      html+='<button class="online-horse-btn" data-horse="'+i+'"><span style="font-size:26px">🐎</span><span>'+horses[i]+' ×'+mults[i]+'</span></button>';
-    }
+    for(var i=0;i<6;i++)html+='<button class="online-horse-btn" data-horse="'+i+'"><span style="font-size:26px">🐎</span><span>'+horses[i]+' ×'+mults[i]+'</span></button>';
     html+='</div></div>';
     stage.innerHTML=html;
     stage.querySelectorAll('[data-horse]').forEach(function(el){
@@ -1693,54 +1562,50 @@ function renderOnlineHorseRace(stage,gs){
       });
     });
     return;
-  } else {
-    // Анимация гонки
-    html='<div style="text-align:center;padding:8px">';
-    html+='<div style="font-size:14px;font-weight:bold;color:#00e5ff;margin-bottom:8px">🏁 Гонка!</div>';
-    html+='<div id="onlineRaceTrack" style="position:relative;background:radial-gradient(ellipse at 50% 100%,#1a0e2e 0%,#0a0e1a 70%);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:4px;overflow:hidden">';
-    for(var j=0;j<6;j++){
-      html+='<div class="race-lane" data-lane="'+j+'" style="position:relative;height:36px">'+
-        '<span class="lane-num">🐎 '+horses[j]+'</span>'+
-        '<span class="lane-horse" id="onlineHorse'+j+'" style="font-size:24px;position:absolute;left:0;top:50%;transform:translate(0,-50%)">🐎</span>'+
-      '</div>';
-    }
-    html+='<div class="race-finish-line" style="right:40px"></div>';
-    html+='</div>';
-    html+='<div id="onlineRaceMsg" style="font-size:14px;font-weight:bold;text-align:center;margin-top:10px;color:#00e5ff">Идёт гонка...</div>';
-    html+='</div>';
-    stage.innerHTML=html;
-    var winner=gs.winner_horse;
-    var positions=[0,0,0,0,0,0];
-    var speeds=[];
-    for(var k=0;k<6;k++)speeds.push(0.004+Math.random()*0.003);
-    speeds[winner]+=0.003;
-    var trackWidth=document.getElementById('onlineRaceTrack').clientWidth-80;
-    var tickInt=setInterval(sndTick,200);
-    var playing=true;
-    function frame(){
-      if(!playing){clearInterval(tickInt);return}
-      for(var m=0;m<6;m++){
-        positions[m]+=speeds[m];
-        if(positions[m]>1.05)positions[m]=1.05;
-        var el=document.getElementById('onlineHorse'+m);
-        if(el)el.style.left=(positions[m]*trackWidth)+'px';
-        var lane=document.querySelector('[data-lane="'+m+'"]');
-        if(lane){lane.classList.remove('leading');if(positions[m]>0.7&&positions[m]<1.0)lane.classList.add('leading')}
-      }
-      if(positions[winner]>0.9)positions[winner]=Math.min(1.05,positions[winner]+0.004);
-      if(positions[winner]>=1.0){
-        clearInterval(tickInt);playing=false;
-        document.getElementById('onlineRaceMsg').textContent='🏆 '+horses[winner]+' победил!';
-        document.getElementById('onlineRaceMsg').style.color='#22d3ee';
-      } else requestAnimationFrame(frame);
-    }
-    requestAnimationFrame(frame);
-    return;
   }
+  html='<div style="text-align:center;padding:8px">';
+  html+='<div style="font-size:14px;font-weight:bold;color:#00e5ff;margin-bottom:8px">🏁 Гонка!</div>';
+  html+='<div id="onlineRaceTrack" style="position:relative;background:radial-gradient(ellipse at 50% 100%,#1a0e2e 0%,#0a0e1a 70%);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:4px;overflow:hidden">';
+  for(var j=0;j<6;j++){
+    html+='<div class="race-lane" data-lane="'+j+'" style="position:relative;height:36px">'+
+      '<span class="lane-num">🐎 '+horses[j]+'</span>'+
+      '<span class="lane-horse" id="onlineHorse'+j+'" style="font-size:24px;position:absolute;left:0;top:50%;transform:translate(0,-50%)">🐎</span>'+
+    '</div>';
+  }
+  html+='<div class="race-finish-line" style="right:40px"></div>';
+  html+='</div>';
+  html+='<div id="onlineRaceMsg" style="font-size:14px;font-weight:bold;text-align:center;margin-top:10px;color:#00e5ff">Идёт гонка...</div>';
+  html+='</div>';
   stage.innerHTML=html;
+  var winner=gs.winner_horse;
+  var positions=[0,0,0,0,0,0];
+  var speeds=[];
+  for(var k=0;k<6;k++)speeds.push(0.004+Math.random()*0.003);
+  speeds[winner]+=0.003;
+  var trackWidth=document.getElementById('onlineRaceTrack').clientWidth-80;
+  var tickInt=setInterval(sndTick,200);
+  var playing=true;
+  function frame(){
+    if(!playing){clearInterval(tickInt);return}
+    for(var m=0;m<6;m++){
+      positions[m]+=speeds[m];
+      if(positions[m]>1.05)positions[m]=1.05;
+      var el=document.getElementById('onlineHorse'+m);
+      if(el)el.style.left=(positions[m]*trackWidth)+'px';
+      var lane=document.querySelector('[data-lane="'+m+'"]');
+      if(lane){lane.classList.remove('leading');if(positions[m]>0.7&&positions[m]<1.0)lane.classList.add('leading')}
+    }
+    if(positions[winner]>0.9)positions[winner]=Math.min(1.05,positions[winner]+0.004);
+    if(positions[winner]>=1.0){
+      clearInterval(tickInt);playing=false;
+      document.getElementById('onlineRaceMsg').textContent='🏆 '+horses[winner]+' победил!';
+      document.getElementById('onlineRaceMsg').style.color='#22d3ee';
+    } else requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 }
 
-/* ---- DICE (2-3 игрока, с анимацией) ---- */
+/* ---- DICE ---- */
 function renderOnlineDice(stage,gs){
   var rolls=gs.rolls||{};
   var allPlayers=[currentLobby.host].concat(currentLobby.guests||[]);
@@ -1749,29 +1614,26 @@ function renderOnlineDice(stage,gs){
   if(gs.phase==='done'){
     html+='<div style="font-size:20px;font-weight:bold;color:#22d3ee;margin-bottom:16px">🎲 Игра завершена</div>';
     for(var i=0;i<allPlayers.length;i++){
-      var p=allPlayers[i];
-      var d=rolls[p.game_id]||[0,0];
-      var sum=d[0]+d[1];
+      var p=allPlayers[i],d=rolls[p.game_id]||[0,0],sum=d[0]+d[1];
       html+='<div style="font-size:14px;color:'+(i===0?'#ff2d95':'#00e5ff')+';margin-bottom:6px">'+p.name+': '+d[0]+' + '+d[1]+' = <b>'+sum+'</b></div>';
     }
     var winners=gs.winners||[];
     var iWin=winners.indexOf(onlineProfile.game_id)>=0;
     html+='<div style="font-size:16px;font-weight:bold;color:'+(iWin?'#22d3ee':'#ff5252')+';margin:12px 0">'+(iWin?'🏆 Ты победил!':'😔 Ты проиграл')+'</div>';
     html+='<div style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap">'+(isHost?'<button class="btn-deal" onclick="onlineResetGame()" style="padding:12px 24px">🔄 Ещё раз</button>':'')+'<button class="btn-deal" onclick="backToLobby()" style="padding:12px 24px;background:linear-gradient(145deg,#00e5ff,#a855f7)">🏠 В лобби</button></div>';
-    if(iWin){sndBig();spawnConfetti(80);spawnCoins(10)}
+    if(iWin){sndBig();spawnConfetti(80);spawnCoins(10)}else sndLose();
   } else {
     html+='<div style="font-size:15px;font-weight:bold;color:#00e5ff;margin-bottom:12px">🎲 У кого больше?</div>';
-    html+='<div style="display:flex;justify-content:center;gap:14px;font-size:60px;margin:20px 0">🎲 🎲</div>';
+    html+='<div class="dice-3d-stage" style="padding:20px;min-height:150px;justify-content:center">';
+    html+='<div class="die-3d'+(myRoll?'':' rolling')+'" style="width:70px;height:70px"><div class="face" data-face="1"><span class="pip"></span></div><div class="face" data-face="2"><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="3"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="4"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="5"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="6"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div></div>';
+    html+='<div class="die-3d'+(myRoll?'':' rolling')+'" style="width:70px;height:70px"><div class="face" data-face="1"><span class="pip"></span></div><div class="face" data-face="2"><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="3"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="4"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="5"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="6"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div></div>';
+    html+='</div>';
     for(var j=0;j<allPlayers.length;j++){
-      var pl=allPlayers[j];
-      var r=rolls[pl.game_id];
+      var pl=allPlayers[j],r=rolls[pl.game_id];
       html+='<div style="font-size:13px;color:'+(pl.game_id===onlineProfile.game_id?'#22d3ee':'#a78bfa')+';margin-bottom:4px">'+pl.name+': '+(r?'✅ '+r[0]+' + '+r[1]+' = '+(r[0]+r[1]):'⌛ Ждём...')+'</div>';
     }
-    if(!myRoll){
-      html+='<button class="btn-deal" onclick="onlineRollDice()" style="padding:14px 40px;margin-top:16px">🎲 Бросить</button>';
-    } else {
-      html+='<div style="font-size:13px;color:#a78bfa;margin-top:12px">⏳ Ждём других игроков...</div>';
-    }
+    if(!myRoll)html+='<button class="btn-deal" onclick="onlineRollDice()" style="padding:14px 40px;margin-top:16px">🎲 Бросить</button>';
+    else html+='<div style="font-size:13px;color:#a78bfa;margin-top:12px">⏳ Ждём других игроков...</div>';
   }
   html+='</div>';
   stage.innerHTML=html;
@@ -1779,11 +1641,6 @@ function renderOnlineDice(stage,gs){
 function onlineRollDice(){
   var d1=Math.floor(Math.random()*6)+1;
   var d2=Math.floor(Math.random()*6)+1;
-  // Показываем локальную анимацию
-  var stage=document.getElementById('onlineGameStage');
-  if(stage){
-    stage.innerHTML='<div style="text-align:center;padding:20px"><div class="dice-3d-stage" style="padding:20px;min-height:120px"><div class="die-3d rolling" style="width:70px;height:70px"><div class="face" data-face="1"><span class="pip"></span></div><div class="face" data-face="2"><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="3"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="4"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="5"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="6"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div></div><div class="die-3d rolling" style="width:70px;height:70px"><div class="face" data-face="1"><span class="pip"></span></div><div class="face" data-face="2"><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="3"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="4"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="5"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="6"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div></div></div></div>';
-  }
   sndWin();
   setTimeout(function(){
     fetch(API_URL+'/api/lobby/game/move',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lobby_id:currentLobby.lobby_id,guest_id:getGuestId(),move:{dice:[d1,d2]}})})
@@ -1794,7 +1651,7 @@ function onlineRollDice(){
 /* ---- BLACKJACK ONLINE ---- */
 function renderOnlineBlackjack(stage,gs){
   var allPlayers=[currentLobby.host].concat(currentLobby.guests||[]);
-  var myHand=gs.hands&&gs.hands[onlineProfile.game_id]||[];
+  var myHand=(gs.hands&&gs.hands[onlineProfile.game_id])||[];
   var dealer=gs.dealer||[];
   var isDone=gs.phase==='done';
   var isMyTurn=!isDone && gs.turn_order && gs.turn_order[gs.turn_idx]===onlineProfile.game_id;
@@ -1808,7 +1665,7 @@ function renderOnlineBlackjack(stage,gs){
 
   var html='<div style="text-align:center;padding:12px;max-width:400px;margin:0 auto">';
   html+='<div style="font-size:13px;color:#a78bfa;margin-bottom:6px">🔴 Дилер</div>';
-  html+='<div style="display:flex;gap:6px;justify-content:center;min-height:62px;margin-bottom:12px">';
+  html+='<div style="display:flex;gap:6px;justify-content:center;min-height:62px;margin-bottom:12px;flex-wrap:wrap">';
   for(var d=0;d<dealer.length;d++)html+=cardHtml(dealer[d]);
   html+='</div>';
   var myScore=0;
@@ -1816,11 +1673,11 @@ function renderOnlineBlackjack(stage,gs){
     myScore=myHand.reduce(function(s,c){
       if(c.r==='A')return s+11;
       if(c.r==='J'||c.r==='Q'||c.r==='K')return s+10;
-      return s+parseInt(c.r);
+      return s+(parseInt(c.r)||0);
     },0);
   }
   html+='<div style="font-size:13px;color:#22d3ee;margin-bottom:6px">🟢 Твоя рука ('+myScore+')</div>';
-  html+='<div style="display:flex;gap:6px;justify-content:center;min-height:62px;margin-bottom:12px">';
+  html+='<div style="display:flex;gap:6px;justify-content:center;min-height:62px;margin-bottom:12px;flex-wrap:wrap">';
   for(var m=0;m<myHand.length;m++)html+=cardHtml(myHand[m]);
   html+='</div>';
   if(isDone){
@@ -1831,17 +1688,18 @@ function renderOnlineBlackjack(stage,gs){
     for(var i=0;i<allPlayers.length;i++){
       var p=allPlayers[i];
       var pHand=gs.hands[p.game_id]||[];
-      var pScore=pHand.length?pHand.reduce(function(s,c){
-        if(typeof c==='string')return s;
-        if(c.r==='A')return s+11;
-        if(c.r==='J'||c.r==='Q'||c.r==='K')return s+10;
-        return s+parseInt(c.r);
-      },0):0;
+      var pScore=0;
+      if(pHand.length&&typeof pHand[0]!=='string'){
+        pScore=pHand.reduce(function(s,c){
+          if(c.r==='A')return s+11;
+          if(c.r==='J'||c.r==='Q'||c.r==='K')return s+10;
+          return s+(parseInt(c.r)||0);
+        },0);
+      }
       html+='<div style="font-size:12px;color:'+(winners.indexOf(p.game_id)>=0?'#22d3ee':'#a78bfa')+';margin-bottom:2px">'+p.name+': '+pScore+'</div>';
     }
     html+='<div style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap">'+(isHost?'<button class="btn-deal" onclick="onlineResetGame()" style="padding:12px 24px">🔄 Ещё раз</button>':'')+'<button class="btn-deal" onclick="backToLobby()" style="padding:12px 24px;background:linear-gradient(145deg,#00e5ff,#a855f7)">🏠 В лобби</button></div>';
-    if(iWin){sndBig();spawnConfetti(80);spawnCoins(10)}
-    else {sndLose()}
+    if(iWin){sndBig();spawnConfetti(80);spawnCoins(10)}else sndLose();
   } else {
     if(isMyTurn){
       html+='<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">';
@@ -1861,9 +1719,8 @@ function onlineBJMove(action){
   sndCard();
 }
 
-/* ---- PLINKO ONLINE (упрощённый) ---- */
+/* ---- PLINKO ONLINE ---- */
 function renderOnlinePlinko(stage,gs){
-  // В онлайне Plinko оставлю как "упрощённый" — оба бросают шарик, у кого множитель больше
   var drops=gs.drops||{};
   var allPlayers=[currentLobby.host].concat(currentLobby.guests||[]);
   var myDrop=drops[onlineProfile.game_id];
@@ -1881,38 +1738,27 @@ function renderOnlinePlinko(stage,gs){
   } else {
     html+='<div style="font-size:15px;font-weight:bold;color:#00e5ff;margin-bottom:12px">🎯 Запусти шарик!</div>';
     for(var j=0;j<allPlayers.length;j++){
-      var pl=allPlayers[j];
-      var d=drops[pl.game_id];
+      var pl=allPlayers[j],d=drops[pl.game_id];
       html+='<div style="font-size:13px;color:'+(pl.game_id===onlineProfile.game_id?'#22d3ee':'#a78bfa')+';margin-bottom:4px">'+pl.name+': '+(d?'×'+d.toFixed(2):'⌛')+'</div>';
     }
-    if(!myDrop){
-      html+='<button class="btn-deal" onclick="onlinePlinkoDrop()" style="padding:14px 40px;margin-top:16px">🎯 Запустить</button>';
-    } else {
-      html+='<div style="font-size:13px;color:#a78bfa;margin-top:12px">⏳ Ждём остальных...</div>';
-    }
+    if(!myDrop)html+='<button class="btn-deal" onclick="onlinePlinkoDrop()" style="padding:14px 40px;margin-top:16px">🎯 Запустить</button>';
+    else html+='<div style="font-size:13px;color:#a78bfa;margin-top:12px">⏳ Ждём остальных...</div>';
   }
   html+='</div>';
   stage.innerHTML=html;
 }
 function onlinePlinkoDrop(){
-  // Множители: случайный выбор по вероятностям
   var mults=[0.2,0.5,1,1.5,2,5,10,25];
   var weights=[30,25,15,12,8,5,3,2];
   var total=weights.reduce(function(a,b){return a+b},0);
   var r=Math.random()*total;
   var acc=0,chosen=1;
-  for(var i=0;i<mults.length;i++){
-    acc+=weights[i];
-    if(r<acc){chosen=mults[i];break}
-  }
+  for(var i=0;i<mults.length;i++){acc+=weights[i];if(r<acc){chosen=mults[i];break}}
   fetch(API_URL+'/api/lobby/game/move',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lobby_id:currentLobby.lobby_id,guest_id:getGuestId(),move:{multiplier:chosen}})})
     .then(function(r){return r.json()}).then(function(data){if(data.error==='not_registered'){autoReregister()}}).catch(function(){});
   sndBig();
 }
 
-/* ============================================================
-   RESET ONLINE GAME
-   ============================================================ */
 function onlineResetGame(){
   fetch(API_URL+'/api/lobby/game/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lobby_id:currentLobby.lobby_id,guest_id:getGuestId()})})
     .then(function(r){return r.json()}).then(function(data){if(data.error==='not_registered'){autoReregister()}}).catch(function(){});
@@ -1948,7 +1794,7 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
   function build(){
     var g=document.getElementById('grid');g.innerHTML='';
     for(var i=0;i<TOTAL;i++){
-      var c=document.createElement('div');c.className='lucky-cell';c.setAttribute('data-index',i);c.style.animationDelay=(i*0.03)+'s';c.textContent='?';
+      var c=document.createElement('div');c.className='lucky-cell';c.setAttribute('data-index',i);c.textContent='?';
       c.addEventListener('click',onClick);g.appendChild(c);
     }
   }
@@ -1962,8 +1808,7 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
       var prize=rewardForFind();
       setWallet(getWallet()+prize);updateWalletUI();
       sndBig();vibPattern([60,40,60,40,120]);flashScreen();spawnConfetti(80);spawnCoins(10);
-      if(MODE===1){w1++;saveW();document.getElementById('luckyTitle').textContent='🎉 Победа! +'+fmt(prize)}
-      else{if(turn===1){w1++;document.getElementById('luckyMsg').textContent='🔵 '+player1Name+' нашёл! +'+fmt(prize)}else{w2++;document.getElementById('luckyMsg').textContent='🟣 '+player2Name+' нашёл! +'+fmt(prize)}saveW()}
+      document.getElementById('luckyTitle').textContent='🎉 Победа! +'+fmt(prize);
       document.getElementById('luckyRestart').style.display='inline-block';
       return;
     }
@@ -2129,7 +1974,7 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
 })();
 
 /* ============================================================
-   CRASH — ФИКС: ракета падает где угодно
+   CRASH — рандомный краш
    ============================================================ */
 (function(){
   var bet=500,spinning=false,multiplier=1,rafId=null,crashAt=1,history=[],startTime=0;
@@ -2153,7 +1998,6 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
     spinning=true;crashed=false;multiplier=1.00;lockBet('crashBetBox',true);
     multEl.textContent='×1.00';multEl.className='crash-multiplier';
     rocket.classList.remove('crashed');
-    // Рандомный краш: ракета падает в любой момент
     var r=Math.random();
     if(r<0.55)crashAt=1.05+Math.random()*0.85;
     else if(r<0.85)crashAt=1.9+Math.random()*1.6;
@@ -2201,7 +2045,7 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
     document.getElementById('crashCashoutBtn').style.display='none';
     document.getElementById('crashMsg').textContent='💰 Забрал '+fmt(win);
     document.getElementById('crashMsg').className='msg-bar win';multEl.className='crash-multiplier win';
-    sndBig();vibPattern([60,40,60,40,120]);spawnConfetti(80);spawnCoins(10);flashScreen();
+    sndBig();spawnConfetti(80);spawnCoins(10);flashScreen();
     history.unshift(multiplier);if(history.length>8)history.pop();renderHistory();
     crashed=true;
     setTimeout(function(){crashed=false;lockBet('crashBetBox',false);document.getElementById('crashStartBtn').style.display='inline-block'},1200);
@@ -2448,8 +2292,7 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
    HORSE RACE (офлайн)
    ============================================================ */
 (function(){
-  var bet=500,playing=false,winnerIdx=-1;
-  var selectedIdx=-1;
+  var bet=500,playing=false,winnerIdx=-1,selectedIdx=-1;
   var horses=[
     {name:'Буран',mult:2.0,chance:0.30},
     {name:'Вихрь',mult:2.5,chance:0.25},
@@ -2463,8 +2306,7 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
     track.innerHTML='<div class="race-finish-line"></div>';
     for(var i=0;i<horses.length;i++){
       var lane=document.createElement('div');
-      lane.className='race-lane';
-      lane.setAttribute('data-lane',i);
+      lane.className='race-lane';lane.setAttribute('data-lane',i);
       lane.innerHTML='<span class="lane-num">🐎 '+horses[i].name+'</span>'+
         '<span class="lane-horse" id="horse'+i+'">🐎</span>'+
         '<span class="lane-mult">×'+horses[i].mult.toFixed(1)+'</span>';
@@ -2537,10 +2379,7 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
     requestAnimationFrame(frame);
   };
   document.getElementById('horseAgainBtn').onclick=function(){
-    for(var i=0;i<6;i++){
-      var el=document.getElementById('horse'+i);
-      if(el){el.style.left='0px';el.classList.remove('winner')}
-    }
+    for(var i=0;i<6;i++){var el=document.getElementById('horse'+i);if(el){el.style.left='0px';el.classList.remove('winner')}}
     document.querySelectorAll('.race-lane').forEach(function(l){l.classList.remove('won','leading');if(l.getAttribute('data-lane')!==String(selectedIdx)){l.style.borderColor='#3d2d70';l.style.boxShadow='none'}});
     document.getElementById('horseMsg').textContent='Выбери коня!';
     document.getElementById('horseMsg').style.color='#00e5ff';
@@ -2621,7 +2460,7 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
       drawWheel(ang);
       if(now-lastTick>90&&t<0.9){sndTick();lastTick=now}
       if(t<1)requestAnimationFrame(frame);
-      else{finish(wNum)}
+      else finish(wNum);
     }
     requestAnimationFrame(frame);
   };
@@ -2644,23 +2483,22 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
       document.getElementById('rouletteMsg').textContent=e+' '+n+' — '+label+' +'+fmt(win);
       document.getElementById('rouletteMsg').style.color='#22d3ee';
       if(win>=bet*10){sndBig();flashScreen();spawnConfetti(120)}else{sndWin();spawnConfetti(50)}
-      vibPattern([60,40,60,40,120]);
     }else{
       document.getElementById('rouletteMsg').textContent=e+' '+n+' — −'+fmt(bet);
-      document.getElementById('rouletteMsg').style.color='#ff5252';sndLose();vib(80);
+      document.getElementById('rouletteMsg').style.color='#ff5252';sndLose();
     }
   }
 })();
 
 /* ============================================================
-   PLINKO OFFLINE
+   PLINKO — с canvas, пегами и шариком
    ============================================================ */
 (function(){
   var canvas=document.getElementById('plinkoCanvas');
   if(!canvas)return;
   var ctx=canvas.getContext('2d');
   var bet=500,dropping=false;
-  var mults=[10,5,2,1.5,1,0.5,1,1.5,2,5,10]; // 11 столбцов
+  var mults=[10,5,2,1.5,1,0.5,1,1.5,2,5,10];
   var rows=12;
   var W=0,H=0;
   var pegs=[];
@@ -2670,11 +2508,13 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
   function resize(){
     var wrap=canvas.parentElement;
     W=wrap.clientWidth;
-    H=wrap.clientHeight-90;
+    H=wrap.clientHeight-100;
+    if(H<200)H=300;
     canvas.width=W;
     canvas.height=H;
     canvas.style.height=H+'px';
     buildPegs();
+    draw();
   }
   function buildPegs(){
     pegs=[];
@@ -2689,7 +2529,6 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
         pegs.push({x:x,y:y,r:3});
       }
     }
-    // Слоты внизу
     slots=[];
     var slotCount=mults.length;
     var slotW=(padRight-padLeft)/slotCount;
@@ -2717,11 +2556,10 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
     row.innerHTML=html;
   }
   renderSlots();
-  window.addEventListener('resize',function(){resize();draw();});
+  window.addEventListener('resize',function(){resize();});
 
   function draw(){
     ctx.clearRect(0,0,W,H);
-    // Пеги
     for(var i=0;i<pegs.length;i++){
       var p=pegs[i];
       var grad=ctx.createRadialGradient(p.x-1,p.y-1,0.5,p.x,p.y,p.r);
@@ -2729,18 +2567,17 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
       grad.addColorStop(1,'#1e3a6a');
       ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=grad;ctx.fill();
     }
-    // Слоты
     for(var s=0;s<slots.length;s++){
       var sl=slots[s];
       var c=sl.mult>=10?'#ffd700':sl.mult>=2?'#22d3ee':sl.mult>=1?'#a855f7':'#b71c1c';
       ctx.fillStyle=c;
       ctx.beginPath();
-      ctx.roundRect(sl.x-sl.w/2,sl.y-14,sl.w,22,6);
+      if(ctx.roundRect)ctx.roundRect(sl.x-sl.w/2,sl.y-14,sl.w,22,6);
+      else ctx.rect(sl.x-sl.w/2,sl.y-14,sl.w,22);
       ctx.fill();
       ctx.fillStyle='#fff';ctx.font='bold 11px Arial';ctx.textAlign='center';ctx.textBaseline='middle';
       ctx.fillText('×'+sl.mult,sl.x,sl.y-3);
     }
-    // Шарик
     if(ball){
       var grad2=ctx.createRadialGradient(ball.x-3,ball.y-3,1,ball.x,ball.y,ball.r);
       grad2.addColorStop(0,'#fff');grad2.addColorStop(1,'#ff2d95');
@@ -2757,9 +2594,7 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
     setWallet(getWallet()-bet);updateWalletUI();
     dropping=true;
     document.getElementById('plinkoMsg').textContent='🎯 Шарик падает...';
-    ball={x:W/2,y:40,r:8,vx:(Math.random()-0.5)*0.5,vy:1.5};
-    var rowHit=0;
-    // Определим итоговый слот заранее по физике (симуляция)
+    ball={x:W/2,y:40,r:8};
     var targetSlot=Math.floor(Math.random()*mults.length);
     var slotCenter=slots[targetSlot].x;
     var frameCount=0,maxFrames=180;
@@ -2767,7 +2602,6 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
     function step(){
       frameCount++;
       if(frameCount>maxFrames){
-        // Финалим результат
         var mult=slots[targetSlot].mult;
         var win=Math.floor(bet*mult);
         if(win>0){
@@ -2775,16 +2609,17 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
           document.getElementById('plinkoMsg').textContent='💰 ×'+mult+' → +'+fmt(win);
           document.getElementById('plinkoMsg').style.color='#22d3ee';
           if(mult>=2){sndBig();flashScreen();spawnConfetti(80);spawnCoins(10)}else{sndWin();spawnConfetti(30)}
+        }else{
+          document.getElementById('plinkoMsg').textContent='−'+fmt(bet)+' · ×'+mult;
+          document.getElementById('plinkoMsg').style.color='#ff5252';sndLose();
         }
         ball=null;dropping=false;
         draw();
         return;
       }
-      // Плавно тянем к целевому слоту
       ball.y+=2+Math.random()*1.5;
       ball.x+=(slotCenter-ball.x)*0.06;
       ball.x+=(Math.random()-0.5)*4;
-      // Отскоки от пегов визуально
       for(var i=0;i<pegs.length;i++){
         var p=pegs[i];
         var dx=ball.x-p.x,dy=ball.y-p.y;
@@ -2800,7 +2635,7 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
     step();
   };
 
-  setTimeout(function(){resize();draw()},100);
+  setTimeout(function(){resize();},100);
 })();
 
 /* ============================================================
