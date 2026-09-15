@@ -11,7 +11,7 @@ app = Flask(__name__, static_folder='.')
 sock = Sock(app)
 
 # ============================================================
-#  CORS
+#  CORS — разрешаем запросы с GitHub Pages
 # ============================================================
 @app.after_request
 def add_cors(resp):
@@ -21,12 +21,12 @@ def add_cors(resp):
     return resp
 
 # ============================================================
-#  ХРАНИЛИЩЕ
+#  ХРАНИЛИЩЕ В ПАМЯТИ
 # ============================================================
-players = {}
-guests = {}
-lobbies = {}
-lobby_sockets = {}
+players = {}          # {player_id: {'game_id', 'name', 'last_seen'}}
+guests = {}           # {guest_id: player_id}
+lobbies = {}          # {lobby_id: {...}}
+lobby_sockets = {}    # {lobby_id: [ws1, ws2, ...]}
 lock = threading.Lock()
 
 
@@ -109,6 +109,7 @@ def create_lobby():
         if not player:
             return jsonify({'error': 'not_registered'})
 
+        # Убираем старые лобби этого игрока
         for lid in list(lobbies.keys()):
             l = lobbies[lid]
             if l['host']['game_id'] == player['game_id'] or (l['guest'] and l['guest']['game_id'] == player['game_id']):
@@ -154,7 +155,7 @@ def join_lobby():
         if lobby['host']['game_id'] == player['game_id']:
             return jsonify({'error': 'own_lobby'})
 
-        if lobby['guest'] is not None:
+        if lobby['guest'] is not None and lobby['guest']['game_id'] != player['game_id']:
             return jsonify({'error': 'full'})
 
         lobby['guest'] = dict(player)
@@ -195,7 +196,9 @@ def leave_lobby():
 
         if lobby['guest'] and lobby['guest']['game_id'] == player['game_id']:
             lobby['guest'] = None
+            lobby['game_state'] = None
             notify_lobby(lobby_id, {'type': 'system', 'text': f"{player['name']} покинул лобби"})
+            notify_lobby(lobby_id, {'type': 'guest_left'})
         elif lobby['host']['game_id'] == player['game_id']:
             notify_lobby(lobby_id, {'type': 'system', 'text': 'Хост закрыл лобби'})
             del lobbies[lobby_id]
@@ -220,6 +223,44 @@ def lobby_state():
 # ============================================================
 #  ИГРОВАЯ ЛОГИКА
 # ============================================================
+def make_initial_state(game_type):
+    """Создаёт начальное игровое состояние"""
+    gs = {
+        'type': game_type,
+        'phase': 'betting',
+        'host_bet': 0,
+        'guest_bet': 0,
+        'host_ready': False,
+        'guest_ready': False,
+    }
+
+    if game_type == 'lucky20':
+        gs['win_idx'] = random.randint(0, 19)
+        gs['turn'] = 'host'
+        gs['opened'] = []
+        gs['turn_count'] = 0
+
+    elif game_type == 'horserace':
+        r = random.random()
+        acc = 0
+        weights = [0.30, 0.25, 0.20, 0.13, 0.08, 0.04]
+        winner = 0
+        for i, w in enumerate(weights):
+            acc += w
+            if r < acc:
+                winner = i
+                break
+        gs['winner_horse'] = winner
+        gs['host_pick'] = None
+        gs['guest_pick'] = None
+
+    elif game_type == 'dice':
+        gs['host_dice'] = None
+        gs['guest_dice'] = None
+
+    return gs
+
+
 @app.route('/api/lobby/game/init', methods=['POST', 'OPTIONS'])
 def game_init():
     if request.method == 'OPTIONS':
@@ -246,34 +287,7 @@ def game_init():
         if not lobby['guest']:
             return jsonify({'error': 'no_guest'})
 
-        game_state = {
-            'type': game_type,
-            'phase': 'betting',
-            'host_bet': 0,
-            'guest_bet': 0,
-            'host_ready': False,
-            'guest_ready': False,
-        }
-
-        if game_type == 'lucky20':
-            game_state['win_idx'] = random.randint(0, 19)
-            game_state['turn'] = 'host'
-            game_state['opened'] = []
-            game_state['tries_left'] = 3
-        elif game_type == 'horserace':
-            r = random.random()
-            acc = 0
-            weights = [0.30, 0.25, 0.20, 0.13, 0.08, 0.04]
-            winner = 0
-            for i, w in enumerate(weights):
-                acc += w
-                if r < acc:
-                    winner = i
-                    break
-            game_state['winner_horse'] = winner
-            game_state['host_pick'] = None
-            game_state['guest_pick'] = None
-
+        game_state = make_initial_state(game_type)
         lobby['game_state'] = game_state
 
         notify_lobby(lobby_id, {
@@ -360,6 +374,7 @@ def game_move():
 
         is_host = lobby['host']['game_id'] == player['game_id']
 
+        # ---- LUCKY 20: открытие ячейки, играем пока не найдут алмаз ----
         if gs['type'] == 'lucky20':
             current_turn = gs.get('turn')
             if (is_host and current_turn != 'host') or (not is_host and current_turn != 'guest'):
@@ -370,18 +385,16 @@ def game_move():
                 return jsonify({'error': 'bad_move'})
 
             gs['opened'].append(idx)
+            gs['turn_count'] = gs.get('turn_count', 0) + 1
 
             if idx == gs['win_idx']:
                 gs['phase'] = 'done'
                 gs['winner'] = 'host' if is_host else 'guest'
             else:
-                gs['tries_left'] -= 1
-                if gs['tries_left'] <= 0:
-                    gs['phase'] = 'done'
-                    gs['winner'] = 'guest' if is_host else 'host'
-                else:
-                    gs['turn'] = 'guest' if is_host else 'host'
+                # просто передаём ход сопернику — без ограничений
+                gs['turn'] = 'guest' if is_host else 'host'
 
+        # ---- HORSE RACE: выбор коня ----
         elif gs['type'] == 'horserace':
             horse = int(move.get('horse', -1))
             if horse < 0 or horse > 5:
@@ -404,6 +417,27 @@ def game_move():
                     gs['winner'] = 'both'
                 else:
                     gs['winner'] = 'none'
+
+        # ---- DICE: оба бросают, у кого сумма больше — тот выиграл ----
+        elif gs['type'] == 'dice':
+            dice = move.get('dice', [0, 0])
+            if not isinstance(dice, list) or len(dice) != 2:
+                return jsonify({'error': 'bad_move'})
+            if is_host:
+                gs['host_dice'] = dice
+            else:
+                gs['guest_dice'] = dice
+
+            if gs.get('host_dice') and gs.get('guest_dice'):
+                h = sum(gs['host_dice'])
+                g = sum(gs['guest_dice'])
+                gs['phase'] = 'done'
+                if h > g:
+                    gs['winner'] = 'host'
+                elif g > h:
+                    gs['winner'] = 'guest'
+                else:
+                    gs['winner'] = 'both'
 
         notify_lobby(lobby_id, {
             'type': 'game_update',
@@ -431,38 +465,27 @@ def game_reset():
             return jsonify({'error': 'no_game'})
 
         game_type = gs['type']
-        gs['phase'] = 'betting'
-        gs['host_bet'] = 0
-        gs['guest_bet'] = 0
-        gs['host_ready'] = False
-        gs['guest_ready'] = False
-        gs.pop('winner', None)
-
-        if game_type == 'lucky20':
-            gs['win_idx'] = random.randint(0, 19)
-            gs['turn'] = 'host'
-            gs['opened'] = []
-            gs['tries_left'] = 3
-        elif game_type == 'horserace':
-            r = random.random()
-            acc = 0
-            weights = [0.30, 0.25, 0.20, 0.13, 0.08, 0.04]
-            winner = 0
-            for i, w in enumerate(weights):
-                acc += w
-                if r < acc:
-                    winner = i
-                    break
-            gs['winner_horse'] = winner
-            gs['host_pick'] = None
-            gs['guest_pick'] = None
+        new_gs = make_initial_state(game_type)
+        lobby['game_state'] = new_gs
 
         notify_lobby(lobby_id, {
             'type': 'game_reset',
-            'game_state': gs
+            'game_state': new_gs
         })
 
-    return jsonify({'ok': True, 'game_state': gs})
+    return jsonify({'ok': True, 'game_state': new_gs})
+
+
+# ============================================================
+#  МАГАЗИН (заглушка — нужен токен бота для реальной оплаты)
+# ============================================================
+@app.route('/api/shop/buy', methods=['POST', 'OPTIONS'])
+def shop_buy():
+    if request.method == 'OPTIONS':
+        return '', 204
+    # Реальная оплата требует Bot Token и createInvoiceLink
+    # Пока возвращаем ошибку — фронт показывает "только в Telegram"
+    return jsonify({'error': 'payment_unavailable'})
 
 
 # ============================================================
@@ -519,6 +542,12 @@ def lobby_ws(ws, lobby_id):
                         plist.append({'id': lobby['guest']['game_id'], 'name': lobby['guest']['name']})
                     notify_lobby(lobby_id, {'type': 'players', 'players': plist})
 
+                    if lobby.get('game_state'):
+                        notify_lobby(lobby_id, {
+                            'type': 'game_update',
+                            'game_state': lobby['game_state']
+                        })
+
             elif action == 'chat':
                 notify_lobby(lobby_id, {
                     'type': 'chat',
@@ -550,6 +579,9 @@ def health():
     return jsonify({'ok': True, 'players': len(players), 'lobbies': len(lobbies)})
 
 
+# ============================================================
+#  ЗАПУСК
+# ============================================================
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
