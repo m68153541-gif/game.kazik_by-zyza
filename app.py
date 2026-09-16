@@ -33,8 +33,9 @@ BOT_TOKEN = os.environ.get('BOT_TOKEN', '')
 # ============================================================
 #  ХРАНИЛИЩА
 # ============================================================
-players = {}
-guests = {}
+players = {}              # {game_id: {...}}
+guests = {}               # {guest_id: game_id}
+tg_users = {}             # {telegram_id: game_id} — по Telegram ID
 lobbies = {}
 lobby_sockets = {}
 player_sockets = {}
@@ -56,11 +57,17 @@ def now():
     return int(time.time())
 
 
-def find_player(guest_id):
-    pid = guests.get(guest_id)
-    if not pid:
-        return None
-    return players.get(pid)
+def find_player(guest_id=None, telegram_id=None):
+    """Ищет игрока по guest_id или telegram_id."""
+    if telegram_id and str(telegram_id) in tg_users:
+        pid = tg_users[str(telegram_id)]
+        if pid in players:
+            return players[pid]
+    if guest_id and guest_id in guests:
+        pid = guests[guest_id]
+        if pid in players:
+            return players[pid]
+    return None
 
 
 def _accrue_bonus(player):
@@ -87,7 +94,6 @@ def _pub(player):
 
 
 def notify_player(player_id, message):
-    """Пушит сообщение всем сокетам игрока (мгновенная доставка)."""
     conns = player_sockets.get(player_id, [])
     dead = []
     for ws in conns:
@@ -103,8 +109,6 @@ def notify_player(player_id, message):
 
 
 def notify_lobby(lobby_id, message):
-    """Рассылка по lobby_sockets + дублирование всем игрокам лобби."""
-    # 1) Lobby WS
     conns = lobby_sockets.get(lobby_id, [])
     dead = []
     for ws in conns:
@@ -117,7 +121,6 @@ def notify_lobby(lobby_id, message):
             conns.remove(ws)
         except Exception:
             pass
-    # 2) Дублируем через player_sockets
     lobby = lobbies.get(lobby_id)
     if lobby:
         members = [lobby['host']] + (lobby.get('guests') or [])
@@ -164,7 +167,12 @@ def static_files(path):
 
 @app.route('/health')
 def health():
-    return jsonify({'ok': True, 'players': len(players), 'lobbies': len(lobbies)})
+    return jsonify({
+        'ok': True,
+        'players': len(players),
+        'lobbies': len(lobbies),
+        'tg_users': len(tg_users)
+    })
 
 
 @app.route('/api/global/status')
@@ -176,33 +184,80 @@ def global_status():
 
 
 # ============================================================
-#  РЕГИСТРАЦИЯ
+#  АВТО-РЕГИСТРАЦИЯ
 # ============================================================
+def parse_init_data(init_data):
+    """Парсит initData от Telegram, возвращает dict с user_id, first_name, last_name, username."""
+    if not init_data:
+        return None
+    try:
+        import urllib.parse
+        parsed = urllib.parse.parse_qs(init_data)
+        user_json = parsed.get('user', [None])[0]
+        if not user_json:
+            return None
+        user = json.loads(user_json)
+        return {
+            'telegram_id': str(user.get('id', '')),
+            'first_name': user.get('first_name', ''),
+            'last_name': user.get('last_name', ''),
+            'username': user.get('username', ''),
+            'language_code': user.get('language_code', 'ru')
+        }
+    except Exception as e:
+        print('parse_init_data error:', e)
+        return None
+
+
 @app.route('/api/register', methods=['POST', 'OPTIONS'])
 def register():
     if request.method == 'OPTIONS':
         return '', 204
+
     data = request.get_json() or {}
     name = (data.get('name') or '').strip()[:20]
     guest_id = data.get('guest_id')
     region = data.get('region')
+    init_data = data.get('initData', '')
+
+    # Парсим initData чтобы получить Telegram ID и правильное имя
+    tg_info = parse_init_data(init_data)
+    telegram_id = tg_info['telegram_id'] if tg_info else None
+
+    # Если имя не передали — берём из Telegram
+    if len(name) < 2 and tg_info:
+        tg_name = (tg_info['first_name'] + ' ' + tg_info['last_name']).strip()
+        name = tg_name[:20] or 'Игрок'
     if len(name) < 2:
-        return jsonify({'error': 'Имя минимум 2 символа'})
+        name = 'Игрок'
+
     with lock:
-        player = find_player(guest_id) if guest_id else None
+        # Ищем игрока по telegram_id или guest_id
+        player = find_player(guest_id=guest_id, telegram_id=telegram_id)
+
         if player:
+            # Обновляем данные
             player['name'] = name
             player['last_seen'] = now()
             if region:
                 player['region'] = region
+            if telegram_id:
+                player['telegram_id'] = telegram_id
+                tg_users[telegram_id] = player['game_id']
+            if guest_id and guest_id not in guests:
+                guests[guest_id] = player['game_id']
             _accrue_bonus(player)
-            return jsonify({'player': _pub(player), 'guest_id': guest_id})
+            return jsonify({'player': _pub(player), 'guest_id': guest_id or player['game_id']})
+
+        # Создаём нового игрока
         pid = gen_id(6)
         while pid in players:
             pid = gen_id(6)
+
         player = {
             'game_id': pid,
             'name': name,
+            'telegram_id': telegram_id,
             'last_seen': now(),
             'balance': 5000.0,
             'pending_bonus': 0.0,
@@ -214,7 +269,10 @@ def register():
         players[pid] = player
         if guest_id:
             guests[guest_id] = pid
-    return jsonify({'player': _pub(player), 'guest_id': guest_id})
+        if telegram_id:
+            tg_users[telegram_id] = pid
+
+    return jsonify({'player': _pub(player), 'guest_id': guest_id or pid})
 
 
 # ============================================================
@@ -226,7 +284,7 @@ def set_region():
         return '', 204
     data = request.get_json() or {}
     with lock:
-        player = find_player(data.get('guest_id'))
+        player = find_player(guest_id=data.get('guest_id'))
         if not player:
             return jsonify({'error': 'not_registered'})
         player['region'] = (data.get('region') or 'Не указан').strip()[:30]
@@ -242,7 +300,7 @@ def friends_search():
         return '', 204
     data = request.get_json() or {}
     with lock:
-        player = find_player(data.get('guest_id'))
+        player = find_player(guest_id=data.get('guest_id'))
         if not player:
             return jsonify({'error': 'not_registered'})
         query = (data.get('query') or '').strip()
@@ -271,7 +329,7 @@ def friends_request():
         return '', 204
     data = request.get_json() or {}
     with lock:
-        player = find_player(data.get('guest_id'))
+        player = find_player(guest_id=data.get('guest_id'))
         if not player:
             return jsonify({'error': 'not_registered'})
         target_id = data.get('target_id')
@@ -304,7 +362,7 @@ def friends_accept():
         return '', 204
     data = request.get_json() or {}
     with lock:
-        player = find_player(data.get('guest_id'))
+        player = find_player(guest_id=data.get('guest_id'))
         if not player:
             return jsonify({'error': 'not_registered'})
         from_id = data.get('from_id')
@@ -327,7 +385,7 @@ def friends_decline():
         return '', 204
     data = request.get_json() or {}
     with lock:
-        player = find_player(data.get('guest_id'))
+        player = find_player(guest_id=data.get('guest_id'))
         if not player:
             return jsonify({'error': 'not_registered'})
         from_id = data.get('from_id')
@@ -342,7 +400,7 @@ def friends_list():
         return '', 204
     data = request.get_json() or {}
     with lock:
-        player = find_player(data.get('guest_id'))
+        player = find_player(guest_id=data.get('guest_id'))
         if not player:
             return jsonify({'error': 'not_registered'})
         friends = []
@@ -400,6 +458,7 @@ def admin_players():
             result.append({
                 'game_id': p['game_id'],
                 'name': p['name'],
+                'telegram_id': p.get('telegram_id', ''),
                 'balance': p.get('balance', 0),
                 'pending_bonus': round(p.get('pending_bonus', 0), 2),
                 'region': p.get('region', 'Не указан'),
@@ -470,7 +529,7 @@ def admin_selfbonus():
     guest_id = data.get('guest_id')
     amount = float(data.get('amount', 1000))
     with lock:
-        p = find_player(guest_id)
+        p = find_player(guest_id=guest_id)
         if not p:
             return jsonify({'error': 'player_not_found'})
         p['balance'] = max(0.0, round(p.get('balance', 0) + amount, 2))
@@ -524,7 +583,7 @@ def telegram_webhook():
             coins = int(parts[1])
             guest_id = parts[3]
             with lock:
-                player = find_player(guest_id)
+                player = find_player(guest_id=guest_id)
                 if player:
                     player['balance'] = round(player.get('balance', 0) + coins, 2)
                     notify_player(player['game_id'], {'type': 'admin_balance_update', 'balance': player['balance']})
@@ -542,7 +601,7 @@ def bonus_state():
         return '', 204
     data = request.get_json() or {}
     with lock:
-        player = find_player(data.get('guest_id'))
+        player = find_player(guest_id=data.get('guest_id'))
         if not player:
             return jsonify({'error': 'not_registered'})
         _accrue_bonus(player)
@@ -558,7 +617,7 @@ def bonus_claim():
         return '', 204
     data = request.get_json() or {}
     with lock:
-        player = find_player(data.get('guest_id'))
+        player = find_player(guest_id=data.get('guest_id'))
         if not player:
             return jsonify({'error': 'not_registered'})
         _accrue_bonus(player)
@@ -580,7 +639,7 @@ def create_lobby():
         return '', 204
     data = request.get_json() or {}
     with lock:
-        player = find_player(data.get('guest_id'))
+        player = find_player(guest_id=data.get('guest_id'))
         if not player:
             return jsonify({'error': 'not_registered'})
         for lid in list(lobbies.keys()):
@@ -610,7 +669,7 @@ def join_lobby():
     lobby_id = (request.args.get('lobby_id') or '').strip()
     data = request.get_json() or {}
     with lock:
-        player = find_player(data.get('guest_id'))
+        player = find_player(guest_id=data.get('guest_id'))
         if not player:
             return jsonify({'error': 'not_registered'})
         if lobby_id not in lobbies:
@@ -637,7 +696,7 @@ def leave_lobby():
     lobby_id = (request.args.get('lobby_id') or '').strip()
     data = request.get_json() or {}
     with lock:
-        player = find_player(data.get('guest_id'))
+        player = find_player(guest_id=data.get('guest_id'))
         if not player or lobby_id not in lobbies:
             return jsonify({'ok': True})
         lobby = lobbies[lobby_id]
@@ -669,7 +728,6 @@ def lobby_state():
     })
 
 
-# НОВОЕ: polling endpoint — мгновенная синхронизация
 @app.route('/api/lobby/poll')
 def lobby_poll():
     lobby_id = (request.args.get('lobby_id') or '').strip()
@@ -750,7 +808,7 @@ def game_init():
     if lobby_id not in lobbies:
         return jsonify({'error': 'not_found'})
     with lock:
-        player = find_player(guest_id)
+        player = find_player(guest_id=guest_id)
         if not player:
             return jsonify({'error': 'not_registered'})
         lobby = lobbies[lobby_id]
@@ -793,7 +851,7 @@ def game_move():
     if lobby_id not in lobbies:
         return jsonify({'error': 'not_found'})
     with lock:
-        player = find_player(guest_id)
+        player = find_player(guest_id=guest_id)
         if not player:
             return jsonify({'error': 'not_registered'})
         lobby = lobbies[lobby_id]
