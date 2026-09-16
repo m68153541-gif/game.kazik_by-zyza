@@ -137,7 +137,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 .btn-deal{background:linear-gradient(145deg,#ff2d95,#a855f7);color:#fff;padding:15px 40px;font-size:16px;border-radius:30px;border:none;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;box-shadow:0 0 20px rgba(255,45,149,.4)}
 .btn-deal:active{transform:scale(.95)}
 .btn-deal:disabled{background:#444;color:#888;cursor:not-allowed}
-.modal-overlay{position:fixed;inset:0;background:rgba(5,8,18,.85);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay{position:fixed;inset:0;background:rgba(5,8,18,.85);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.show{display:flex}
 .modal{width:100%;max-width:340px;background:linear-gradient(145deg,#241a48,#1a1035);border:2px solid #00e5ff;border-radius:22px;padding:24px 22px;text-align:center}
 .modal h3{font-size:18px;color:#00e5ff;margin-bottom:6px}
@@ -301,8 +301,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 /* PLINKO */
 .plinko-stage{flex:1;display:flex;flex-direction:column;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 0%,#1a0e2e 0%,#0a0e1a 70%,#05080f 100%);min-height:0}
 #plinkoCanvas{flex:1;width:100%;display:block;touch-action:none;min-height:0}
-.plinko-mult-row{display:flex;justify-content:center;gap:4px;padding:0 8px 6px;overflow-x:auto;flex-wrap:nowrap}
-.plinko-mult-cell{padding:6px 8px;border-radius:10px;font-size:11px;font-weight:bold;text-align:center;min-width:38px;color:#fff;background:linear-gradient(145deg,#ff2d95,#a855f7)}
+.plinko-mult-row{display:flex;justify-content:center;gap:3px;padding:0 4px 6px;overflow-x:auto;flex-wrap:nowrap}
+.plinko-mult-cell{padding:5px 6px;border-radius:8px;font-size:10px;font-weight:bold;text-align:center;min-width:34px;color:#fff;background:linear-gradient(145deg,#ff2d95,#a855f7)}
 .plinko-mult-cell.low{background:linear-gradient(145deg,#7f0000,#b71c1c)}
 .plinko-mult-cell.neg{background:linear-gradient(145deg,#4a0000,#8b0000)}
 .plinko-mult-cell.mid{background:linear-gradient(145deg,#a855f7,#6366f1)}
@@ -448,15 +448,17 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
   <div class="tab-content active" id="tabGames">
     <div class="games-grid">
       <div class="game-tile" data-game="plinko"><div class="g-badge">НОВИНКА</div><div class="g-ico">🎯</div><div class="g-name">Plinko</div><div class="g-desc">Падающий шарик</div></div>
-      <div class="game-tile disabled" data-game="crash"><div class="g-badge">SOON</div><div class="g-ico">🚀</div><div class="g-name">Crash</div><div class="g-desc">Будет удалено</div></div>
+      <div class="game-tile disabled" data-game="tower"><div class="g-badge">СКОРО</div><div class="g-ico">🏗️</div><div class="g-name">Tower</div><div class="g-desc">Строй башню</div></div>
       <div class="game-tile" data-game="bj"><div class="g-ico">🃏</div><div class="g-name">Blackjack</div><div class="g-desc">21 и победа</div></div>
       <div class="game-tile" data-game="dice"><div class="g-ico">🎲</div><div class="g-name">Dice</div><div class="g-desc">Больше / меньше</div></div>
-      <div class="game-tile" data-game="mines"><div class="g-ico">💣</div><div class="g-name">Mines</div><div class="g-desc">5×5 · где мины?</div></div>
+      <div class="game-tile disabled" data-game="mines"><div class="g-badge">СКОРО</div><div class="g-ico">💣</div><div class="g-name">Mines</div><div class="g-desc">5×5 · где мины?</div></div>
       <div class="game-tile" data-game="slots"><div class="g-ico">🎰</div><div class="g-name">Slots</div><div class="g-desc">Лови 3 в ряд</div></div>
       <div class="game-tile" data-game="roulette"><div class="g-ico">🎡</div><div class="g-name">Roulette</div><div class="g-desc">Красное / Чёрное</div></div>
       <div class="game-tile" data-game="coinflip"><div class="g-ico">🪙</div><div class="g-name">Coin Flip</div><div class="g-desc">Орёл или решка</div></div>
       <div class="game-tile" data-game="horserace"><div class="g-ico">🐎</div><div class="g-name">Horse Race</div><div class="g-desc">Скачки</div></div>
       <div class="game-tile" data-game="lucky"><div class="g-ico">💎</div><div class="g-name">Lucky 20</div><div class="g-desc">Найди алмаз</div></div>
+      <div class="game-tile disabled" data-game="keno"><div class="g-badge">СКОРО</div><div class="g-ico">🎱</div><div class="g-name">Keno</div><div class="g-desc">Угадай числа</div></div>
+      <div class="game-tile disabled" data-game="wheel"><div class="g-badge">СКОРО</div><div class="g-ico">🎡</div><div class="g-name">Wheel</div><div class="g-desc">Колесо фортуны</div></div>
     </div>
   </div>
   <div class="tab-content" id="tabOnline">
@@ -474,7 +476,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
     <button class="list-btn" id="openFriendsBtn"><div class="lb-ico">👥</div><div class="lb-info"><div class="lb-n">Друзья</div><div class="lb-d">Поиск игроков и заявки</div></div><div class="lb-arrow">›</div></button>
     <button class="list-btn" id="openSettingsBtn"><div class="lb-ico">⚙️</div><div class="lb-info"><div class="lb-n">Настройки</div><div class="lb-d">Звук, вибрация, имена, регион</div></div><div class="lb-arrow">›</div></button>
     <button class="list-btn" id="openAboutBtn"><div class="lb-ico">ℹ️</div><div class="lb-info"><div class="lb-n">О игре</div><div class="lb-d">Что это и как играть</div></div><div class="lb-arrow">›</div></button>
-    <div style="text-align:center;color:#555;font-size:11px;margin-top:16px;">версия 1.5</div>
+    <div style="text-align:center;color:#555;font-size:11px;margin-top:16px;">версия 1.6</div>
   </div>
 </div>
 
@@ -531,7 +533,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 <div class="screen game-screen" id="aboutScreen">
   <div class="top-bar"><button class="back-btn" id="aboutBack">◀ Назад</button><div class="game-title">ℹ️ О игре</div><div style="width:60px"></div></div>
   <div class="scroll-content">
-    <div class="about-card"><div class="about-icon">🎰</div><h2>КАЗИК</h2><p class="about-version">версия 1.5 · by zyza</p><p class="about-love">💖 с любовью от Зюзи 💖</p></div>
+    <div class="about-card"><div class="about-icon">🎰</div><h2>КАЗИК</h2><p class="about-version">версия 1.6 · by zyza</p><p class="about-love">💖 с любовью от Зюзи 💖</p></div>
     <div class="about-block"><h3>🎯 Что это?</h3><p>Мини-казино внутри Telegram. Играй в мини-игры, соревнуйся с друзьями.</p></div>
     <div class="about-block"><h3>💰 Как играть?</h3><p>Один общий баланс. Делай ставки — выигрывай монеты.</p></div>
     <div class="about-block"><h3>🌐 Онлайн</h3><p>Создавай лобби, приглашай друзей по 6-значному ID, играй вместе!</p></div>
@@ -852,7 +854,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
     </div>
   </div>
 </div>
-  <script>
+<script>
 /* ============================================================
    УТИЛИТЫ
    ============================================================ */
@@ -1048,14 +1050,17 @@ document.querySelectorAll('.tab-btn').forEach(function(btn){
   });
 });
 document.getElementById('bugOk').addEventListener('click',function(){document.getElementById('bugModal').classList.remove('show')});
+
+// Обработчик плиток игр — Crash удалён, Mines/Speed/Tower/Keno/Wheel — disabled
 document.querySelectorAll('.game-tile').forEach(function(b){
   b.addEventListener('click',function(){
     var g=this.dataset.game;
     if(this.classList.contains('disabled')){
-      document.getElementById('bugTitle').textContent='🚀 Crash';
-      document.getElementById('bugText').innerHTML='Игра будет удалена с сервера в течение <b style="color:#00e5ff">24 часов</b> полностью.';
+      var names={tower:'🏗️ Tower',keno:'🎱 Keno',wheel:'🎡 Wheel',mines:'💣 Mines'};
+      document.getElementById('bugTitle').textContent=names[g]||'🎮 Скоро';
+      document.getElementById('bugText').innerHTML='Эта игра появится в ближайшем обновлении!<br><br><b style="color:#00e5ff">Следи за новостями 🚀</b>';
       document.getElementById('bugModal').classList.add('show');
-      sndLose();
+      sndClick();
       return;
     }
     if(g==='lucky')showScreen('luckyModeScreen');
@@ -1170,10 +1175,14 @@ function checkGlobalStatus(){
 }
 setInterval(checkGlobalStatus,60000);
 
-document.getElementById('techBreakAdminBtn').addEventListener('click',function(){
+// Кнопка "Войти" в тех-перерыве — теперь работает (z-index модалки 9999 > 9998)
+document.getElementById('techBreakAdminBtn').addEventListener('click',function(e){
+  e.stopPropagation();
+  sndClick();
   document.getElementById('adminLoginModal').classList.add('show');
   document.getElementById('adminLoginInput').value='';
   document.getElementById('adminPassInput').value='';
+  setTimeout(function(){try{document.getElementById('adminLoginInput').focus()}catch(err){}},300);
 });
 document.getElementById('techBreakCloseBtn').addEventListener('click',function(){
   document.getElementById('techBreakOverlay').classList.remove('show');
@@ -1226,7 +1235,7 @@ function connectPlayerWs(){
           if(document.getElementById('bonusScreen').classList.contains('active'))
             document.getElementById('bonusAmount').textContent=(msg.pending_bonus||0).toFixed(2);
         }
-        // ===== ИГРОВЫЕ СОБЫТИЯ ЧЕРЕЗ PLAYER WS =====
+        // ИГРОВЫЕ СОБЫТИЯ
         if(msg.type==='game_init'||msg.type==='game_start_real'||msg.type==='game_update'||msg.type==='game_reset'){
           if(currentLobby && msg.game_state){
             handleOnlineGameState(msg.game_state);
@@ -1551,9 +1560,56 @@ document.getElementById('adminEditAdd').addEventListener('click',function(){
 });
 
 /* ============================================================
-   ЛОББИ
+   ЛОББИ + БЫСТРЫЙ POLLING
    ============================================================ */
 var currentLobby=null,lobbySocket=null,isHost=false,onlineGameState=null;
+var lobbyPollInt=null;
+
+// Форсированный poll — тянем состояние с сервера немедленно
+function forcePoll(){
+  if(!currentLobby)return;
+  fetch(API_URL+'/api/lobby/poll?lobby_id='+currentLobby.lobby_id)
+  .then(function(r){return r.json()})
+  .then(function(data){
+    if(data.error)return;
+    if(data.players&&data.players.length){
+      currentLobby.host=data.players[0];
+      currentLobby.guests=data.players.slice(1);
+      if(document.getElementById('lobbyScreen').classList.contains('active')){
+        renderLobbyPlayers();renderLobbyActions();
+      }
+    }
+    if(data.game_state&&data.game_state.phase){
+      var gs=data.game_state;
+      var needUpdate=true;
+      if(onlineGameState){
+        // Оптимизация: если ничего не изменилось — не перерисовываем
+        if(onlineGameState.phase===gs.phase
+          &&onlineGameState.turn_idx===gs.turn_idx
+          &&onlineGameState.turn===gs.turn
+          &&(gs.type!=='lucky20'||(onlineGameState.opened||[]).length===(gs.opened||[]).length)
+          &&(gs.type!=='dice'||Object.keys(onlineGameState.rolls||{}).length===Object.keys(gs.rolls||{}).length)
+          &&(gs.type!=='horserace'||Object.keys(onlineGameState.picks||{}).length===Object.keys(gs.picks||{}).length)
+        ){
+          needUpdate=false;
+        }
+      }
+      if(needUpdate)handleOnlineGameState(gs);
+    }
+  }).catch(function(){});
+}
+
+function startLobbyPoll(){
+  if(lobbyPollInt)clearInterval(lobbyPollInt);
+  lobbyPollInt=setInterval(function(){
+    if(!currentLobby)return;
+    var inLobby=document.getElementById('lobbyScreen').classList.contains('active');
+    var inGame=document.getElementById('onlineGameScreen').classList.contains('active');
+    if(!inLobby&&!inGame)return;
+    forcePoll();
+  },700);
+}
+function stopLobbyPoll(){if(lobbyPollInt){clearInterval(lobbyPollInt);lobbyPollInt=null}}
 
 document.getElementById('createLobbyBtn').addEventListener('click',function(){
   if(!onlineProfile){showToast('Сначала зарегистрируйся');return}
@@ -1596,6 +1652,7 @@ function openLobbyScreen(){
   showScreen('lobbyScreen');
   connectPlayerWs();
   connectLobbyWs();
+  startLobbyPoll();
 }
 function renderLobbyPlayers(){
   var html='';
@@ -1670,6 +1727,7 @@ document.getElementById('chatInput').addEventListener('keydown',function(e){if(e
 function sendChat(){var inp=document.getElementById('chatInput'),text=inp.value.trim();if(!text)return;if(lobbySocket&&lobbySocket.readyState===WebSocket.OPEN){lobbySocket.send(JSON.stringify({action:'chat',text:text}));inp.value=''}else showToast('Чат недоступен')}
 document.getElementById('lobbyLeaveBtn').addEventListener('click',function(){
   if(onlineGameState&&onlineGameState.phase==='player_turns'){showToast('Игра в процессе');return}
+  stopLobbyPoll();
   if(lobbySocket){try{lobbySocket.close()}catch(e){}lobbySocket=null}
   if(currentLobby)fetch(API_URL+'/api/lobby/leave?lobby_id='+currentLobby.lobby_id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getInitData(),guest_id:getGuestId()})}).catch(function(){});
   currentLobby=null;onlineGameState=null;showScreen('onlineMenuScreen');
@@ -1684,6 +1742,10 @@ function startOnlineGame(gameType){
       showToast('Ошибка: '+data.error);return;
     }
     sndBig();
+    // МГНОВЕННЫЙ форс-poll + страховка через 300мс и 800мс
+    forcePoll();
+    setTimeout(forcePoll,300);
+    setTimeout(forcePoll,800);
   }).catch(function(){showToast('Сервер не отвечает')});
 }
 
@@ -1695,6 +1757,7 @@ function handleOnlineGameState(gs){
   onlineGameState=gs;
   var title=document.getElementById('onlineGameTitle'),stage=document.getElementById('onlineGameStage');
   if(!document.getElementById('onlineGameScreen').classList.contains('active'))showScreen('onlineGameScreen');
+  startLobbyPoll();
   if(gs.type==='lucky20'){title.textContent='💎 Lucky 20';renderOnlineLucky20(stage,gs)}
   else if(gs.type==='horserace'){title.textContent='🐎 Скачки';renderOnlineHorseRace(stage,gs)}
   else if(gs.type==='dice'){title.textContent='🎲 Кости';renderOnlineDice(stage,gs)}
@@ -1768,7 +1831,6 @@ function renderOnlineHorseRace(stage,gs){
       html+='<div style="margin:4px 0">'+p.name+': '+(picked?'✅ Выбрал '+horses[gs.picks[p.game_id]]:'⌛ Выбирает...')+'</div>';
     }
     html+='</div>';
-    
     if(myPick===undefined||myPick===null){
       html+='<div style="display:flex;flex-direction:column;gap:8px;max-width:340px;margin:0 auto">';
       for(var j=0;j<6;j++){
@@ -1788,7 +1850,6 @@ function renderOnlineHorseRace(stage,gs){
     }
     html+='</div>';
     stage.innerHTML=html;
-    
     if(myPick===undefined||myPick===null){
       stage.querySelectorAll('[data-horse]').forEach(function(el){
         el.addEventListener('click',function(){
@@ -1872,12 +1933,10 @@ function renderOnlineBlackjack(stage,gs){
   var allPlayers=[currentLobby.host].concat(currentLobby.guests||[]);
   var numPlayers=allPlayers.length;
   var withDealer=(numPlayers===2);
-  
   var myHand=(gs.hands&&gs.hands[onlineProfile.game_id])||[];
   var dealer=gs.dealer||[];
   var isDone=gs.phase==='done';
   var isMyTurn=!isDone&&gs.turn_order&&gs.turn_order[gs.turn_idx]===onlineProfile.game_id;
-  
   function cardHtml(c,hidden){
     if(hidden||c==='?')return '<div class="card back" style="width:44px;height:62px"></div>';
     if(typeof c==='string')return '<div class="card">'+c+'</div>';
@@ -1891,9 +1950,7 @@ function renderOnlineBlackjack(stage,gs){
     while(s>21&&a>0){s-=10;a--}
     return s;
   }
-  
   var html='<div style="text-align:center;padding:12px;max-width:480px;margin:0 auto">';
-  
   if(withDealer){
     html+='<div style="font-size:13px;color:#a78bfa;margin-bottom:6px">🔴 Дилер</div>';
     html+='<div style="display:flex;gap:6px;justify-content:center;min-height:62px;margin-bottom:12px;flex-wrap:wrap">';
@@ -1903,7 +1960,6 @@ function renderOnlineBlackjack(stage,gs){
     }
     html+='</div>';
   }
-  
   for(var i=0;i<allPlayers.length;i++){
     var p=allPlayers[i];
     var hand=gs.hands[p.game_id]||[];
@@ -1922,7 +1978,6 @@ function renderOnlineBlackjack(stage,gs){
     if(gs.state&&gs.state[p.game_id]==='bust')html+='<div style="color:#ff5252;font-size:12px;margin-top:4px">💥 Перебор</div>';
     html+='</div>';
   }
-  
   if(isDone){
     var winners=gs.winners||[],iWin=winners.indexOf(onlineProfile.game_id)>=0;
     html+='<div style="font-size:16px;font-weight:bold;color:'+(iWin?'#22d3ee':'#ff5252')+';margin:12px 0">'+(iWin?'🏆 Ты победил!':'😔 Ты проиграл')+'</div>';
@@ -1990,6 +2045,7 @@ function backToLobby(){onlineGameState=null;if(currentLobby){showScreen('lobbySc
 document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(){
   if(onlineGameState&&onlineGameState.phase==='player_turns'){showToast('Игра в процессе');return}
   if(!confirm('Выйти из игры?'))return;
+  stopLobbyPoll();
   if(lobbySocket){try{lobbySocket.close()}catch(e){}lobbySocket=null}
   if(currentLobby)fetch(API_URL+'/api/lobby/leave?lobby_id='+currentLobby.lobby_id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getInitData(),guest_id:getGuestId()})}).catch(function(){});
   currentLobby=null;onlineGameState=null;showScreen('onlineMenuScreen');
@@ -2160,13 +2216,13 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
 })();
 
 /* ============================================================
-   MINES
+   MINES (код есть, но игра закрыта через disabled в HTML)
    ============================================================ */
 (function(){
   var bombsCount=3,bet=500,playing=false,revealed=0,multiplier=1.00,TOTAL=25,bombs=[],cashoutLocked=false;
   function newGame(){bombs=[];for(var i=0;i<TOTAL;i++)bombs.push(false);var p=0;while(p<bombsCount){var idx=Math.floor(Math.random()*TOTAL);if(!bombs[idx]){bombs[idx]=true;p++}}}
-  function buildGrid(){var g=document.getElementById('minesGrid');g.innerHTML='';for(var i=0;i<TOTAL;i++){var c=document.createElement('div');c.className='mine-cell';c.setAttribute('data-index',i);c.textContent='❓';c.addEventListener('click',onClick);g.appendChild(c)}}
-  function updateInfo(){document.getElementById('minesMultiplier').textContent=multiplier.toFixed(2);document.getElementById('minesPotential').textContent=fmt(Math.floor(bet*multiplier));document.getElementById('minesBombsCount').textContent=bombsCount;document.getElementById('minesBal').textContent=fmt(getWallet())}
+  function buildGrid(){var g=document.getElementById('minesGrid');if(!g)return;g.innerHTML='';for(var i=0;i<TOTAL;i++){var c=document.createElement('div');c.className='mine-cell';c.setAttribute('data-index',i);c.textContent='❓';c.addEventListener('click',onClick);g.appendChild(c)}}
+  function updateInfo(){var e;e=document.getElementById('minesMultiplier');if(e)e.textContent=multiplier.toFixed(2);e=document.getElementById('minesPotential');if(e)e.textContent=fmt(Math.floor(bet*multiplier));e=document.getElementById('minesBombsCount');if(e)e.textContent=bombsCount;e=document.getElementById('minesBal');if(e)e.textContent=fmt(getWallet())}
   function calcMult(r){if(r<=0)return 1;var safe=TOTAL-bombsCount,m=1;for(var i=0;i<r;i++)m*=(safe-i)/(safe-i-bombsCount/Math.max(1,r));m=Math.max(1+r*0.10,Math.round(m*85)/100);return Math.min(m,30)}
   function onClick(){
     if(!playing||cashoutLocked||this.classList.contains('opened'))return;
@@ -2204,7 +2260,7 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
     playing=false;revealed=0;multiplier=1.00;cashoutLocked=false;lockBet('minesBetBox',false);
     buildGrid();updateInfo();
   }
-  document.getElementById('minesStartBtn').onclick=function(){
+  var ms=document.getElementById('minesStartBtn');if(ms)ms.onclick=function(){
     if(playing)return;
     if(!checkBet(bet)){showToast('Мало монет');return}
     setWallet(getWallet()-bet);updateWalletUI();
@@ -2215,7 +2271,7 @@ document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(
     document.getElementById('minesBombPicker').style.display='none';
     document.getElementById('minesMsg').textContent='Открывай ячейки';updateInfo();
   };
-  document.getElementById('minesCashoutBtn').onclick=function(){
+  var mc=document.getElementById('minesCashoutBtn');if(mc)mc.onclick=function(){
     if(!playing||revealed===0||cashoutLocked)return;
     cashoutLocked=true;playing=false;
     var win=Math.floor(bet*multiplier);setWallet(getWallet()+win);updateWalletUI();
@@ -2524,15 +2580,17 @@ function plinkoBuildPegs(){
   var st=plinkoState;
   st.pegs=[];
   
-  var padTop=30;
+  var padTop=25;
   var padBot=st.H-70;
   var rowGap=(padBot-padTop)/st.rows;
   
+  // ШИРЕ — используем почти всю ширину экрана
   var pegsBottomCount=st.rows+2;
-  var totalWidth=st.W-40;
+  var totalWidth=st.W-16;
   var pegGap=totalWidth/(pegsBottomCount-1);
+  if(pegGap<20)pegGap=20;
   
-  // Треугольник: каждый ряд шире на 1 пег
+  // Треугольная пирамида
   for(var r=0;r<st.rows;r++){
     var cols=r+3;
     var y=padTop+r*rowGap;
@@ -2542,20 +2600,21 @@ function plinkoBuildPegs(){
       st.pegs.push({
         x:startX + c*pegGap,
         y:y,
-        r:5
+        r:4
       });
     }
   }
   
-  // Ячейки внизу
+  // Ячейки внизу — тоже шире
   st.slots=[];
   var sc=st.mults.length;
-  var slotWidth=totalWidth/(sc-1);
+  var slotTotalW=st.W-16;
+  var slotWidth=slotTotalW/(sc-1);
   for(var i=0;i<sc;i++){
     st.slots.push({
-      x:20 + i*slotWidth,
+      x:8 + i*slotWidth,
       y:padBot+35,
-      w:slotWidth-3,
+      w:slotWidth-2,
       mult:st.mults[i]
     });
   }
@@ -2667,37 +2726,23 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
     st.dropping=true;
     document.getElementById('plinkoMsg').textContent='🎯 Шарик падает...';
     document.getElementById('plinkoMsg').style.color='#00e5ff';
-    
-    // Заранее выбираем целевую ячейку
     st.targetSlot=Math.floor(Math.random()*st.mults.length);
     var targetSlot=st.slots[st.targetSlot];
-    
-    // Мяч начинается сверху по центру
-    st.ball={x:st.W/2, y:20, r:9, vx:0, vy:2};
+    st.ball={x:st.W/2, y:20, r:7, vx:0, vy:2};
     st.frameCount=0;
     st.maxFrames=280;
-    
     function step(){
       st.frameCount++;
-      
-      // Реальная физика падения
       st.ball.vy += 0.28;
       st.ball.y += st.ball.vy;
-      
-      // Горизонтальное притяжение к цели
       var dx = targetSlot.x - st.ball.x;
       st.ball.x += dx * 0.022;
-      
-      // Небольшое случайное отклонение
       st.ball.x += (Math.random()-0.5) * 2.5;
-      
-      // Отскок от пегов
       for(var i=0;i<st.pegs.length;i++){
         var p=st.pegs[i];
         var ddx = st.ball.x - p.x;
         var ddy = st.ball.y - p.y;
         var dist = Math.sqrt(ddx*ddx + ddy*ddy);
-        
         if(dist < st.ball.r + p.r + 1){
           var nx = ddx/dist;
           var ny = ddy/dist;
@@ -2706,22 +2751,15 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
           st.ball.vy = -Math.abs(st.ball.vy) * 0.5 + Math.random() * 1.5;
           st.ball.vx += nx * 2 + (Math.random()-0.5) * 2;
           st.ball.vx *= 0.85;
-          
           if(Math.random() > 0.6) sndTick();
         }
       }
-      
-      // Ограничение по бокам
       if(st.ball.x < 10) st.ball.x = 10;
       if(st.ball.x > st.W-10) st.ball.x = st.W-10;
-      
       plinkoDraw();
-      
-      // Проверка завершения — мяч реально долетает до низа
       if(st.frameCount > st.maxFrames || st.ball.y > st.H-15){
         var mult = st.mults[st.targetSlot];
         var win = Math.floor(st.bet * mult);
-        
         if(mult > 0 && win > 0){
           setWallet(getWallet() + win);
           updateWalletUI();
@@ -2730,7 +2768,6 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
           if(mult >= 2){sndBig();flashScreen();spawnConfetti(80);spawnCoins(10)}
           else{sndWin();spawnConfetti(30)}
         } else if(mult < 0){
-          // Отрицательный множитель — штраф
           var penalty = Math.floor(st.bet * Math.abs(mult));
           setWallet(Math.max(0, getWallet() - penalty));
           updateWalletUI();
@@ -2742,25 +2779,22 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
           document.getElementById('plinkoMsg').style.color='#ff5252';
           sndLose();
         }
-        
         st.ball=null;
         st.dropping=false;
         plinkoDraw();
         return;
       }
-      
       requestAnimationFrame(step);
     }
-    
     step();
   };
   setTimeout(plinkoResize,200);
 })();
 
 /* ============================================================
-   BLACKJACK ОФЛАЙН
+   BLACKJACK ОФЛАЙН — с правильным сбросом ставок
    ============================================================ */
-var BJ_STATE={mode:1,deck:[],dealer:[],p1:[],p2:[],p1Bet:500,p2Bet:500,phase:'bet',holeHidden:false,p1BJ:false,p2BJ:false};
+var BJ_STATE={mode:1,deck:[],dealer:[],p1:[],p2:[],p1Bet:500,p2Bet:500,baseP1Bet:500,baseP2Bet:500,phase:'bet',holeHidden:false,p1BJ:false,p2BJ:false};
 
 function bjNewDeck(){
   var suits=['♠','♥','♦','♣'],ranks=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
@@ -2822,6 +2856,13 @@ function bjNewRound(){
   var st=BJ_STATE;
   st.deck=bjNewDeck();st.dealer=[];st.p1=[];st.p2=[];
   st.holeHidden=false;st.p1BJ=false;st.p2BJ=false;st.phase='bet';
+  // ВАЖНО: возвращаем ставки к значениям из инпутов
+  var inp1=document.getElementById('bjP1BetInput');
+  var inp2=document.getElementById('bjP2BetInput');
+  st.p1Bet=parseInt(inp1.value)||500;
+  st.p2Bet=parseInt(inp2.value)||500;
+  st.baseP1Bet=st.p1Bet;
+  st.baseP2Bet=st.p2Bet;
   document.getElementById('bjP1Badge').innerHTML='';
   document.getElementById('bjP2Badge').innerHTML='';
   document.getElementById('bjDealerBadge').innerHTML='';
@@ -2833,6 +2874,9 @@ function bjDeal(){
   if(st.phase!=='bet'){bjNewRound();return}
   var tot=st.p1Bet+(st.mode===2?st.p2Bet:0);
   if(!checkBet(tot)){showToast('Недостаточно монет');return}
+  // Запоминаем базовые ставки (до удвоения)
+  st.baseP1Bet=st.p1Bet;
+  st.baseP2Bet=st.p2Bet;
   setWallet(getWallet()-tot);updateWalletUI();
   st.p1.push(st.deck.pop());
   if(st.mode===2)st.p2.push(st.deck.pop());
@@ -2889,11 +2933,13 @@ function bjDealerTurn(){
 function bjDouble(){
   var st=BJ_STATE;
   if(st.phase!=='p1'&&st.phase!=='p2')return;
-  var add=st.phase==='p1'?st.p1Bet:st.p2Bet;
-  if(!checkBet(add)){showToast('Мало монет');return}
-  setWallet(getWallet()-add);updateWalletUI();
+  var base = st.phase==='p1'?st.baseP1Bet:st.baseP2Bet;
+  if(!checkBet(base)){showToast('Мало монет');return}
+  setWallet(getWallet()-base);updateWalletUI();
   if(st.phase==='p1'){
-    st.p1Bet*=2;st.p1.push(st.deck.pop());bjRender();
+    // ВАЖНО: p1Bet = base*2, но base НЕ трогаем
+    st.p1Bet=st.baseP1Bet*2;
+    st.p1.push(st.deck.pop());bjRender();
     if(bjHandScore(st.p1)>21){
       if(st.mode===2){bjSetMsg('🔵 Перебор. Ход '+player2Name,'p2');st.phase='p2';bjUpdateUI()}
       else{bjSetMsg('💥 Перебор!','lose');st.holeHidden=false;bjRender();st.phase='done';bjUpdateUI();setTimeout(bjFinish1,900)}
@@ -2902,7 +2948,8 @@ function bjDouble(){
     if(st.mode===2){bjSetMsg('Удвоил. Ход '+player2Name,'p2');st.phase='p2';bjUpdateUI()}
     else{bjSetMsg('Ход дилера...','info');bjDealerTurn()}
   } else {
-    st.p2Bet*=2;st.p2.push(st.deck.pop());bjRender();
+    st.p2Bet=st.baseP2Bet*2;
+    st.p2.push(st.deck.pop());bjRender();
     if(bjHandScore(st.p2)>21){bjSetMsg('🟣 Перебор. Считаем...','info');st.phase='done';bjUpdateUI();setTimeout(bjFinish2,900);return}
     bjSetMsg('Считаем...','info');st.phase='done';bjUpdateUI();setTimeout(bjFinish2,900);
   }
@@ -2958,8 +3005,8 @@ function bjFinish2(){
 }
 
 function bjInit(){
-  setupBetInput('bjP1BetInput','bjP1BetUp','bjP1BetDown',function(v){BJ_STATE.p1Bet=v;bjUpdateBank()});
-  setupBetInput('bjP2BetInput','bjP2BetUp','bjP2BetDown',function(v){BJ_STATE.p2Bet=v;bjUpdateBank()});
+  setupBetInput('bjP1BetInput','bjP1BetUp','bjP1BetDown',function(v){BJ_STATE.p1Bet=v;BJ_STATE.baseP1Bet=v;bjUpdateBank()});
+  setupBetInput('bjP2BetInput','bjP2BetUp','bjP2BetDown',function(v){BJ_STATE.p2Bet=v;BJ_STATE.baseP2Bet=v;bjUpdateBank()});
   document.getElementById('bjDealBtn').addEventListener('click',bjDeal);
   document.getElementById('bjHitBtn').addEventListener('click',bjHit);
   document.getElementById('bjStandBtn').addEventListener('click',bjStand);
@@ -3019,5 +3066,3 @@ startPing();
 </script>
 </body>
 </html>
-
-   
