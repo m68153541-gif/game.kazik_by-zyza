@@ -10,6 +10,9 @@ from flask_sock import Sock
 app = Flask(__name__, static_folder='.')
 sock = Sock(app)
 
+# ============================================================
+#  CORS
+# ============================================================
 @app.after_request
 def add_cors(resp):
     resp.headers['Access-Control-Allow-Origin'] = '*'
@@ -17,6 +20,9 @@ def add_cors(resp):
     resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
     return resp
 
+# ============================================================
+#  КОНСТАНТЫ
+# ============================================================
 ADMIN_LOGIN = '2'
 ADMIN_PASSWORD = 'диана'
 HOUR_BONUS = 0.2
@@ -24,6 +30,9 @@ HOUR_SECONDS = 3600
 MIN_WITHDRAW = 50
 BOT_TOKEN = os.environ.get('BOT_TOKEN', '')
 
+# ============================================================
+#  ХРАНИЛИЩА
+# ============================================================
 players = {}
 guests = {}
 lobbies = {}
@@ -93,7 +102,7 @@ def notify_player(player_id, message):
 
 
 def notify_lobby(lobby_id, message):
-    # 1) Рассылка по lobby_sockets
+    # 1) Lobby WS
     conns = lobby_sockets.get(lobby_id, [])
     dead = []
     for ws in conns:
@@ -106,7 +115,7 @@ def notify_lobby(lobby_id, message):
             conns.remove(ws)
         except Exception:
             pass
-    # 2) Дублируем всем игрокам лобби через player_sockets (мгновенно)
+    # 2) Дублируем каждому игроку через player_sockets (мгновенно)
     lobby = lobbies.get(lobby_id)
     if lobby:
         members = [lobby['host']] + (lobby.get('guests') or [])
@@ -134,6 +143,9 @@ def hourly_bonus_loop():
 threading.Thread(target=hourly_bonus_loop, daemon=True).start()
 
 
+# ============================================================
+#  СТАТИКА
+# ============================================================
 @app.route('/')
 def index():
     if os.path.exists('index.html'):
@@ -161,16 +173,22 @@ def global_status():
     })
 
 
+# ============================================================
+#  РЕГИСТРАЦИЯ
+# ============================================================
 @app.route('/api/register', methods=['POST', 'OPTIONS'])
 def register():
     if request.method == 'OPTIONS':
         return '', 204
+
     data = request.get_json() or {}
     name = (data.get('name') or '').strip()[:20]
     guest_id = data.get('guest_id')
     region = data.get('region')
+
     if len(name) < 2:
         return jsonify({'error': 'Имя минимум 2 символа'})
+
     with lock:
         player = find_player(guest_id) if guest_id else None
         if player:
@@ -180,9 +198,11 @@ def register():
                 player['region'] = region
             _accrue_bonus(player)
             return jsonify({'player': _pub(player), 'guest_id': guest_id})
+
         pid = gen_id(6)
         while pid in players:
             pid = gen_id(6)
+
         player = {
             'game_id': pid,
             'name': name,
@@ -197,9 +217,13 @@ def register():
         players[pid] = player
         if guest_id:
             guests[guest_id] = pid
+
     return jsonify({'player': _pub(player), 'guest_id': guest_id})
 
 
+# ============================================================
+#  ПРОФИЛЬ / РЕГИОН
+# ============================================================
 @app.route('/api/profile/region', methods=['POST', 'OPTIONS'])
 def set_region():
     if request.method == 'OPTIONS':
@@ -213,6 +237,9 @@ def set_region():
         return jsonify({'ok': True, 'region': player['region']})
 
 
+# ============================================================
+#  ДРУЗЬЯ
+# ============================================================
 @app.route('/api/friends/search', methods=['POST', 'OPTIONS'])
 def friends_search():
     if request.method == 'OPTIONS':
@@ -343,6 +370,9 @@ def friends_list():
         return jsonify({'friends': friends, 'requests': requests})
 
 
+# ============================================================
+#  АДМИН
+# ============================================================
 @app.route('/api/admin/login', methods=['POST', 'OPTIONS'])
 def admin_login():
     if request.method == 'OPTIONS':
@@ -452,6 +482,9 @@ def admin_selfbonus():
         return jsonify({'ok': True, 'balance': p['balance']})
 
 
+# ============================================================
+#  МАГАЗИН
+# ============================================================
 @app.route('/api/shop/buy', methods=['POST', 'OPTIONS'])
 def shop_buy():
     if request.method == 'OPTIONS':
@@ -504,6 +537,9 @@ def telegram_webhook():
     return jsonify({'ok': True})
 
 
+# ============================================================
+#  БОНУС
+# ============================================================
 @app.route('/api/bonus/state', methods=['POST', 'OPTIONS'])
 def bonus_state():
     if request.method == 'OPTIONS':
@@ -539,6 +575,9 @@ def bonus_claim():
         return jsonify({'ok': True, 'claimed': pb, 'balance': player['balance']})
 
 
+# ============================================================
+#  ЛОББИ
+# ============================================================
 @app.route('/api/lobby/create', methods=['POST', 'OPTIONS'])
 def create_lobby():
     if request.method == 'OPTIONS':
@@ -588,7 +627,6 @@ def join_lobby():
         if len(lobby['guests']) >= 2:
             return jsonify({'error': 'full'})
         lobby['guests'].append(_pub(player))
-        # Broadcast игрокам
         msg = {'type': 'players', 'players': [lobby['host']] + lobby['guests']}
         notify_lobby(lobby_id, msg)
         for m in [lobby['host']] + lobby['guests']:
@@ -635,6 +673,23 @@ def lobby_state():
     })
 
 
+# НОВОЕ: polling endpoint — синхронизация лобби и игры
+@app.route('/api/lobby/poll')
+def lobby_poll():
+    lobby_id = (request.args.get('lobby_id') or '').strip()
+    if lobby_id not in lobbies:
+        return jsonify({'error': 'not_found'})
+    lobby = lobbies[lobby_id]
+    return jsonify({
+        'lobby_id': lobby_id,
+        'players': [lobby['host']] + (lobby.get('guests') or []),
+        'game_state': lobby.get('game_state')
+    })
+
+
+# ============================================================
+#  ИГРОВАЯ ЛОГИКА
+# ============================================================
 def make_initial_state(game_type, num_players):
     gs = {'type': game_type, 'phase': 'playing'}
     if game_type == 'lucky20':
@@ -714,7 +769,6 @@ def game_init():
             _bj_start(lobby, gs)
         msg = {'type': 'game_init', 'game_state': gs}
         notify_lobby(lobby_id, msg)
-        # Дублируем всем игрокам лобби напрямую
         for m in [lobby['host']] + lobby['guests']:
             notify_player(m['game_id'], msg)
         return jsonify({'ok': True})
@@ -878,6 +932,9 @@ def game_reset():
     return jsonify({'ok': True})
 
 
+# ============================================================
+#  WEBSOCKET — ЛОББИ
+# ============================================================
 @sock.route('/ws/lobby/<lobby_id>')
 def lobby_ws(ws, lobby_id):
     if lobby_id not in lobbies:
@@ -943,6 +1000,9 @@ def lobby_ws(ws, lobby_id):
             pass
 
 
+# ============================================================
+#  WEBSOCKET — ГЛОБАЛЬНЫЙ (для пушей игроку)
+# ============================================================
 @sock.route('/ws/player/<player_id>')
 def player_ws(ws, player_id):
     player_sockets.setdefault(player_id, []).append(ws)
@@ -966,6 +1026,9 @@ def player_ws(ws, player_id):
             pass
 
 
+# ============================================================
+#  ЗАПУСК
+# ============================================================
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
