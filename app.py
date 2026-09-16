@@ -33,11 +33,11 @@ BOT_TOKEN = os.environ.get('BOT_TOKEN', '')
 # ============================================================
 #  ХРАНИЛИЩА
 # ============================================================
-players = {}            # {player_id: {...}}
-guests = {}             # {guest_id: player_id}
-lobbies = {}            # {lobby_id: {...}}
-lobby_sockets = {}      # {lobby_id: [ws, ...]}
-player_sockets = {}     # {player_id: [ws, ...]} — глобальные сокеты игрока (для пушей)
+players = {}
+guests = {}
+lobbies = {}
+lobby_sockets = {}
+player_sockets = {}
 admin_sessions = set()
 lock = threading.Lock()
 
@@ -87,7 +87,6 @@ def _pub(player):
 
 
 def notify_player(player_id, message):
-    """Пушит сообщение всем сокетам игрока."""
     conns = player_sockets.get(player_id, [])
     dead = []
     for ws in conns:
@@ -281,7 +280,6 @@ def friends_request():
         if target_id in player.get('friend_requests', []):
             return jsonify({'error': 'already_sent'})
         if player['game_id'] in target.get('friend_requests', []):
-            # Взаимная заявка → сразу друзья
             target['friend_requests'].remove(player['game_id'])
             if target_id not in player['friends']:
                 player.setdefault('friends', []).append(target_id)
@@ -448,7 +446,6 @@ def admin_techbreak():
     global_settings['tech_break'] = enabled
     if message is not None:
         global_settings['tech_break_message'] = message
-    # Пушим всем игрокам
     for pid in players.keys():
         notify_player(pid, {
             'type': 'tech_break_update',
@@ -686,6 +683,7 @@ def make_initial_state(game_type, num_players):
                 winner = i; break
         gs['winner_horse'] = winner
         gs['picks'] = {}
+        gs['phase'] = 'picking'  # Фаза выбора коней
     elif game_type == 'dice':
         gs['rolls'] = {}
     elif game_type == 'blackjack':
@@ -696,7 +694,7 @@ def make_initial_state(game_type, num_players):
         gs['turn_order'] = []
         gs['turn_idx'] = 0
         gs['phase'] = 'player_turns'
-        gs['with_dealer'] = (num_players == 2)
+        gs['with_dealer'] = (num_players == 2)  # С дилером если 2 игрока
     return gs
 
 
@@ -797,17 +795,19 @@ def game_move():
                 gs['turn'] = 'guest' if is_host else 'host'
 
         elif gs['type'] == 'horserace':
-            horse = int(move.get('horse', -1))
-            if horse < 0 or horse > 5:
-                return jsonify({'error': 'bad_move'})
-            # Проверка: нельзя выбрать коня, которого уже выбрал другой
-            for other_pid, other_horse in gs['picks'].items():
-                if other_horse == horse and other_pid != pid:
-                    return jsonify({'error': 'horse_taken'})
-            gs['picks'][pid] = horse
-            if len(gs['picks']) == 1 + len(lobby['guests']):
-                gs['phase'] = 'racing'
-                gs['race_start_ts'] = now()
+            if gs.get('phase') == 'picking':
+                horse = int(move.get('horse', -1))
+                if horse < 0 or horse > 5:
+                    return jsonify({'error': 'bad_move'})
+                # Проверка: нельзя выбрать коня, которого уже выбрал другой
+                for other_pid, other_horse in gs['picks'].items():
+                    if other_horse == horse and other_pid != pid:
+                        return jsonify({'error': 'horse_taken'})
+                gs['picks'][pid] = horse
+                # Если все выбрали — начинаем гонку
+                if len(gs['picks']) == 1 + len(lobby['guests']):
+                    gs['phase'] = 'racing'
+                    gs['race_start_ts'] = now()
 
         elif gs['type'] == 'dice':
             dice = move.get('dice', [0, 0])
@@ -873,7 +873,6 @@ def _bj_next_turn(lobby, gs):
             else:
                 winners.append(pid)
         if not gs.get('with_dealer') and winners:
-            # Без дилера — выигрывает тот, у кого больше
             best = max(scores.get(pid, 0) for pid in scores if gs['state'].get(pid) != 'bust')
             winners = [pid for pid in scores if scores[pid] == best and gs['state'].get(pid) != 'bust']
         gs['winners'] = winners
@@ -972,7 +971,7 @@ def lobby_ws(ws, lobby_id):
 
 
 # ============================================================
-#  WEBSOCKET — ГЛОБАЛЬНЫЙ (для пушей в меню)
+#  WEBSOCKET — ГЛОБАЛЬНЫЙ (для пушей)
 # ============================================================
 @sock.route('/ws/player/<player_id>')
 def player_ws(ws, player_id):
