@@ -87,6 +87,7 @@ def _pub(player):
 
 
 def notify_player(player_id, message):
+    """Пушит сообщение всем сокетам игрока (мгновенная доставка)."""
     conns = player_sockets.get(player_id, [])
     dead = []
     for ws in conns:
@@ -102,6 +103,7 @@ def notify_player(player_id, message):
 
 
 def notify_lobby(lobby_id, message):
+    """Рассылка по lobby_sockets + дублирование всем игрокам лобби."""
     # 1) Lobby WS
     conns = lobby_sockets.get(lobby_id, [])
     dead = []
@@ -115,7 +117,7 @@ def notify_lobby(lobby_id, message):
             conns.remove(ws)
         except Exception:
             pass
-    # 2) Дублируем каждому игроку через player_sockets (мгновенно)
+    # 2) Дублируем через player_sockets
     lobby = lobbies.get(lobby_id)
     if lobby:
         members = [lobby['host']] + (lobby.get('guests') or [])
@@ -180,15 +182,12 @@ def global_status():
 def register():
     if request.method == 'OPTIONS':
         return '', 204
-
     data = request.get_json() or {}
     name = (data.get('name') or '').strip()[:20]
     guest_id = data.get('guest_id')
     region = data.get('region')
-
     if len(name) < 2:
         return jsonify({'error': 'Имя минимум 2 символа'})
-
     with lock:
         player = find_player(guest_id) if guest_id else None
         if player:
@@ -198,11 +197,9 @@ def register():
                 player['region'] = region
             _accrue_bonus(player)
             return jsonify({'player': _pub(player), 'guest_id': guest_id})
-
         pid = gen_id(6)
         while pid in players:
             pid = gen_id(6)
-
         player = {
             'game_id': pid,
             'name': name,
@@ -217,7 +214,6 @@ def register():
         players[pid] = player
         if guest_id:
             guests[guest_id] = pid
-
     return jsonify({'player': _pub(player), 'guest_id': guest_id})
 
 
@@ -673,7 +669,7 @@ def lobby_state():
     })
 
 
-# НОВОЕ: polling endpoint — синхронизация лобби и игры
+# НОВОЕ: polling endpoint — мгновенная синхронизация
 @app.route('/api/lobby/poll')
 def lobby_poll():
     lobby_id = (request.args.get('lobby_id') or '').strip()
@@ -1001,7 +997,7 @@ def lobby_ws(ws, lobby_id):
 
 
 # ============================================================
-#  WEBSOCKET — ГЛОБАЛЬНЫЙ (для пушей игроку)
+#  WEBSOCKET — ГЛОБАЛЬНЫЙ
 # ============================================================
 @sock.route('/ws/player/<player_id>')
 def player_ws(ws, player_id):
