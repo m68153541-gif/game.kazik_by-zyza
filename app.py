@@ -33,12 +33,10 @@ BOT_TOKEN = os.environ.get('BOT_TOKEN', '')
 # ============================================================
 #  ХРАНИЛИЩА
 # ============================================================
-players = {}
-guests = {}
-tg_users = {}
-lobbies = {}
-lobby_sockets = {}
-player_sockets = {}
+players = {}              # {game_id: {...}}
+guests = {}               # {guest_id: game_id}
+tg_users = {}             # {telegram_id: game_id}
+player_sockets = {}       # {game_id: [ws, ws, ...]}
 lock = threading.Lock()
 
 # Токены админа — в файле, чтобы переживали перезапуск
@@ -112,13 +110,22 @@ def _pub(player):
     }
 
 
+# ============================================================
+#  МГНОВЕННЫЕ ПУШИ ИГРОКУ
+# ============================================================
 def notify_player(player_id, message):
+    """Мгновенно отправляет сообщение всем сокетам игрока."""
     conns = player_sockets.get(player_id, [])
+    if not conns:
+        print(f'⚠ notify_player: нет сокетов для {player_id}')
+        return
     dead = []
     for ws in conns:
         try:
             ws.send(json.dumps(message))
-        except Exception:
+            print(f'📤 Отправлено {player_id}: {message.get("type")}')
+        except Exception as e:
+            print(f'❌ Ошибка отправки {player_id}:', e)
             dead.append(ws)
     for ws in dead:
         try:
@@ -127,26 +134,10 @@ def notify_player(player_id, message):
             pass
 
 
-def notify_lobby(lobby_id, message):
-    conns = lobby_sockets.get(lobby_id, [])
-    dead = []
-    for ws in conns:
-        try:
-            ws.send(json.dumps(message))
-        except Exception:
-            dead.append(ws)
-    for ws in dead:
-        try:
-            conns.remove(ws)
-        except Exception:
-            pass
-    lobby = lobbies.get(lobby_id)
-    if lobby:
-        members = [lobby['host']] + (lobby.get('guests') or [])
-        for m in members:
-            pid = m.get('game_id')
-            if pid:
-                notify_player(pid, message)
+def notify_all_players(message):
+    """Рассылка всем подключённым игрокам."""
+    for pid in list(player_sockets.keys()):
+        notify_player(pid, message)
 
 
 def hourly_bonus_loop():
@@ -189,8 +180,8 @@ def health():
     return jsonify({
         'ok': True,
         'players': len(players),
-        'lobbies': len(lobbies),
-        'tg_users': len(tg_users)
+        'tg_users': len(tg_users),
+        'sockets': len(player_sockets)
     })
 
 
@@ -327,11 +318,7 @@ def friends_search():
                 results.append({
                     'game_id': pid,
                     'name': p['name'],
-                    'region': p.get('region', 'Не указан'),
-                    'online': any(
-                        pl['game_id'] == pid for lob in lobbies.values()
-                        for pl in [lob['host']] + (lob.get('guests') or [])
-                    )
+                    'region': p.get('region', 'Не указан')
                 })
         return jsonify({'results': results[:20]})
 
@@ -423,11 +410,7 @@ def friends_list():
                 friends.append({
                     'game_id': fid,
                     'name': f['name'],
-                    'region': f.get('region', 'Не указан'),
-                    'online': any(
-                        pl['game_id'] == fid for lob in lobbies.values()
-                        for pl in [lob['host']] + (lob.get('guests') or [])
-                    )
+                    'region': f.get('region', 'Не указан')
                 })
         requests = []
         for rid in player.get('friend_requests', []):
@@ -485,10 +468,7 @@ def admin_players():
                 'pending_bonus': round(p.get('pending_bonus', 0), 2),
                 'region': p.get('region', 'Не указан'),
                 'last_seen': p.get('last_seen', 0),
-                'online': any(
-                    pl['game_id'] == pid for lob in lobbies.values()
-                    for pl in [lob['host']] + (lob.get('guests') or [])
-                )
+                'online': pid in player_sockets and len(player_sockets.get(pid, [])) > 0
             })
         result.sort(key=lambda x: -x['last_seen'])
         return jsonify({
@@ -516,8 +496,11 @@ def admin_setbalance():
             p['balance'] = max(0.0, round(amount, 2))
         else:
             p['balance'] = max(0.0, round(p.get('balance', 0) + amount, 2))
-        notify_player(pid, {'type': 'admin_balance_update', 'balance': p['balance']})
-        return jsonify({'ok': True, 'balance': p['balance']})
+        new_balance = p['balance']
+        print(f'💰 setbalance: {pid} → {new_balance}')
+        # МГНОВЕННЫЙ ПУШ
+        notify_player(pid, {'type': 'admin_balance_update', 'balance': new_balance})
+        return jsonify({'ok': True, 'balance': new_balance})
 
 
 @app.route('/api/admin/techbreak', methods=['POST', 'OPTIONS'])
@@ -532,12 +515,14 @@ def admin_techbreak():
     global_settings['tech_break'] = enabled
     if message is not None:
         global_settings['tech_break_message'] = message
-    for pid in players.keys():
-        notify_player(pid, {
-            'type': 'tech_break_update',
-            'tech_break': enabled,
-            'message': global_settings['tech_break_message']
-        })
+    print(f'🔧 techbreak: {enabled}, msg: {global_settings["tech_break_message"]}')
+    # МГНОВЕННЫЙ ПУШ ВСЕМ ИГРОКАМ
+    msg = {
+        'type': 'tech_break_update',
+        'tech_break': enabled,
+        'message': global_settings['tech_break_message']
+    }
+    notify_all_players(msg)
     return jsonify({'ok': True, 'tech_break': enabled})
 
 
@@ -555,63 +540,9 @@ def admin_selfbonus():
         if not p:
             return jsonify({'error': 'player_not_found'})
         p['balance'] = max(0.0, round(p.get('balance', 0) + amount, 2))
-        notify_player(p['game_id'], {'type': 'admin_balance_update', 'balance': p['balance']})
-        return jsonify({'ok': True, 'balance': p['balance']})
-
-
-# ============================================================
-#  МАГАЗИН
-# ============================================================
-@app.route('/api/shop/buy', methods=['POST', 'OPTIONS'])
-def shop_buy():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    coins = int(data.get('coins', 0))
-    stars = int(data.get('stars', 0))
-    guest_id = data.get('guest_id')
-    if coins <= 0 or stars <= 0:
-        return jsonify({'error': 'bad_request'})
-    if not BOT_TOKEN:
-        return jsonify({'error': 'payment_unavailable', 'reason': 'BOT_TOKEN не настроен'})
-    try:
-        import urllib.request
-        url = f'https://api.telegram.org/bot{BOT_TOKEN}/createInvoiceLink'
-        payload = json.dumps({
-            'title': f'{coins} монет',
-            'description': f'Покупка {coins} монет',
-            'payload': f'coins:{coins}:guest:{guest_id}',
-            'currency': 'XTR',
-            'prices': [{'label': f'{coins} монет', 'amount': stars}]
-        }).encode()
-        req = urllib.request.Request(url, data=payload, headers={'Content-Type': 'application/json'})
-        resp = urllib.request.urlopen(req, timeout=10)
-        result = json.loads(resp.read().decode())
-        if not result.get('ok'):
-            return jsonify({'error': 'telegram_error', 'details': result})
-        return jsonify({'invoice_link': result['result']})
-    except Exception as e:
-        return jsonify({'error': 'payment_unavailable', 'reason': str(e)})
-
-
-@app.route('/api/telegram/webhook', methods=['POST'])
-def telegram_webhook():
-    data = request.get_json() or {}
-    if 'message' in data and 'successful_payment' in data['message']:
-        payment = data['message']['successful_payment']
-        payload = payment.get('invoice_payload', '')
-        try:
-            parts = payload.split(':')
-            coins = int(parts[1])
-            guest_id = parts[3]
-            with lock:
-                player = find_player(guest_id=guest_id)
-                if player:
-                    player['balance'] = round(player.get('balance', 0) + coins, 2)
-                    notify_player(player['game_id'], {'type': 'admin_balance_update', 'balance': player['balance']})
-        except Exception as e:
-            print('webhook error:', e)
-    return jsonify({'ok': True})
+        new_balance = p['balance']
+        notify_player(p['game_id'], {'type': 'admin_balance_update', 'balance': new_balance})
+        return jsonify({'ok': True, 'balance': new_balance})
 
 
 # ============================================================
@@ -650,6 +581,36 @@ def bonus_claim():
         player['pending_bonus'] = 0.0
         notify_player(player['game_id'], {'type': 'admin_balance_update', 'balance': player['balance']})
         return jsonify({'ok': True, 'claimed': pb, 'balance': player['balance']})
+
+
+# ============================================================
+#  WEBSOCKET — ГЛОБАЛЬНЫЙ КАНАЛ ИГРОКА
+# ============================================================
+@sock.route('/ws/player/<player_id>')
+def player_ws(ws, player_id):
+    player_sockets.setdefault(player_id, []).append(ws)
+    print(f'🔌 Player WS connected: {player_id} (всего сокетов: {len(player_sockets[player_id])})')
+    try:
+        while True:
+            raw = ws.receive()
+            if raw is None:
+                break
+            try:
+                msg = json.loads(raw)
+                if msg.get('action') == 'ping':
+                    ws.send(json.dumps({'type': 'pong', 't': now()}))
+            except Exception:
+                pass
+    except Exception as e:
+        print(f'Player WS error ({player_id}):', e)
+    finally:
+        try:
+            player_sockets[player_id].remove(ws)
+            if not player_sockets[player_id]:
+                del player_sockets[player_id]
+            print(f'🔌 Player WS disconnected: {player_id}')
+        except Exception:
+            pass
 
 
 # ============================================================
