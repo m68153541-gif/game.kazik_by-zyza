@@ -32,6 +32,10 @@ lobby_sockets = {}
 player_sockets = {}
 lock = threading.Lock()
 
+# Виртуальный игрок для антисна
+VIRTUAL_PLAYER_ID = '999999'
+VIRTUAL_PLAYER_GUEST = 'virtual_keepalive_bot'
+
 ADMIN_TOKENS_FILE = 'admin_tokens.json'
 
 def _load_admin_sessions():
@@ -54,7 +58,8 @@ ADMIN_TOKEN_TTL = 30 * 24 * 3600
 
 global_settings = {
     'tech_break': False,
-    'tech_break_message': '🔧 Технический перерыв\n\nСкоро вернёмся!'
+    'tech_break_message': '🔧 Технический перерыв\n\nСкоро вернёмся!',
+    'keepalive': False
 }
 
 
@@ -126,7 +131,6 @@ def notify_all_players(message):
 
 
 def notify_lobby(lobby_id, message):
-    # 1) Через lobby_sockets
     conns = lobby_sockets.get(lobby_id, [])
     dead = []
     for ws in conns:
@@ -139,7 +143,6 @@ def notify_lobby(lobby_id, message):
             conns.remove(ws)
         except Exception:
             pass
-    # 2) Дублируем игрокам лобби
     lobby = lobbies.get(lobby_id)
     if lobby:
         members = [lobby['host']] + (lobby.get('guests') or [])
@@ -149,6 +152,70 @@ def notify_lobby(lobby_id, message):
                 notify_player(pid, message)
 
 
+# ============================================================
+#  ВИРТУАЛЬНЫЙ ИГРОК
+# ============================================================
+def _create_virtual_player():
+    with lock:
+        if VIRTUAL_PLAYER_ID in players:
+            return
+        players[VIRTUAL_PLAYER_ID] = {
+            'game_id': VIRTUAL_PLAYER_ID,
+            'name': '🤖 Хранитель',
+            'telegram_id': None,
+            'last_seen': now(),
+            'balance': 0.0,
+            'pending_bonus': 0.0,
+            'last_bonus_ts': now(),
+            'region': 'Система',
+            'friends': [],
+            'friend_requests': [],
+            'is_virtual': True
+        }
+        guests[VIRTUAL_PLAYER_GUEST] = VIRTUAL_PLAYER_ID
+
+_create_virtual_player()
+
+
+# ============================================================
+#  АНТИСОН (управляемый из админки)
+# ============================================================
+_keepalive_stop = threading.Event()
+
+def keepalive_loop():
+    import urllib.request
+    while True:
+        try:
+            if global_settings.get('keepalive'):
+                url = os.environ.get('RENDER_EXTERNAL_URL', '')
+                if url:
+                    ping_url = url.rstrip('/') + '/health'
+                else:
+                    port = os.environ.get('PORT', '5000')
+                    ping_url = f'http://127.0.0.1:{port}/health'
+                try:
+                    req = urllib.request.Request(ping_url, headers={'User-Agent': 'kazik-keepalive/1.0'})
+                    with urllib.request.urlopen(req, timeout=10) as resp:
+                        print(f'🛡 Антисон пинг → {ping_url} ({resp.status})')
+                except Exception as e:
+                    print(f'🛡 Антисон ошибка: {e}')
+                with lock:
+                    if VIRTUAL_PLAYER_ID in players:
+                        players[VIRTUAL_PLAYER_ID]['last_seen'] = now()
+        except Exception as e:
+            print(f'🛡 Антисон loop error: {e}')
+        for _ in range(60):
+            if _keepalive_stop.is_set():
+                _keepalive_stop.clear()
+                break
+            time.sleep(5)
+
+threading.Thread(target=keepalive_loop, daemon=True).start()
+
+
+# ============================================================
+#  ЕЖЕЧАСНЫЙ БОНУС
+# ============================================================
 def hourly_bonus_loop():
     while True:
         time.sleep(HOUR_SECONDS)
@@ -156,6 +223,8 @@ def hourly_bonus_loop():
             with lock:
                 t = now()
                 for pid, p in players.items():
+                    if p.get('is_virtual'):
+                        continue
                     if t - p.get('last_bonus_ts', 0) >= HOUR_SECONDS - 5:
                         p['pending_bonus'] = round(p.get('pending_bonus', 0) + HOUR_BONUS, 2)
                         p['last_bonus_ts'] = t
@@ -188,10 +257,12 @@ def static_files(path):
 def health():
     return jsonify({
         'ok': True,
-        'players': len(players),
+        'players': len(players) - 1,  # не считаем виртуального
         'tg_users': len(tg_users),
         'sockets': len(player_sockets),
-        'lobbies': len(lobbies)
+        'lobbies': len(lobbies),
+        'keepalive': global_settings.get('keepalive', False),
+        'tech_break': global_settings.get('tech_break', False)
     })
 
 
@@ -199,7 +270,8 @@ def health():
 def global_status():
     return jsonify({
         'tech_break': global_settings['tech_break'],
-        'message': global_settings['tech_break_message']
+        'message': global_settings['tech_break_message'],
+        'keepalive': global_settings.get('keepalive', False)
     })
 
 
@@ -324,6 +396,8 @@ def admin_players():
     with lock:
         result = []
         for pid, p in players.items():
+            if p.get('is_virtual'):
+                continue
             result.append({
                 'game_id': p['game_id'],
                 'name': p['name'],
@@ -338,7 +412,8 @@ def admin_players():
         return jsonify({
             'players': result,
             'tech_break': global_settings['tech_break'],
-            'tech_break_message': global_settings['tech_break_message']
+            'tech_break_message': global_settings['tech_break_message'],
+            'keepalive': global_settings.get('keepalive', False)
         })
 
 
@@ -385,6 +460,21 @@ def admin_techbreak():
     return jsonify({'ok': True, 'tech_break': enabled})
 
 
+@app.route('/api/admin/keepalive', methods=['POST', 'OPTIONS'])
+def admin_keepalive():
+    if request.method == 'OPTIONS':
+        return '', 204
+    data = request.get_json() or {}
+    if not _check_admin(data):
+        return jsonify({'error': 'unauthorized'})
+    enabled = bool(data.get('enabled'))
+    global_settings['keepalive'] = enabled
+    if enabled:
+        _keepalive_stop.set()
+    print(f'🛡 Антисон: {"ВКЛ" if enabled else "ВЫКЛ"}')
+    return jsonify({'ok': True, 'keepalive': enabled})
+
+
 @app.route('/api/admin/selfbonus', methods=['POST', 'OPTIONS'])
 def admin_selfbonus():
     if request.method == 'OPTIONS':
@@ -404,7 +494,7 @@ def admin_selfbonus():
 
 
 # ============================================================
-#  ЛОББИ — без ставок, для 2 игр
+#  ЛОББИ
 # ============================================================
 @app.route('/api/lobby/create', methods=['POST', 'OPTIONS'])
 def create_lobby():
@@ -415,7 +505,6 @@ def create_lobby():
         player = find_player(guest_id=data.get('guest_id'))
         if not player:
             return jsonify({'error': 'not_registered'})
-        # Удаляем старые лобби игрока
         for lid in list(lobbies.keys()):
             l = lobbies[lid]
             members = [l['host']] + (l.get('guests') or [])
@@ -499,16 +588,16 @@ def lobby_poll():
 
 
 # ============================================================
-#  ИГРОВАЯ ЛОГИКА — только Lucky20 и Dice
+#  ИГРЫ — Lucky20 и Dice
 # ============================================================
 def make_initial_state(game_type):
     gs = {'type': game_type, 'phase': 'playing'}
     if game_type == 'lucky20':
         gs['win_idx'] = random.randint(0, 19)
-        gs['turn'] = 'host'  # чей ход
+        gs['turn'] = 'host'
         gs['opened'] = []
     elif game_type == 'dice':
-        gs['rolls'] = {}   # {game_id: [a, b]}
+        gs['rolls'] = {}
     return gs
 
 
@@ -562,7 +651,6 @@ def game_move():
         is_host = lobby['host']['game_id'] == pid
 
         if gs['type'] == 'lucky20':
-            # проверяем что ход его
             if (is_host and gs['turn'] != 'host') or (not is_host and gs['turn'] != 'guest'):
                 return jsonify({'error': 'not_your_turn'})
             idx = int(move.get('idx', -1))
@@ -580,7 +668,6 @@ def game_move():
             if not isinstance(dice, list) or len(dice) != 2:
                 return jsonify({'error': 'bad_move'})
             gs['rolls'][pid] = dice
-            # если оба бросили — считаем результат
             if len(gs['rolls']) == 2:
                 gs['phase'] = 'done'
                 items = list(gs['rolls'].items())
@@ -590,7 +677,7 @@ def game_move():
                 elif s2 > s1:
                     gs['winner'] = items[1][0]
                 else:
-                    gs['winner'] = None  # ничья
+                    gs['winner'] = None
 
         msg = {'type': 'game_update', 'game_state': gs}
         notify_lobby(lobby_id, msg)
@@ -615,44 +702,6 @@ def game_reset():
         msg = {'type': 'game_reset', 'game_state': new_gs}
         notify_lobby(lobby_id, msg)
     return jsonify({'ok': True})
-
-
-# ============================================================
-#  БОНУС
-# ============================================================
-@app.route('/api/bonus/state', methods=['POST', 'OPTIONS'])
-def bonus_state():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(guest_id=data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        _accrue_bonus(player)
-        return jsonify({
-            'pending_bonus': round(player.get('pending_bonus', 0), 2),
-            'balance': player.get('balance', 0)
-        })
-
-
-@app.route('/api/bonus/claim', methods=['POST', 'OPTIONS'])
-def bonus_claim():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(guest_id=data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        _accrue_bonus(player)
-        pb = player.get('pending_bonus', 0)
-        if pb < MIN_WITHDRAW:
-            return jsonify({'error': f'Минимум {MIN_WITHDRAW} монет', 'pending_bonus': round(pb, 2)})
-        player['balance'] = round(player.get('balance', 0) + pb, 2)
-        player['pending_bonus'] = 0.0
-        notify_player(player['game_id'], {'type': 'admin_balance_update', 'balance': player['balance']})
-        return jsonify({'ok': True, 'claimed': pb, 'balance': player['balance']})
 
 
 # ============================================================
