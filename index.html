@@ -2137,24 +2137,28 @@ function backToLobby(){
 })();
 
 /* ============================================================
-   PLINKO — симметричные множители + мгновенный результат
+   PLINKO — результат по РЕАЛЬНОЙ ячейке приземления
    ============================================================ */
 var plinkoState={
   pegs:[], slots:[], ball:null, W:0, H:0, canvas:null, ctx:null,
   mults:[-4, 0, 0.5, 2, 5, 2, 0.5, 0, -4],
-  rows:11, bet:500, dropping:false, targetSlot:0, frameCount:0, maxFrames:0
+  rows:11, bet:500, dropping:false, frameCount:0, maxFrames:0
 };
 
 function plinkoBuildPegs(){
   var st=plinkoState;
   st.pegs=[];
+
   var padTop=25;
   var padBot=st.H-70;
   var rowGap=(padBot-padTop)/st.rows;
+
   var pegsBottomCount=st.rows+2;
   var totalWidth=st.W-20;
   var pegGap=totalWidth/(pegsBottomCount-1);
   if(pegGap<24)pegGap=24;
+
+  // Треугольная пирамида
   for(var r=0;r<st.rows;r++){
     var cols=r+3;
     var y=padTop+r*rowGap;
@@ -2164,6 +2168,8 @@ function plinkoBuildPegs(){
       st.pegs.push({x:startX + c*pegGap, y:y, r:4});
     }
   }
+
+  // Ячейки
   st.slots=[];
   var sc=st.mults.length;
   var slotTotalW=st.W-16;
@@ -2182,6 +2188,8 @@ function plinkoDraw(){
   var st=plinkoState;
   if(!st.ctx)return;
   st.ctx.clearRect(0,0,st.W,st.H);
+
+  // Пеги
   for(var i=0;i<st.pegs.length;i++){
     var p=st.pegs[i];
     var grad=st.ctx.createRadialGradient(p.x-2,p.y-2,1,p.x,p.y,p.r);
@@ -2195,6 +2203,8 @@ function plinkoDraw(){
     st.ctx.fill();
     st.ctx.shadowBlur=0;
   }
+
+  // Ячейки
   for(var s=0;s<st.slots.length;s++){
     var sl=st.slots[s];
     var c;
@@ -2203,6 +2213,7 @@ function plinkoDraw(){
     else if(sl.mult >= 5) c = '#ffd700';
     else if(sl.mult >= 2) c = '#22d3ee';
     else c = '#a855f7';
+
     st.ctx.fillStyle=c;
     st.ctx.beginPath();
     if(st.ctx.roundRect) st.ctx.roundRect(sl.x-sl.w/2,sl.y-16,sl.w,26,6);
@@ -2218,6 +2229,8 @@ function plinkoDraw(){
     else label = '×'+sl.mult;
     st.ctx.fillText(label, sl.x, sl.y-3);
   }
+
+  // Мяч
   if(st.ball){
     var g2=st.ctx.createRadialGradient(st.ball.x-3,st.ball.y-3,1,st.ball.x,st.ball.y,st.ball.r);
     g2.addColorStop(0,'#fff');
@@ -2230,6 +2243,22 @@ function plinkoDraw(){
     st.ctx.fill();
     st.ctx.shadowBlur=0;
   }
+}
+
+// Найти ячейку по X-координате мяча
+function plinkoFindSlotByX(x){
+  var st=plinkoState;
+  var best=-1;
+  var bestDist=Infinity;
+  for(var i=0;i<st.slots.length;i++){
+    var sl=st.slots[i];
+    var dist=Math.abs(x - sl.x);
+    if(dist < bestDist){
+      bestDist=dist;
+      best=i;
+    }
+  }
+  return best;
 }
 
 function plinkoResize(){
@@ -2280,8 +2309,12 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
   function finishDrop(){
     var st=plinkoState;
     if(!st.ball)return;
-    var mult = st.mults[st.targetSlot];
+
+    // ⭐ ОПРЕДЕЛЯЕМ ЯЧЕЙКУ ПО X-КООРДИНАТЕ МЯЧА
+    var slotIdx = plinkoFindSlotByX(st.ball.x);
+    var mult = st.mults[slotIdx];
     var win = Math.floor(st.bet * mult);
+
     if(mult > 0){
       setWallet(getWallet() + win);
       updateWalletUI();
@@ -2302,6 +2335,7 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
       document.getElementById('plinkoMsg').style.color='#ff5252';
       sndLose();
     }
+
     st.ball=null;
     st.dropping=false;
     plinkoDraw();
@@ -2317,12 +2351,16 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
     document.getElementById('plinkoMsg').textContent='🎯 Шарик падает...';
     document.getElementById('plinkoMsg').style.color='#00e5ff';
 
-    st.targetSlot=Math.floor(Math.random()*st.mults.length);
-    var targetSlot=st.slots[st.targetSlot];
-
-    st.ball={x:st.W/2, y:20, vx:0, vy:0, r:6};
+    // ⭐ Мяч стартует сверху по центру с небольшой случайностью
+    st.ball={
+      x: st.W/2 + (Math.random()-0.5) * 4,
+      y: 20,
+      vx: (Math.random()-0.5) * 0.5,
+      vy: 0,
+      r: 6
+    };
     st.frameCount=0;
-    st.maxFrames=300;
+    st.maxFrames=350;
 
     var GRAVITY = 0.32;
     var AIR_FRICTION = 0.999;
@@ -2330,17 +2368,25 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
 
     function step(){
       st.frameCount++;
+
+      // Гравитация
       st.ball.vy += GRAVITY;
-      var dx = targetSlot.x - st.ball.x;
-      st.ball.vx += dx * 0.0008;
+
+      // Трение
       st.ball.vx *= AIR_FRICTION;
       st.ball.vy *= AIR_FRICTION;
+
+      // Ограничение скорости
       var maxV = 8;
       if(st.ball.vy > maxV) st.ball.vy = maxV;
       if(st.ball.vx > maxV) st.ball.vx = maxV;
       if(st.ball.vx < -maxV) st.ball.vx = -maxV;
+
+      // Обновление позиции
       st.ball.x += st.ball.vx;
       st.ball.y += st.ball.vy;
+
+      // Столкновения с пегами
       for(var i=0;i<st.pegs.length;i++){
         var p=st.pegs[i];
         var ddx = st.ball.x - p.x;
@@ -2351,16 +2397,25 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
           var dist = Math.sqrt(distSq);
           var nx = ddx / dist;
           var ny = ddy / dist;
+
+          // Выталкивание
           var overlap = minDist - dist;
           st.ball.x += nx * overlap;
           st.ball.y += ny * overlap;
+
+          // Отражение скорости
           var dot = st.ball.vx * nx + st.ball.vy * ny;
           st.ball.vx -= (1 + BOUNCE) * dot * nx;
           st.ball.vy -= (1 + BOUNCE) * dot * ny;
-          st.ball.vx += (Math.random()-0.5) * 0.6;
+
+          // Небольшой случайный подкрут
+          st.ball.vx += (Math.random()-0.5) * 0.8;
+
           if(Math.random() > 0.7) sndTick();
         }
       }
+
+      // Стены
       if(st.ball.x < st.ball.r + 4){
         st.ball.x = st.ball.r + 4;
         st.ball.vx = Math.abs(st.ball.vx) * 0.6;
@@ -2369,7 +2424,10 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
         st.ball.x = st.W - st.ball.r - 4;
         st.ball.vx = -Math.abs(st.ball.vx) * 0.6;
       }
+
       plinkoDraw();
+
+      // Завершение — мяч дошёл до нижней зоны
       if(st.ball.y >= st.H - 30 || st.frameCount > st.maxFrames){
         finishDrop();
         return;
