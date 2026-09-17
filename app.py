@@ -10,9 +10,6 @@ from flask_sock import Sock
 app = Flask(__name__, static_folder='.')
 sock = Sock(app)
 
-# ============================================================
-#  CORS
-# ============================================================
 @app.after_request
 def add_cors(resp):
     resp.headers['Access-Control-Allow-Origin'] = '*'
@@ -20,9 +17,6 @@ def add_cors(resp):
     resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
     return resp
 
-# ============================================================
-#  КОНСТАНТЫ
-# ============================================================
 ADMIN_LOGIN = '2'
 ADMIN_PASSWORD = 'диана'
 HOUR_BONUS = 0.2
@@ -30,16 +24,14 @@ HOUR_SECONDS = 3600
 MIN_WITHDRAW = 50
 BOT_TOKEN = os.environ.get('BOT_TOKEN', '')
 
-# ============================================================
-#  ХРАНИЛИЩА
-# ============================================================
-players = {}              # {game_id: {...}}
-guests = {}               # {guest_id: game_id}
-tg_users = {}             # {telegram_id: game_id}
-player_sockets = {}       # {game_id: [ws, ws, ...]}
+players = {}
+guests = {}
+tg_users = {}
+lobbies = {}
+lobby_sockets = {}
+player_sockets = {}
 lock = threading.Lock()
 
-# Токены админа — в файле, чтобы переживали перезапуск
 ADMIN_TOKENS_FILE = 'admin_tokens.json'
 
 def _load_admin_sessions():
@@ -111,21 +103,15 @@ def _pub(player):
 
 
 # ============================================================
-#  МГНОВЕННЫЕ ПУШИ ИГРОКУ
+#  ПУШИ
 # ============================================================
 def notify_player(player_id, message):
-    """Мгновенно отправляет сообщение всем сокетам игрока."""
     conns = player_sockets.get(player_id, [])
-    if not conns:
-        print(f'⚠ notify_player: нет сокетов для {player_id}')
-        return
     dead = []
     for ws in conns:
         try:
             ws.send(json.dumps(message))
-            print(f'📤 Отправлено {player_id}: {message.get("type")}')
-        except Exception as e:
-            print(f'❌ Ошибка отправки {player_id}:', e)
+        except Exception:
             dead.append(ws)
     for ws in dead:
         try:
@@ -135,9 +121,32 @@ def notify_player(player_id, message):
 
 
 def notify_all_players(message):
-    """Рассылка всем подключённым игрокам."""
     for pid in list(player_sockets.keys()):
         notify_player(pid, message)
+
+
+def notify_lobby(lobby_id, message):
+    # 1) Через lobby_sockets
+    conns = lobby_sockets.get(lobby_id, [])
+    dead = []
+    for ws in conns:
+        try:
+            ws.send(json.dumps(message))
+        except Exception:
+            dead.append(ws)
+    for ws in dead:
+        try:
+            conns.remove(ws)
+        except Exception:
+            pass
+    # 2) Дублируем игрокам лобби
+    lobby = lobbies.get(lobby_id)
+    if lobby:
+        members = [lobby['host']] + (lobby.get('guests') or [])
+        for m in members:
+            pid = m.get('game_id')
+            if pid:
+                notify_player(pid, message)
 
 
 def hourly_bonus_loop():
@@ -181,7 +190,8 @@ def health():
         'ok': True,
         'players': len(players),
         'tg_users': len(tg_users),
-        'sockets': len(player_sockets)
+        'sockets': len(player_sockets),
+        'lobbies': len(lobbies)
     })
 
 
@@ -222,13 +232,11 @@ def parse_init_data(init_data):
 def register():
     if request.method == 'OPTIONS':
         return '', 204
-
     data = request.get_json() or {}
     name = (data.get('name') or '').strip()[:20]
     guest_id = data.get('guest_id')
     region = data.get('region')
     init_data = data.get('initData', '')
-
     tg_info = parse_init_data(init_data)
     telegram_id = tg_info['telegram_id'] if tg_info else None
 
@@ -240,7 +248,6 @@ def register():
 
     with lock:
         player = find_player(guest_id=guest_id, telegram_id=telegram_id)
-
         if player:
             player['name'] = name
             player['last_seen'] = now()
@@ -257,7 +264,6 @@ def register():
         pid = gen_id(6)
         while pid in players:
             pid = gen_id(6)
-
         player = {
             'game_id': pid,
             'name': name,
@@ -275,149 +281,7 @@ def register():
             guests[guest_id] = pid
         if telegram_id:
             tg_users[telegram_id] = pid
-
     return jsonify({'player': _pub(player), 'guest_id': guest_id or pid})
-
-
-# ============================================================
-#  ПРОФИЛЬ / РЕГИОН
-# ============================================================
-@app.route('/api/profile/region', methods=['POST', 'OPTIONS'])
-def set_region():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(guest_id=data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        player['region'] = (data.get('region') or 'Не указан').strip()[:30]
-        return jsonify({'ok': True, 'region': player['region']})
-
-
-# ============================================================
-#  ДРУЗЬЯ
-# ============================================================
-@app.route('/api/friends/search', methods=['POST', 'OPTIONS'])
-def friends_search():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(guest_id=data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        query = (data.get('query') or '').strip()
-        if not query:
-            return jsonify({'results': []})
-        results = []
-        for pid, p in players.items():
-            if pid == player['game_id']:
-                continue
-            if query in pid or query.lower() in p['name'].lower():
-                results.append({
-                    'game_id': pid,
-                    'name': p['name'],
-                    'region': p.get('region', 'Не указан')
-                })
-        return jsonify({'results': results[:20]})
-
-
-@app.route('/api/friends/request', methods=['POST', 'OPTIONS'])
-def friends_request():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(guest_id=data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        target_id = data.get('target_id')
-        target = players.get(target_id)
-        if not target:
-            return jsonify({'error': 'player_not_found'})
-        if target_id == player['game_id']:
-            return jsonify({'error': 'own_id'})
-        if target_id in player.get('friends', []):
-            return jsonify({'error': 'already_friends'})
-        if target_id in player.get('friend_requests', []):
-            return jsonify({'error': 'already_sent'})
-        if player['game_id'] in target.get('friend_requests', []):
-            target['friend_requests'].remove(player['game_id'])
-            if target_id not in player['friends']:
-                player.setdefault('friends', []).append(target_id)
-            if player['game_id'] not in target['friends']:
-                target.setdefault('friends', []).append(player['game_id'])
-            notify_player(target_id, {'type': 'friends_update'})
-            notify_player(player['game_id'], {'type': 'friends_update'})
-            return jsonify({'ok': True, 'mutual': True})
-        target.setdefault('friend_requests', []).append(player['game_id'])
-        notify_player(target_id, {'type': 'friend_request', 'from': {'game_id': player['game_id'], 'name': player['name']}})
-        return jsonify({'ok': True})
-
-
-@app.route('/api/friends/accept', methods=['POST', 'OPTIONS'])
-def friends_accept():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(guest_id=data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        from_id = data.get('from_id')
-        if from_id not in player.get('friend_requests', []):
-            return jsonify({'error': 'no_request'})
-        player['friend_requests'].remove(from_id)
-        if from_id not in player['friends']:
-            player.setdefault('friends', []).append(from_id)
-        other = players.get(from_id)
-        if other and player['game_id'] not in other.get('friends', []):
-            other.setdefault('friends', []).append(player['game_id'])
-        notify_player(from_id, {'type': 'friends_update'})
-        notify_player(player['game_id'], {'type': 'friends_update'})
-        return jsonify({'ok': True})
-
-
-@app.route('/api/friends/decline', methods=['POST', 'OPTIONS'])
-def friends_decline():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(guest_id=data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        from_id = data.get('from_id')
-        if from_id in player.get('friend_requests', []):
-            player['friend_requests'].remove(from_id)
-        return jsonify({'ok': True})
-
-
-@app.route('/api/friends/list', methods=['POST', 'OPTIONS'])
-def friends_list():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(guest_id=data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        friends = []
-        for fid in player.get('friends', []):
-            f = players.get(fid)
-            if f:
-                friends.append({
-                    'game_id': fid,
-                    'name': f['name'],
-                    'region': f.get('region', 'Не указан')
-                })
-        requests = []
-        for rid in player.get('friend_requests', []):
-            r = players.get(rid)
-            if r:
-                requests.append({'game_id': rid, 'name': r['name']})
-        return jsonify({'friends': friends, 'requests': requests})
 
 
 # ============================================================
@@ -497,8 +361,6 @@ def admin_setbalance():
         else:
             p['balance'] = max(0.0, round(p.get('balance', 0) + amount, 2))
         new_balance = p['balance']
-        print(f'💰 setbalance: {pid} → {new_balance}')
-        # МГНОВЕННЫЙ ПУШ
         notify_player(pid, {'type': 'admin_balance_update', 'balance': new_balance})
         return jsonify({'ok': True, 'balance': new_balance})
 
@@ -515,14 +377,11 @@ def admin_techbreak():
     global_settings['tech_break'] = enabled
     if message is not None:
         global_settings['tech_break_message'] = message
-    print(f'🔧 techbreak: {enabled}, msg: {global_settings["tech_break_message"]}')
-    # МГНОВЕННЫЙ ПУШ ВСЕМ ИГРОКАМ
-    msg = {
+    notify_all_players({
         'type': 'tech_break_update',
         'tech_break': enabled,
         'message': global_settings['tech_break_message']
-    }
-    notify_all_players(msg)
+    })
     return jsonify({'ok': True, 'tech_break': enabled})
 
 
@@ -540,9 +399,222 @@ def admin_selfbonus():
         if not p:
             return jsonify({'error': 'player_not_found'})
         p['balance'] = max(0.0, round(p.get('balance', 0) + amount, 2))
-        new_balance = p['balance']
-        notify_player(p['game_id'], {'type': 'admin_balance_update', 'balance': new_balance})
-        return jsonify({'ok': True, 'balance': new_balance})
+        notify_player(p['game_id'], {'type': 'admin_balance_update', 'balance': p['balance']})
+        return jsonify({'ok': True, 'balance': p['balance']})
+
+
+# ============================================================
+#  ЛОББИ — без ставок, для 2 игр
+# ============================================================
+@app.route('/api/lobby/create', methods=['POST', 'OPTIONS'])
+def create_lobby():
+    if request.method == 'OPTIONS':
+        return '', 204
+    data = request.get_json() or {}
+    with lock:
+        player = find_player(guest_id=data.get('guest_id'))
+        if not player:
+            return jsonify({'error': 'not_registered'})
+        # Удаляем старые лобби игрока
+        for lid in list(lobbies.keys()):
+            l = lobbies[lid]
+            members = [l['host']] + (l.get('guests') or [])
+            if any(m['game_id'] == player['game_id'] for m in members):
+                del lobbies[lid]
+        lobby_id = gen_id(6)
+        while lobby_id in lobbies:
+            lobby_id = gen_id(6)
+        lobby = {
+            'lobby_id': lobby_id,
+            'host': _pub(player),
+            'guests': [],
+            'game_state': None,
+            'created': now()
+        }
+        lobbies[lobby_id] = lobby
+    return jsonify({'lobby_id': lobby_id, 'host': lobby['host'], 'guests': lobby['guests']})
+
+
+@app.route('/api/lobby/join', methods=['POST', 'OPTIONS'])
+def join_lobby():
+    if request.method == 'OPTIONS':
+        return '', 204
+    lobby_id = (request.args.get('lobby_id') or '').strip()
+    data = request.get_json() or {}
+    with lock:
+        player = find_player(guest_id=data.get('guest_id'))
+        if not player:
+            return jsonify({'error': 'not_registered'})
+        if lobby_id not in lobbies:
+            return jsonify({'error': 'not_found'})
+        lobby = lobbies[lobby_id]
+        if lobby['host']['game_id'] == player['game_id']:
+            return jsonify({'error': 'own_lobby'})
+        if any(g['game_id'] == player['game_id'] for g in lobby['guests']):
+            return jsonify({'error': 'already_in'})
+        if len(lobby['guests']) >= 1:
+            return jsonify({'error': 'full'})
+        lobby['guests'].append(_pub(player))
+        msg = {'type': 'players', 'players': [lobby['host']] + lobby['guests']}
+        notify_lobby(lobby_id, msg)
+        return jsonify({'lobby_id': lobby_id, 'host': lobby['host'], 'guests': lobby['guests']})
+
+
+@app.route('/api/lobby/leave', methods=['POST', 'OPTIONS'])
+def leave_lobby():
+    if request.method == 'OPTIONS':
+        return '', 204
+    lobby_id = (request.args.get('lobby_id') or '').strip()
+    data = request.get_json() or {}
+    with lock:
+        player = find_player(guest_id=data.get('guest_id'))
+        if not player or lobby_id not in lobbies:
+            return jsonify({'ok': True})
+        lobby = lobbies[lobby_id]
+        if lobby['host']['game_id'] == player['game_id']:
+            notify_lobby(lobby_id, {'type': 'system', 'text': 'Хост закрыл лобби'})
+            del lobbies[lobby_id]
+        else:
+            lobby['guests'] = [g for g in lobby['guests'] if g['game_id'] != player['game_id']]
+            lobby['game_state'] = None
+            notify_lobby(lobby_id, {'type': 'system', 'text': f"{player['name']} покинул лобби"})
+            notify_lobby(lobby_id, {
+                'type': 'players',
+                'players': [lobby['host']] + lobby['guests']
+            })
+    return jsonify({'ok': True})
+
+
+@app.route('/api/lobby/poll')
+def lobby_poll():
+    lobby_id = (request.args.get('lobby_id') or '').strip()
+    if lobby_id not in lobbies:
+        return jsonify({'error': 'not_found'})
+    lobby = lobbies[lobby_id]
+    return jsonify({
+        'lobby_id': lobby_id,
+        'players': [lobby['host']] + (lobby.get('guests') or []),
+        'game_state': lobby.get('game_state')
+    })
+
+
+# ============================================================
+#  ИГРОВАЯ ЛОГИКА — только Lucky20 и Dice
+# ============================================================
+def make_initial_state(game_type):
+    gs = {'type': game_type, 'phase': 'playing'}
+    if game_type == 'lucky20':
+        gs['win_idx'] = random.randint(0, 19)
+        gs['turn'] = 'host'  # чей ход
+        gs['opened'] = []
+    elif game_type == 'dice':
+        gs['rolls'] = {}   # {game_id: [a, b]}
+    return gs
+
+
+@app.route('/api/lobby/game/init', methods=['POST', 'OPTIONS'])
+def game_init():
+    if request.method == 'OPTIONS':
+        return '', 204
+    data = request.get_json() or {}
+    lobby_id = data.get('lobby_id')
+    guest_id = data.get('guest_id')
+    game_type = data.get('game_type')
+    if lobby_id not in lobbies:
+        return jsonify({'error': 'not_found'})
+    with lock:
+        player = find_player(guest_id=guest_id)
+        if not player:
+            return jsonify({'error': 'not_registered'})
+        lobby = lobbies[lobby_id]
+        if lobby['host']['game_id'] != player['game_id']:
+            return jsonify({'error': 'not_host'})
+        if not lobby['guests']:
+            return jsonify({'error': 'no_guest'})
+        if game_type not in ('lucky20', 'dice'):
+            return jsonify({'error': 'bad_game'})
+        gs = make_initial_state(game_type)
+        lobby['game_state'] = gs
+        msg = {'type': 'game_init', 'game_state': gs}
+        notify_lobby(lobby_id, msg)
+    return jsonify({'ok': True})
+
+
+@app.route('/api/lobby/game/move', methods=['POST', 'OPTIONS'])
+def game_move():
+    if request.method == 'OPTIONS':
+        return '', 204
+    data = request.get_json() or {}
+    lobby_id = data.get('lobby_id')
+    guest_id = data.get('guest_id')
+    move = data.get('move', {})
+    if lobby_id not in lobbies:
+        return jsonify({'error': 'not_found'})
+    with lock:
+        player = find_player(guest_id=guest_id)
+        if not player:
+            return jsonify({'error': 'not_registered'})
+        lobby = lobbies[lobby_id]
+        gs = lobby.get('game_state')
+        if not gs:
+            return jsonify({'error': 'no_game'})
+        pid = player['game_id']
+        is_host = lobby['host']['game_id'] == pid
+
+        if gs['type'] == 'lucky20':
+            # проверяем что ход его
+            if (is_host and gs['turn'] != 'host') or (not is_host and gs['turn'] != 'guest'):
+                return jsonify({'error': 'not_your_turn'})
+            idx = int(move.get('idx', -1))
+            if idx < 0 or idx > 19 or idx in gs['opened']:
+                return jsonify({'error': 'bad_move'})
+            gs['opened'].append(idx)
+            if idx == gs['win_idx']:
+                gs['phase'] = 'done'
+                gs['winner'] = pid
+            else:
+                gs['turn'] = 'guest' if is_host else 'host'
+
+        elif gs['type'] == 'dice':
+            dice = move.get('dice', [0, 0])
+            if not isinstance(dice, list) or len(dice) != 2:
+                return jsonify({'error': 'bad_move'})
+            gs['rolls'][pid] = dice
+            # если оба бросили — считаем результат
+            if len(gs['rolls']) == 2:
+                gs['phase'] = 'done'
+                items = list(gs['rolls'].items())
+                s1 = sum(items[0][1]); s2 = sum(items[1][1])
+                if s1 > s2:
+                    gs['winner'] = items[0][0]
+                elif s2 > s1:
+                    gs['winner'] = items[1][0]
+                else:
+                    gs['winner'] = None  # ничья
+
+        msg = {'type': 'game_update', 'game_state': gs}
+        notify_lobby(lobby_id, msg)
+    return jsonify({'ok': True})
+
+
+@app.route('/api/lobby/game/reset', methods=['POST', 'OPTIONS'])
+def game_reset():
+    if request.method == 'OPTIONS':
+        return '', 204
+    data = request.get_json() or {}
+    lobby_id = data.get('lobby_id')
+    if lobby_id not in lobbies:
+        return jsonify({'error': 'not_found'})
+    with lock:
+        lobby = lobbies[lobby_id]
+        gs = lobby.get('game_state')
+        if not gs:
+            return jsonify({'error': 'no_game'})
+        new_gs = make_initial_state(gs['type'])
+        lobby['game_state'] = new_gs
+        msg = {'type': 'game_reset', 'game_state': new_gs}
+        notify_lobby(lobby_id, msg)
+    return jsonify({'ok': True})
 
 
 # ============================================================
@@ -584,12 +656,12 @@ def bonus_claim():
 
 
 # ============================================================
-#  WEBSOCKET — ГЛОБАЛЬНЫЙ КАНАЛ ИГРОКА
+#  WEBSOCKET — ИГРОК
 # ============================================================
 @sock.route('/ws/player/<player_id>')
 def player_ws(ws, player_id):
     player_sockets.setdefault(player_id, []).append(ws)
-    print(f'🔌 Player WS connected: {player_id} (всего сокетов: {len(player_sockets[player_id])})')
+    print(f'🔌 Player WS connected: {player_id}')
     try:
         while True:
             raw = ws.receive()
@@ -614,8 +686,73 @@ def player_ws(ws, player_id):
 
 
 # ============================================================
-#  ЗАПУСК
+#  WEBSOCKET — ЛОББИ
 # ============================================================
+@sock.route('/ws/lobby/<lobby_id>')
+def lobby_ws(ws, lobby_id):
+    if lobby_id not in lobbies:
+        try:
+            ws.send(json.dumps({'type': 'system', 'text': 'Лобби не существует'}))
+            ws.close()
+        except Exception:
+            pass
+        return
+    lobby_sockets.setdefault(lobby_id, []).append(ws)
+    player_name = 'Игрок'
+    player_id = None
+    try:
+        while True:
+            raw = ws.receive()
+            if raw is None:
+                break
+            try:
+                msg = json.loads(raw)
+            except Exception:
+                continue
+            action = msg.get('action')
+            if action == 'hello':
+                player_name = msg.get('name', 'Игрок')
+                player_id = msg.get('player_id')
+                if player_id:
+                    player_sockets.setdefault(player_id, []).append(ws)
+                notify_lobby(lobby_id, {'type': 'system', 'text': f"{player_name} подключился"})
+                lobby = lobbies.get(lobby_id)
+                if lobby:
+                    notify_lobby(lobby_id, {
+                        'type': 'players',
+                        'players': [lobby['host']] + lobby['guests']
+                    })
+                    if lobby.get('game_state'):
+                        notify_lobby(lobby_id, {
+                            'type': 'game_update',
+                            'game_state': lobby['game_state']
+                        })
+            elif action == 'chat':
+                notify_lobby(lobby_id, {
+                    'type': 'chat',
+                    'text': msg.get('text', ''),
+                    'name': player_name
+                })
+            elif action == 'ping':
+                try:
+                    ws.send(json.dumps({'type': 'pong', 't': now()}))
+                except Exception:
+                    pass
+    except Exception as e:
+        print(f'Lobby WS error: {e}')
+    finally:
+        try:
+            lobby_sockets[lobby_id].remove(ws)
+            if player_id and player_id in player_sockets:
+                try:
+                    player_sockets[player_id].remove(ws)
+                except Exception:
+                    pass
+            notify_lobby(lobby_id, {'type': 'system', 'text': f"{player_name} отключился"})
+        except Exception:
+            pass
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
