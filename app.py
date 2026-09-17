@@ -33,6 +33,10 @@ BOT_TOKEN = os.environ.get('BOT_TOKEN', '')
 GAME_URL = 'https://game-kazik-by-zyza.onrender.com'
 BOT_DATA_FILE = 'bot_subscribers.json'
 
+# Имя Mini App — должно совпадать с BotFather (/newapp)
+# Если не настроено — используется GAME_URL напрямую
+MINI_APP_SHORT_NAME = os.environ.get('MINI_APP_SHORT_NAME', '')
+
 # ============================================================
 #  ХРАНИЛИЩА ИГРЫ
 # ============================================================
@@ -44,7 +48,6 @@ lobby_sockets = {}
 player_sockets = {}
 lock = threading.Lock()
 
-# Виртуальный игрок для антисна
 VIRTUAL_PLAYER_ID = '999999'
 VIRTUAL_PLAYER_GUEST = 'virtual_keepalive_bot'
 
@@ -205,9 +208,9 @@ def keepalive_loop():
                     port = os.environ.get('PORT', '5000')
                     ping_url = f'http://127.0.0.1:{port}/health'
                 try:
-                    req = urllib.request.Request(ping_url, headers={'User-Agent': 'kazik-keepalive/1.0'})
+                    req = urllib.request.Request(ping_url, headers={'User-Agent': 'gp-keepalive/1.0'})
                     with urllib.request.urlopen(req, timeout=10) as resp:
-                        print(f'🛡 Антисон пинг → {ping_url} ({resp.status})')
+                        print(f'🛡 Антисон → {ping_url} ({resp.status})')
                 except Exception as e:
                     print(f'🛡 Антисон ошибка: {e}')
                 with lock:
@@ -879,12 +882,47 @@ def bot_send(chat_id, text, keyboard=None):
     return bot_api('sendMessage', payload)
 
 
+# ─── Кнопки ──────────────────────────────────────────────
 def btn_play():
-    return {'inline_keyboard': [[{'text': '🎰 ИГРАТЬ', 'url': GAME_URL}]]}
+    """
+    Кнопка для ЛИЧКИ — открывает Mini App внутри Telegram.
+    Использует ключ web_app — Telegram откроет игру как мини-приложение.
+    """
+    if MINI_APP_SHORT_NAME:
+        # Через короткое имя Mini App (настраивается в BotFather → /newapp)
+        return {'inline_keyboard': [[{
+            'text': '🎰 ИГРАТЬ',
+            'url': f'https://t.me/{_get_bot_username()}/{MINI_APP_SHORT_NAME}'
+        }]]}
+    # Через web_app — самый надёжный способ
+    return {'inline_keyboard': [[{
+        'text': '🎰 ИГРАТЬ',
+        'web_app': {'url': GAME_URL}
+    }]]}
 
 
 def btn_play_group():
-    return {'inline_keyboard': [[{'text': '🎰 ИГРАТЬ С ДРУЗЬЯМИ', 'url': GAME_URL}]]}
+    """
+    Кнопка для ГРУПП — Telegram НЕ поддерживает web_app в группах.
+    Поэтому открываем обычную ссылку.
+    """
+    return {'inline_keyboard': [[{
+        'text': '🎰 ИГРАТЬ С ДРУЗЬЯМИ',
+        'url': GAME_URL
+    }]]}
+
+
+_bot_username_cache = None
+
+def _get_bot_username():
+    """Получает username бота (для ссылок вида t.me/botname/app)."""
+    global _bot_username_cache
+    if _bot_username_cache:
+        return _bot_username_cache
+    result = bot_api('getMe', {})
+    if result and result.get('ok'):
+        _bot_username_cache = result['result'].get('username', '')
+    return _bot_username_cache or ''
 
 
 BOT_WELCOME = """👑 <b>ДОБРО ПОЖАЛОВАТЬ В GOLDEN PALACE!</b> 👑
