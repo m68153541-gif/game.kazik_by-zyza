@@ -2105,40 +2105,55 @@ function backToLobby(){
 })();
 
 /* ============================================================
-   PLINKO
+   PLINKO — 8 ячеек, улучшенная физика
    ============================================================ */
 var plinkoState={
   pegs:[], slots:[], ball:null, W:0, H:0, canvas:null, ctx:null,
-  mults:[-10,-5,-2,-1,0,0.5,1,2,5,10,25],
-  rows:10, bet:500, dropping:false, targetSlot:0, frameCount:0, maxFrames:0
+  mults:[-4, 0, 0.5, 1, 2, 5, 5, 2],
+  rows:11, bet:500, dropping:false, targetSlot:0, frameCount:0, maxFrames:0
 };
 
 function plinkoBuildPegs(){
   var st=plinkoState;
   st.pegs=[];
+
   var padTop=25;
   var padBot=st.H-70;
   var rowGap=(padBot-padTop)/st.rows;
+
+  // Шире — на всю ширину
   var pegsBottomCount=st.rows+2;
   var totalWidth=st.W-20;
   var pegGap=totalWidth/(pegsBottomCount-1);
-  var minGap=26;
-  if(pegGap<minGap)pegGap=minGap;
+  if(pegGap<24)pegGap=24;
+
+  // Треугольник
   for(var r=0;r<st.rows;r++){
     var cols=r+3;
     var y=padTop+r*rowGap;
     var rowWidth=(cols-1)*pegGap;
     var startX=(st.W-rowWidth)/2;
     for(var c=0;c<cols;c++){
-      st.pegs.push({x:startX + c*pegGap, y:y, r:3.5});
+      st.pegs.push({
+        x:startX + c*pegGap,
+        y:y,
+        r:4
+      });
     }
   }
+
+  // 8 ячеек
   st.slots=[];
   var sc=st.mults.length;
   var slotTotalW=st.W-16;
-  var slotWidth=slotTotalW/(sc-1);
+  var slotWidth=slotTotalW/sc;
   for(var i=0;i<sc;i++){
-    st.slots.push({x:8 + i*slotWidth, y:padBot+35, w:slotWidth-2, mult:st.mults[i]});
+    st.slots.push({
+      x:8 + i*slotWidth + slotWidth/2,
+      y:padBot+35,
+      w:slotWidth-3,
+      mult:st.mults[i]
+    });
   }
 }
 
@@ -2146,35 +2161,55 @@ function plinkoDraw(){
   var st=plinkoState;
   if(!st.ctx)return;
   st.ctx.clearRect(0,0,st.W,st.H);
+
+  // Пеги
   for(var i=0;i<st.pegs.length;i++){
     var p=st.pegs[i];
     var grad=st.ctx.createRadialGradient(p.x-2,p.y-2,1,p.x,p.y,p.r);
-    grad.addColorStop(0,'#80d8ff');grad.addColorStop(1,'#1565c0');
+    grad.addColorStop(0,'#80d8ff');
+    grad.addColorStop(1,'#1565c0');
     st.ctx.beginPath();
     st.ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
     st.ctx.fillStyle=grad;
-    st.ctx.shadowColor='#00e5ff';st.ctx.shadowBlur=8;st.ctx.fill();st.ctx.shadowBlur=0;
+    st.ctx.shadowColor='#00e5ff';
+    st.ctx.shadowBlur=8;
+    st.ctx.fill();
+    st.ctx.shadowBlur=0;
   }
+
+  // Ячейки
   for(var s=0;s<st.slots.length;s++){
     var sl=st.slots[s];
-    var c = sl.mult < 0 ? '#8b0000' : sl.mult === 0 ? '#4a4a4a' :
-            sl.mult >= 10 ? '#ffd700' : sl.mult >= 2 ? '#22d3ee' :
+    var c = sl.mult < 0 ? '#8b0000' :
+            sl.mult === 0 ? '#4a4a4a' :
+            sl.mult >= 5 ? '#ffd700' :
+            sl.mult >= 2 ? '#22d3ee' :
             sl.mult >= 1 ? '#a855f7' : '#b71c1c';
     st.ctx.fillStyle=c;
     st.ctx.beginPath();
     if(st.ctx.roundRect) st.ctx.roundRect(sl.x-sl.w/2,sl.y-16,sl.w,26,6);
     else st.ctx.rect(sl.x-sl.w/2,sl.y-16,sl.w,26);
     st.ctx.fill();
-    st.ctx.fillStyle='#fff';st.ctx.font='bold 10px Arial';st.ctx.textAlign='center';st.ctx.textBaseline='middle';
-    var label = sl.mult < 0 ? (sl.mult+'') : ('×'+sl.mult);
+    st.ctx.fillStyle='#fff';
+    st.ctx.font='bold 11px Arial';
+    st.ctx.textAlign='center';
+    st.ctx.textBaseline='middle';
+    var label = sl.mult < 0 ? (sl.mult+'') : (sl.mult === 0 ? '×0' : '×'+sl.mult);
     st.ctx.fillText(label, sl.x, sl.y-3);
   }
+
+  // Мяч
   if(st.ball){
     var g2=st.ctx.createRadialGradient(st.ball.x-3,st.ball.y-3,1,st.ball.x,st.ball.y,st.ball.r);
-    g2.addColorStop(0,'#fff');g2.addColorStop(1,'#ff2d95');
+    g2.addColorStop(0,'#fff');
+    g2.addColorStop(1,'#ff2d95');
     st.ctx.beginPath();
     st.ctx.arc(st.ball.x,st.ball.y,st.ball.r,0,Math.PI*2);
-    st.ctx.fillStyle=g2;st.ctx.shadowColor='#ff2d95';st.ctx.shadowBlur=18;st.ctx.fill();st.ctx.shadowBlur=0;
+    st.ctx.fillStyle=g2;
+    st.ctx.shadowColor='#ff2d95';
+    st.ctx.shadowBlur=18;
+    st.ctx.fill();
+    st.ctx.shadowBlur=0;
   }
 }
 
@@ -2194,8 +2229,11 @@ function plinkoResize(){
   if(betBlock)reserved+=betBlock.offsetHeight+10;
   st.H = wrap.clientHeight - reserved;
   if(st.H<200)st.H=300;
-  st.canvas.width=st.W;st.canvas.height=st.H;st.canvas.style.height=st.H+'px';
-  plinkoBuildPegs();plinkoDraw();
+  st.canvas.width=st.W;
+  st.canvas.height=st.H;
+  st.canvas.style.height=st.H+'px';
+  plinkoBuildPegs();
+  plinkoDraw();
 }
 window.addEventListener('resize',function(){if(document.getElementById('plinkoGame').classList.contains('active'))plinkoResize()});
 
@@ -2205,70 +2243,143 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
   var html='';
   plinkoState.mults.forEach(function(m){
     var cls='plinko-mult-cell';
-    if(m<0)cls+=' neg';else if(m===0)cls+=' empty';else if(m>=10)cls+=' max';else if(m>=2)cls+=' high';else if(m>=1)cls+=' mid';else cls+=' low';
-    var label=m<0?(m+''):('×'+m);
+    if(m<0)cls+=' neg';
+    else if(m===0)cls+=' empty';
+    else if(m>=5)cls+=' max';
+    else if(m>=2)cls+=' high';
+    else if(m>=1)cls+=' mid';
+    else cls+=' low';
+    var label = m<0 ? (m+'') : (m===0 ? '×0' : '×'+m);
     html+='<div class="'+cls+'">'+label+'</div>';
   });
   row.innerHTML=html;
+
   setupBetInput('plinkoBetInput','plinkoBetUp','plinkoBetDown',function(v){plinkoState.bet=v});
+
   document.getElementById('plinkoDropBtn').onclick=function(){
     var st=plinkoState;
     if(st.dropping)return;
     if(!checkBet(st.bet)){showToast('Мало монет');return}
-    setWallet(getWallet()-st.bet);updateWalletUI();
+    setWallet(getWallet()-st.bet);
+    updateWalletUI();
     st.dropping=true;
     document.getElementById('plinkoMsg').textContent='🎯 Шарик падает...';
     document.getElementById('plinkoMsg').style.color='#00e5ff';
+
+    // Целевая ячейка
     st.targetSlot=Math.floor(Math.random()*st.mults.length);
     var targetSlot=st.slots[st.targetSlot];
-    st.ball={x:st.W/2, y:20, r:6, vx:0, vy:2};
-    st.frameCount=0;st.maxFrames=340;
+
+    // Мяч — стартует сверху
+    st.ball={
+      x:st.W/2,
+      y:20,
+      vx:0,
+      vy:0,
+      r:6
+    };
+    st.frameCount=0;
+    st.maxFrames=400;
+
+    var GRAVITY = 0.32;      // сила гравитации
+    var AIR_FRICTION = 0.999; // трение воздуха
+    var BOUNCE = 0.55;        // сила отскока
+
     function step(){
       st.frameCount++;
-      st.ball.vy += 0.35;
-      st.ball.y += st.ball.vy;
+
+      // Гравитация
+      st.ball.vy += GRAVITY;
+
+      // Притяжение к целевой ячейке (мягкое)
       var dx = targetSlot.x - st.ball.x;
-      st.ball.x += dx * 0.022;
-      st.ball.x += (Math.random()-0.5) * 2;
+      st.ball.vx += dx * 0.0008;
+
+      // Трение
+      st.ball.vx *= AIR_FRICTION;
+      st.ball.vy *= AIR_FRICTION;
+
+      // Ограничение скорости
+      var maxV = 8;
+      if(st.ball.vy > maxV) st.ball.vy = maxV;
+      if(st.ball.vx > maxV) st.ball.vx = maxV;
+      if(st.ball.vx < -maxV) st.ball.vx = -maxV;
+
+      // Обновление позиции
+      st.ball.x += st.ball.vx;
+      st.ball.y += st.ball.vy;
+
+      // Проверка столкновений с пегами
       for(var i=0;i<st.pegs.length;i++){
         var p=st.pegs[i];
         var ddx = st.ball.x - p.x;
         var ddy = st.ball.y - p.y;
-        var dist = Math.sqrt(ddx*ddx + ddy*ddy);
-        if(dist < st.ball.r + p.r){
-          var nx = ddx/dist,ny = ddy/dist;
-          st.ball.x += nx * 2.2;
-          st.ball.y += ny * 2.2;
-          st.ball.vy = -Math.abs(st.ball.vy) * 0.55 + Math.random() * 1.8;
-          st.ball.vx += nx * 2 + (Math.random()-0.5) * 2;
-          st.ball.vx *= 0.85;
-          if(Math.random() > 0.6) sndTick();
+        var distSq = ddx*ddx + ddy*ddy;
+        var minDist = st.ball.r + p.r;
+        if(distSq < minDist*minDist && distSq > 0){
+          var dist = Math.sqrt(distSq);
+          var nx = ddx / dist;
+          var ny = ddy / dist;
+
+          // Выталкивание
+          var overlap = minDist - dist;
+          st.ball.x += nx * overlap;
+          st.ball.y += ny * overlap;
+
+          // Отражение скорости
+          var dot = st.ball.vx * nx + st.ball.vy * ny;
+          st.ball.vx -= (1 + BOUNCE) * dot * nx;
+          st.ball.vy -= (1 + BOUNCE) * dot * ny;
+
+          // Небольшой случайный подкрут для реализма
+          st.ball.vx += (Math.random()-0.5) * 0.6;
+
+          if(Math.random() > 0.7) sndTick();
         }
       }
-      if(st.ball.x < 10) st.ball.x = 10;
-      if(st.ball.x > st.W-10) st.ball.x = st.W-10;
+
+      // Стены по бокам
+      if(st.ball.x < st.ball.r + 4){
+        st.ball.x = st.ball.r + 4;
+        st.ball.vx = Math.abs(st.ball.vx) * 0.6;
+      }
+      if(st.ball.x > st.W - st.ball.r - 4){
+        st.ball.x = st.W - st.ball.r - 4;
+        st.ball.vx = -Math.abs(st.ball.vx) * 0.6;
+      }
+
       plinkoDraw();
-      if(st.frameCount > st.maxFrames || st.ball.y > st.H-15){
+
+      // Проверка завершения
+      if(st.frameCount > st.maxFrames || (st.ball.y > st.H-15 && Math.abs(st.ball.vy) < 0.5)){
         var mult = st.mults[st.targetSlot];
         var win = Math.floor(st.bet * mult);
-        if(mult > 0 && win > 0){
-          setWallet(getWallet() + win);updateWalletUI();
+
+        if(mult > 0){
+          setWallet(getWallet() + win);
+          updateWalletUI();
           document.getElementById('plinkoMsg').textContent='💰 ×'+mult+' → +'+fmt(win);
           document.getElementById('plinkoMsg').style.color='#22d3ee';
-          if(mult >= 2){sndBig();flashScreen();spawnConfetti(80);spawnCoins(10)}
+          if(mult >= 5){sndBig();flashScreen();spawnConfetti(120);spawnCoins(15)}
+          else if(mult >= 2){sndWin();spawnConfetti(60);spawnCoins(8)}
           else{sndWin();spawnConfetti(30)}
         } else if(mult < 0){
           var penalty = Math.floor(st.bet * Math.abs(mult));
-          setWallet(Math.max(0, getWallet() - penalty));updateWalletUI();
+          setWallet(Math.max(0, getWallet() - penalty));
+          updateWalletUI();
           document.getElementById('plinkoMsg').textContent='💀 '+mult+' → −'+fmt(penalty);
           document.getElementById('plinkoMsg').style.color='#ff5252';
           sndLose();
         } else {
-          document.getElementById('plinkoMsg').textContent='−'+fmt(st.bet)+' · ×'+mult;
+          document.getElementById('plinkoMsg').textContent='−'+fmt(st.bet)+' · ×0';
           document.getElementById('plinkoMsg').style.color='#ff5252';
           sndLose();
         }
-        st.ball=null;st.dropping=false;plinkoDraw();return;
+
+        st.ball=null;
+        st.dropping=false;
+        plinkoDraw();
+        return;
       }
       requestAnimationFrame(step);
     }
