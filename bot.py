@@ -1,982 +1,510 @@
+"""
+Telegram-бот для Golden Palace
+- Приветствие при /start
+- Рассылки каждый час (разным игрокам в разное время)
+- Интересные факты, напоминания, новости
+- Работает в личке и в группах
+"""
 import os
 import json
 import time
 import random
-import string
 import threading
-from flask import Flask, request, jsonify, send_from_directory
-from flask_sock import Sock
+import urllib.request
+import urllib.parse
 
-app = Flask(__name__, static_folder='.')
-sock = Sock(app)
-
-@app.after_request
-def add_cors(resp):
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    resp.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
-    resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-    return resp
-
-ADMIN_LOGIN = '2'
-ADMIN_PASSWORD = 'диана'
-HOUR_BONUS = 0.2
-HOUR_SECONDS = 3600
-MIN_WITHDRAW = 50
 BOT_TOKEN = os.environ.get('BOT_TOKEN', '')
+GAME_URL = 'https://game-kazik-by-zyza.onrender.com'
+DATA_FILE = 'bot_subscribers.json'
 
-players = {}
-guests = {}
-lobbies = {}
-lobby_sockets = {}
-player_sockets = {}
-admin_sessions = set()
-lock = threading.Lock()
-
-global_settings = {
-    'tech_break': False,
-    'tech_break_message': '🔧 Технический перерыв\n\nСкоро вернёмся!'
+# ═══════════════════════════════════════════════════════════
+#  ХРАНИЛИЩЕ ПОДПИСЧИКОВ
+# ═══════════════════════════════════════════════════════════
+subscribers = {
+    'users': {},   # {chat_id: {'first_name': ..., 'username': ..., 'added_at': ts}}
+    'groups': {}   # {chat_id: {'title': ..., 'added_at': ts}}
 }
 
 
-def gen_id(n=6, digits_only=True):
-    chars = string.digits if digits_only else string.ascii_lowercase + string.digits
-    return ''.join(random.choices(chars, k=n))
+def load_data():
+    global subscribers
+    try:
+        with open(DATA_FILE, 'r') as f:
+            data = json.load(f)
+            subscribers['users'] = data.get('users', {})
+            subscribers['groups'] = data.get('groups', {})
+            print(f'📊 Загружено: {len(subscribers["users"])} юзеров, {len(subscribers["groups"])} групп')
+    except Exception:
+        print('📊 Файл подписчиков пуст — создаём новый')
 
 
-def now():
-    return int(time.time())
+def save_data():
+    try:
+        with open(DATA_FILE, 'w') as f:
+            json.dump(subscribers, f)
+    except Exception as e:
+        print('❌ Ошибка сохранения подписчиков:', e)
 
 
-def find_player(guest_id):
-    pid = guests.get(guest_id)
-    if not pid:
+# ═══════════════════════════════════════════════════════════
+#  ОТПРАВКА СООБЩЕНИЙ
+# ═══════════════════════════════════════════════════════════
+def api_call(method, payload):
+    """Универсальный вызов Telegram API."""
+    if not BOT_TOKEN:
+        print('❌ BOT_TOKEN не задан')
         return None
-    return players.get(pid)
-
-
-def _accrue_bonus(player):
-    t = now()
-    elapsed = t - player.get('last_bonus_ts', t)
-    hours = int(elapsed // HOUR_SECONDS)
-    if hours > 0:
-        player['pending_bonus'] = round(player.get('pending_bonus', 0) + hours * HOUR_BONUS, 2)
-        player['last_bonus_ts'] = t
-
-
-def _pub(player):
-    if not player:
+    url = f'https://api.telegram.org/bot{BOT_TOKEN}/{method}'
+    try:
+        data = json.dumps(payload).encode()
+        req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            return json.loads(resp.read().decode())
+    except Exception as e:
+        print(f'❌ API {method} error:', e)
         return None
+
+
+def send_message(chat_id, text, keyboard=None, parse_mode='HTML'):
+    payload = {
+        'chat_id': chat_id,
+        'text': text,
+        'parse_mode': parse_mode,
+        'disable_web_page_preview': True
+    }
+    if keyboard:
+        payload['reply_markup'] = keyboard
+    return api_call('sendMessage', payload)
+
+
+def play_button():
+    """Кнопка Играть под сообщением."""
     return {
-        'game_id': player['game_id'],
-        'name': player['name'],
-        'balance': player.get('balance', 0),
-        'pending_bonus': round(player.get('pending_bonus', 0), 2),
-        'region': player.get('region', 'Не указан'),
-        'friends': player.get('friends', []),
-        'friend_requests': player.get('friend_requests', [])
+        'inline_keyboard': [[
+            {'text': '🎰 ИГРАТЬ', 'url': GAME_URL}
+        ]]
     }
 
 
-def notify_player(player_id, message):
-    conns = player_sockets.get(player_id, [])
-    dead = []
-    for ws in conns:
-        try:
-            ws.send(json.dumps(message))
-        except Exception:
-            dead.append(ws)
-    for ws in dead:
-        try:
-            conns.remove(ws)
-        except Exception:
-            pass
+def play_button_group():
+    """Кнопка Играть для групп (открывается в браузере)."""
+    return {
+        'inline_keyboard': [[
+            {'text': '🎰 ИГРАТЬ С ДРУЗЬЯМИ', 'url': GAME_URL}
+        ]]
+    }
 
 
-def notify_lobby(lobby_id, message):
-    conns = lobby_sockets.get(lobby_id, [])
-    dead = []
-    for ws in conns:
-        try:
-            ws.send(json.dumps(message))
-        except Exception:
-            dead.append(ws)
-    for ws in dead:
-        try:
-            conns.remove(ws)
-        except Exception:
-            pass
-    lobby = lobbies.get(lobby_id)
-    if lobby:
-        members = [lobby['host']] + (lobby.get('guests') or [])
-        for m in members:
-            pid = m.get('game_id')
-            if pid:
-                notify_player(pid, message)
+# ═══════════════════════════════════════════════════════════
+#  КОНТЕНТ — РАЗНЫЕ ТИПЫ СООБЩЕНИЙ
+# ═══════════════════════════════════════════════════════════
+
+# Приветствие
+WELCOME_TEXT = """👑 <b>ДОБРО ПОЖАЛОВАТЬ В GOLDEN PALACE!</b> 👑
+
+🎰 <b>Премиум казино прямо в Telegram</b>
+
+Здесь ты найдёшь:
+🎯 <b>Plinko</b> — падающий шарик с множителями до ×5
+🎱 <b>Keno</b> — угадай число, выиграй ×2
+🎲 <b>Dice</b> — больше или меньше
+🃏 <b>Blackjack</b> — набери 21
+🎡 <b>Roulette</b> — красное или чёрное
+🎰 <b>Slots</b> — лови три в ряд
+🪙 <b>Coin Flip</b> — орёл или решка
+🐎 <b>Horse Race</b> — почувствуй азарт
+💎 <b>Lucky 20</b> — найди алмаз
+
+🌐 <b>Онлайн-режим</b> — играй с друзьями!
+
+💰 Начинаешь с <b>5000 монет</b>
+🎁 Каждый час +0.2 монеты бонусом
+
+Жми кнопку и вперёд за удачей! 👇"""
 
 
-def hourly_bonus_loop():
+# Напоминания "пора поиграть"
+REMINDERS = [
+    """👋 <b>Скучаешь?</b>
+
+В Golden Palace ждут тебя:
+🎯 Plinko с множителем до ×5
+🎱 Keno — угадай число
+🃏 Blackjack — набери 21
+
+Заходи, забери свой куш! 💰""",
+
+    """🔥 <b>Заходи, мы скучали!</b>
+
+Твои монеты застоялись — пора их приумножить:
+🎰 Slots крутится, ждёт тебя
+🎡 Roulette готова к обороту
+🎲 Dice катится к победе
+
+Всего 1 клик до азарта! 👇""",
+
+    """💎 <b>Тебя ждут 5000+ монет!</b>
+
+В твоём распоряжении:
+🎯 Plinko — падающий шарик
+💎 Lucky 20 — найди алмаз
+🐎 Horse Race — выбери коня
+🎡 Roulette — угадай цвет
+
+Не заставляй удачу ждать! 💰""",
+
+    """⏰ <b>Напоминание от Golden Palace</b>
+
+Твой ежечасный бонус капает!
+Загляни — вдруг уже накопилось на хорошую ставку?
+
+🎰 Играй, выигрывай, наслаждайся!""",
+
+    """🎰 <b>Golden Palace заждалось!</b>
+
+Попробуй свои силы:
+🔥 Plinko — ×5 в центре
+🎱 Keno — угадай число
+🃏 Blackjack — 21 и победа
+🎲 Dice — больше или меньше
+
+Играй прямо сейчас! 👇""",
+]
+
+
+# Интересные факты
+FACTS = [
+    """🎲 <b>Интересный факт</b>
+
+Самое старое казино в мире — <b>Casino di Venezia</b> (Венеция, 1638 год). Ему уже почти 400 лет! 🏛️
+
+Хочешь почувствовать себя частью истории? Сыграй в Golden Palace! 👇""",
+
+    """🎰 <b>Знаешь ли ты?</b>
+
+Игровой автомат <b>«Liberty Bell»</b> (1895) стал первым в мире слотом с 3 барабанами. Именно он подарил нам символы 🍒🍋🍇!
+
+Испытай удачу в Slots! 👇""",
+
+    """💎 <b>Интересный факт</b>
+
+Слово «казино» с итальянского означает <b>«маленький дом»</b>. Изначально так называли загородные виллы знати, где устраивали игры.
+
+В Golden Palace мы тоже дома 🏠 Играй!""",
+
+    """🎡 <b>Про рулетку</b>
+
+В европейской рулетке <b>37 чисел</b> (0-36), а в американской — <b>38</b> (ещё 00). Из-за этого шансы игрока чуть ниже!
+
+У нас классическая европейская 🎯""",
+
+    """🃏 <b>Знаешь ли ты?</b>
+
+В Blackjack комбинация <b>«Ace + 10»</b> = 21 называется «блэкджек» и платит <b>×2.5</b> вместо обычных ×2!
+
+Испытай свою удачу в картах! 👇""",
+
+    """🎱 <b>Про Keno</b>
+
+Keno появилось в Древнем Китае более <b>2000 лет назад</b>. Тогда вместо шариков использовали деревянные дощечки!
+
+Попробуй современную версию! 👇""",
+
+    """🐎 <b>Интересный факт</b>
+
+Скачки — один из старейших видов азартных игр. Первые записи о ставках на лошадей датируются <b>VI веком н.э.</b> в Греции.
+
+Выбери своего фаворита! 🏁""",
+
+    """🎯 <b>Про Plinko</b>
+
+Название «Plinko» происходит от звука, который издаёт шарик — <b>«plink»</b> — когда ударяется о пеги!
+
+Запусти шарик и услышь это сам! 👇""",
+]
+
+
+# Новости / обновления
+NEWS = [
+    """📢 <b>Новости Golden Palace</b>
+
+🎱 <b>Новая игра — Keno!</b>
+Угадай число от 1 до 10 и выиграй ×2 от ставки!
+
+Попробуй прямо сейчас 👇""",
+
+    """📢 <b>Обновление!</b>
+
+🌐 Теперь доступен <b>онлайн-режим</b> — играй с друзьями в Lucky 20 и Dice!
+
+Создавай лобби, зови друзей по ID!
+
+🎰 Заходи играть 👇""",
+
+    """📢 <b>Что нового в Golden Palace</b>
+
+✨ Обновили дизайн — стало ещё красивее!
+🎵 Добавили фоновую музыку
+👑 Премиум-стиль во всём
+
+Загляни посмотреть! 👇""",
+]
+
+
+# Сообщения для групп
+GROUP_MESSAGES = [
+    """👑 <b>Golden Palace — премиум казино!</b>
+
+🎰 Здесь ты найдёшь:
+🎯 Plinko, 🎱 Keno, 🎲 Dice, 🃏 Blackjack
+🎡 Roulette, 🎰 Slots, 🪙 Coin Flip
+🐎 Horse Race, 💎 Lucky 20
+
+💰 Начинаешь с 5000 монет бесплатно!
+🎁 +0.2 монеты каждый час бонусом
+
+Жми кнопку и играй! 👇""",
+
+    """🎰 <b>Пора играть!</b>
+
+Попробуй свои силы в <b>Golden Palace</b>:
+🎯 Plinko — множитель до ×5
+🎱 Keno — угадай число
+🃏 Blackjack — набери 21
+
+Всего 1 клик до азарта! 👇""",
+
+    """💎 <b>Golden Palace ждёт!</b>
+
+Сыграй в лучшие мини-игры прямо в Telegram:
+🎲 Dice · 🎡 Roulette · 🎰 Slots
+🐎 Horse Race · 💎 Lucky 20
+
+Играй с друзьями онлайн! 👇""",
+
+    """🔥 <b>Не пропусти!</b>
+
+В <b>Golden Palace</b> можно играть бесплатно:
+💰 5000 монет при первом входе
+🎁 Почасовой бонус
+🌐 Онлайн-режим с друзьями
+
+Заходи, попробуй! 👇""",
+]
+
+
+# ═══════════════════════════════════════════════════════════
+#  РАССЫЛКА (разным получателям в разное время)
+# ═══════════════════════════════════════════════════════════
+def hourly_broadcast_loop():
+    """
+    Каждый час:
+    - Берём случайных подписчиков (примерно 1/6 от всех)
+    - Отправляем им случайное сообщение
+    - Через час — другим
+    Так получается "всем в разное время, примерно каждый час"
+    """
+    time.sleep(120)  # ждём 2 минуты после запуска
+    print('📢 Рассылка запущена')
+
     while True:
-        time.sleep(HOUR_SECONDS)
         try:
-            with lock:
-                t = now()
-                for pid, p in players.items():
-                    if t - p.get('last_bonus_ts', 0) >= HOUR_SECONDS - 5:
-                        p['pending_bonus'] = round(p.get('pending_bonus', 0) + HOUR_BONUS, 2)
-                        p['last_bonus_ts'] = t
-                        notify_player(pid, {'type': 'bonus_update', 'pending_bonus': p['pending_bonus']})
+            # Собираем всех подписчиков (юзеры + группы)
+            all_recipients = []
+            for chat_id, info in subscribers['users'].items():
+                all_recipients.append(('user', chat_id, info))
+            for chat_id, info in subscribers['groups'].items():
+                all_recipients.append(('group', chat_id, info))
+
+            if not all_recipients:
+                print('📢 Нет подписчиков — спим час')
+                time.sleep(3600)
+                continue
+
+            # Перемешиваем и берём ~1/6 (чтобы за 6 часов охватить всех)
+            random.shuffle(all_recipients)
+            batch_size = max(1, len(all_recipients) // 6)
+            batch = all_recipients[:batch_size]
+
+            print(f'📢 Отправляем {len(batch)}/{len(all_recipients)} подписчикам')
+
+            for rec_type, chat_id, info in batch:
+                try:
+                    if rec_type == 'user':
+                        # Разные типы для юзеров
+                        choice = random.random()
+                        if choice < 0.4:
+                            text = random.choice(REMINDERS)
+                        elif choice < 0.7:
+                            text = random.choice(FACTS)
+                        else:
+                            text = random.choice(NEWS)
+                        send_message(chat_id, text, play_button())
+                    else:
+                        # Для групп
+                        text = random.choice(GROUP_MESSAGES)
+                        send_message(chat_id, text, play_button_group())
+
+                    print(f'  ✅ Отправлено: {rec_type} {chat_id}')
+
+                    # Небольшая задержка чтобы не спамить
+                    time.sleep(0.5)
+
+                except Exception as e:
+                    print(f'  ❌ Ошибка {chat_id}:', e)
+
+            # Спим час до следующей партии
+            time.sleep(3600)
+
         except Exception as e:
-            print('bonus loop error:', e)
-
-
-threading.Thread(target=hourly_bonus_loop, daemon=True).start()
-
-
-@app.route('/')
-def index():
-    if os.path.exists('index.html'):
-        return send_from_directory('.', 'index.html')
-    return 'Kazik server is running'
-
-
-@app.route('/<path:path>')
-def static_files(path):
-    if os.path.exists(path):
-        return send_from_directory('.', path)
-    return 'Not found', 404
-
-
-@app.route('/health')
-def health():
-    return jsonify({'ok': True, 'players': len(players), 'lobbies': len(lobbies)})
-
-
-@app.route('/api/global/status')
-def global_status():
-    return jsonify({
-        'tech_break': global_settings['tech_break'],
-        'message': global_settings['tech_break_message']
-    })
-
-
-@app.route('/api/register', methods=['POST', 'OPTIONS'])
-def register():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    name = (data.get('name') or '').strip()[:20]
-    guest_id = data.get('guest_id')
-    region = data.get('region')
-    if len(name) < 2:
-        return jsonify({'error': 'Имя минимум 2 символа'})
-    with lock:
-        player = find_player(guest_id) if guest_id else None
-        if player:
-            player['name'] = name
-            player['last_seen'] = now()
-            if region:
-                player['region'] = region
-            _accrue_bonus(player)
-            return jsonify({'player': _pub(player), 'guest_id': guest_id})
-        pid = gen_id(6)
-        while pid in players:
-            pid = gen_id(6)
-        player = {
-            'game_id': pid,
-            'name': name,
-            'last_seen': now(),
-            'balance': 5000.0,
-            'pending_bonus': 0.0,
-            'last_bonus_ts': now(),
-            'region': region or 'Не указан',
-            'friends': [],
-            'friend_requests': []
-        }
-        players[pid] = player
-        if guest_id:
-            guests[guest_id] = pid
-    return jsonify({'player': _pub(player), 'guest_id': guest_id})
-
-
-@app.route('/api/profile/region', methods=['POST', 'OPTIONS'])
-def set_region():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        player['region'] = (data.get('region') or 'Не указан').strip()[:30]
-        return jsonify({'ok': True, 'region': player['region']})
-
-
-@app.route('/api/friends/search', methods=['POST', 'OPTIONS'])
-def friends_search():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        query = (data.get('query') or '').strip()
-        if not query:
-            return jsonify({'results': []})
-        results = []
-        for pid, p in players.items():
-            if pid == player['game_id']:
-                continue
-            if query in pid or query.lower() in p['name'].lower():
-                results.append({
-                    'game_id': pid,
-                    'name': p['name'],
-                    'region': p.get('region', 'Не указан'),
-                    'online': any(
-                        pl['game_id'] == pid for lob in lobbies.values()
-                        for pl in [lob['host']] + (lob.get('guests') or [])
-                    )
-                })
-        return jsonify({'results': results[:20]})
-
-
-@app.route('/api/friends/request', methods=['POST', 'OPTIONS'])
-def friends_request():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        target_id = data.get('target_id')
-        target = players.get(target_id)
-        if not target:
-            return jsonify({'error': 'player_not_found'})
-        if target_id == player['game_id']:
-            return jsonify({'error': 'own_id'})
-        if target_id in player.get('friends', []):
-            return jsonify({'error': 'already_friends'})
-        if target_id in player.get('friend_requests', []):
-            return jsonify({'error': 'already_sent'})
-        if player['game_id'] in target.get('friend_requests', []):
-            target['friend_requests'].remove(player['game_id'])
-            if target_id not in player['friends']:
-                player.setdefault('friends', []).append(target_id)
-            if player['game_id'] not in target['friends']:
-                target.setdefault('friends', []).append(player['game_id'])
-            notify_player(target_id, {'type': 'friends_update'})
-            notify_player(player['game_id'], {'type': 'friends_update'})
-            return jsonify({'ok': True, 'mutual': True})
-        target.setdefault('friend_requests', []).append(player['game_id'])
-        notify_player(target_id, {'type': 'friend_request', 'from': {'game_id': player['game_id'], 'name': player['name']}})
-        return jsonify({'ok': True})
-
-
-@app.route('/api/friends/accept', methods=['POST', 'OPTIONS'])
-def friends_accept():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        from_id = data.get('from_id')
-        if from_id not in player.get('friend_requests', []):
-            return jsonify({'error': 'no_request'})
-        player['friend_requests'].remove(from_id)
-        if from_id not in player['friends']:
-            player.setdefault('friends', []).append(from_id)
-        other = players.get(from_id)
-        if other and player['game_id'] not in other.get('friends', []):
-            other.setdefault('friends', []).append(player['game_id'])
-        notify_player(from_id, {'type': 'friends_update'})
-        notify_player(player['game_id'], {'type': 'friends_update'})
-        return jsonify({'ok': True})
-
-
-@app.route('/api/friends/decline', methods=['POST', 'OPTIONS'])
-def friends_decline():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        from_id = data.get('from_id')
-        if from_id in player.get('friend_requests', []):
-            player['friend_requests'].remove(from_id)
-        return jsonify({'ok': True})
-
-
-@app.route('/api/friends/list', methods=['POST', 'OPTIONS'])
-def friends_list():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        friends = []
-        for fid in player.get('friends', []):
-            f = players.get(fid)
-            if f:
-                friends.append({
-                    'game_id': fid,
-                    'name': f['name'],
-                    'region': f.get('region', 'Не указан'),
-                    'online': any(
-                        pl['game_id'] == fid for lob in lobbies.values()
-                        for pl in [lob['host']] + (lob.get('guests') or [])
-                    )
-                })
-        requests = []
-        for rid in player.get('friend_requests', []):
-            r = players.get(rid)
-            if r:
-                requests.append({'game_id': rid, 'name': r['name']})
-        return jsonify({'friends': friends, 'requests': requests})
-
-
-@app.route('/api/admin/login', methods=['POST', 'OPTIONS'])
-def admin_login():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    login = (data.get('login') or '').strip()
-    password = (data.get('password') or '').strip()
-    if login != ADMIN_LOGIN or password != ADMIN_PASSWORD:
-        return jsonify({'error': 'wrong_credentials'})
-    token = gen_id(24, digits_only=False)
-    admin_sessions.add(token)
-    return jsonify({'token': token})
-
-
-def _check_admin(data):
-    return data.get('admin_token') in admin_sessions if data.get('admin_token') else False
-
-
-@app.route('/api/admin/players', methods=['POST', 'OPTIONS'])
-def admin_players():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    if not _check_admin(data):
-        return jsonify({'error': 'unauthorized'})
-    with lock:
-        result = []
-        for pid, p in players.items():
-            result.append({
-                'game_id': p['game_id'],
-                'name': p['name'],
-                'balance': p.get('balance', 0),
-                'pending_bonus': round(p.get('pending_bonus', 0), 2),
-                'region': p.get('region', 'Не указан'),
-                'last_seen': p.get('last_seen', 0),
-                'online': any(
-                    pl['game_id'] == pid for lob in lobbies.values()
-                    for pl in [lob['host']] + (lob.get('guests') or [])
-                )
-            })
-        result.sort(key=lambda x: -x['last_seen'])
-        return jsonify({
-            'players': result,
-            'tech_break': global_settings['tech_break'],
-            'tech_break_message': global_settings['tech_break_message']
-        })
-
-
-@app.route('/api/admin/setbalance', methods=['POST', 'OPTIONS'])
-def admin_setbalance():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    if not _check_admin(data):
-        return jsonify({'error': 'unauthorized'})
-    pid = data.get('player_id')
-    amount = float(data.get('amount', 0))
-    mode = data.get('mode', 'add')
-    with lock:
-        p = players.get(pid)
-        if not p:
-            return jsonify({'error': 'player_not_found'})
-        if mode == 'set':
-            p['balance'] = max(0.0, round(amount, 2))
-        else:
-            p['balance'] = max(0.0, round(p.get('balance', 0) + amount, 2))
-        notify_player(pid, {'type': 'admin_balance_update', 'balance': p['balance']})
-        return jsonify({'ok': True, 'balance': p['balance']})
-
-
-@app.route('/api/admin/techbreak', methods=['POST', 'OPTIONS'])
-def admin_techbreak():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    if not _check_admin(data):
-        return jsonify({'error': 'unauthorized'})
-    enabled = bool(data.get('enabled'))
-    message = data.get('message')
-    global_settings['tech_break'] = enabled
-    if message is not None:
-        global_settings['tech_break_message'] = message
-    for pid in players.keys():
-        notify_player(pid, {
-            'type': 'tech_break_update',
-            'tech_break': enabled,
-            'message': global_settings['tech_break_message']
-        })
-    return jsonify({'ok': True, 'tech_break': enabled})
-
-
-@app.route('/api/admin/selfbonus', methods=['POST', 'OPTIONS'])
-def admin_selfbonus():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    if not _check_admin(data):
-        return jsonify({'error': 'unauthorized'})
-    guest_id = data.get('guest_id')
-    amount = float(data.get('amount', 1000))
-    with lock:
-        p = find_player(guest_id)
-        if not p:
-            return jsonify({'error': 'player_not_found'})
-        p['balance'] = max(0.0, round(p.get('balance', 0) + amount, 2))
-        notify_player(p['game_id'], {'type': 'admin_balance_update', 'balance': p['balance']})
-        return jsonify({'ok': True, 'balance': p['balance']})
-
-
-@app.route('/api/shop/buy', methods=['POST', 'OPTIONS'])
-def shop_buy():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    coins = int(data.get('coins', 0))
-    stars = int(data.get('stars', 0))
-    guest_id = data.get('guest_id')
-    if coins <= 0 or stars <= 0:
-        return jsonify({'error': 'bad_request'})
-    if not BOT_TOKEN:
-        return jsonify({'error': 'payment_unavailable', 'reason': 'BOT_TOKEN не настроен'})
-    try:
-        import urllib.request
-        url = f'https://api.telegram.org/bot{BOT_TOKEN}/createInvoiceLink'
-        payload = json.dumps({
-            'title': f'{coins} монет',
-            'description': f'Покупка {coins} монет',
-            'payload': f'coins:{coins}:guest:{guest_id}',
-            'currency': 'XTR',
-            'prices': [{'label': f'{coins} монет', 'amount': stars}]
-        }).encode()
-        req = urllib.request.Request(url, data=payload, headers={'Content-Type': 'application/json'})
-        resp = urllib.request.urlopen(req, timeout=10)
-        result = json.loads(resp.read().decode())
-        if not result.get('ok'):
-            return jsonify({'error': 'telegram_error', 'details': result})
-        return jsonify({'invoice_link': result['result']})
-    except Exception as e:
-        return jsonify({'error': 'payment_unavailable', 'reason': str(e)})
-
-
-@app.route('/api/telegram/webhook', methods=['POST'])
-def telegram_webhook():
-    data = request.get_json() or {}
-    if 'message' in data and 'successful_payment' in data['message']:
-        payment = data['message']['successful_payment']
-        payload = payment.get('invoice_payload', '')
-        try:
-            parts = payload.split(':')
-            coins = int(parts[1])
-            guest_id = parts[3]
-            with lock:
-                player = find_player(guest_id)
-                if player:
-                    player['balance'] = round(player.get('balance', 0) + coins, 2)
-                    notify_player(player['game_id'], {'type': 'admin_balance_update', 'balance': player['balance']})
-        except Exception as e:
-            print('webhook error:', e)
-    return jsonify({'ok': True})
-
-
-@app.route('/api/bonus/state', methods=['POST', 'OPTIONS'])
-def bonus_state():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        _accrue_bonus(player)
-        return jsonify({
-            'pending_bonus': round(player.get('pending_bonus', 0), 2),
-            'balance': player.get('balance', 0)
-        })
-
-
-@app.route('/api/bonus/claim', methods=['POST', 'OPTIONS'])
-def bonus_claim():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        _accrue_bonus(player)
-        pb = player.get('pending_bonus', 0)
-        if pb < MIN_WITHDRAW:
-            return jsonify({'error': f'Минимум {MIN_WITHDRAW} монет', 'pending_bonus': round(pb, 2)})
-        player['balance'] = round(player.get('balance', 0) + pb, 2)
-        player['pending_bonus'] = 0.0
-        notify_player(player['game_id'], {'type': 'admin_balance_update', 'balance': player['balance']})
-        return jsonify({'ok': True, 'claimed': pb, 'balance': player['balance']})
-
-
-@app.route('/api/lobby/create', methods=['POST', 'OPTIONS'])
-def create_lobby():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        for lid in list(lobbies.keys()):
-            l = lobbies[lid]
-            members = [l['host']] + (l.get('guests') or [])
-            if any(m['game_id'] == player['game_id'] for m in members):
-                del lobbies[lid]
-        lobby_id = gen_id(6)
-        while lobby_id in lobbies:
-            lobby_id = gen_id(6)
-        lobby = {
-            'lobby_id': lobby_id,
-            'host': _pub(player),
-            'guests': [],
-            'game_type': data.get('game_type', 'rps'),
-            'created': now(),
-            'game_state': None
-        }
-        lobbies[lobby_id] = lobby
-    return jsonify({'lobby_id': lobby_id, 'host': lobby['host'], 'guests': lobby['guests']})
-
-
-@app.route('/api/lobby/join', methods=['POST', 'OPTIONS'])
-def join_lobby():
-    if request.method == 'OPTIONS':
-        return '', 204
-    lobby_id = (request.args.get('lobby_id') or '').strip()
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(data.get('guest_id'))
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        if lobby_id not in lobbies:
-            return jsonify({'error': 'not_found'})
-        lobby = lobbies[lobby_id]
-        if lobby['host']['game_id'] == player['game_id']:
-            return jsonify({'error': 'own_lobby'})
-        if any(g['game_id'] == player['game_id'] for g in lobby['guests']):
-            return jsonify({'error': 'already_in'})
-        if len(lobby['guests']) >= 2:
-            return jsonify({'error': 'full'})
-        lobby['guests'].append(_pub(player))
-        msg = {'type': 'players', 'players': [lobby['host']] + lobby['guests']}
-        notify_lobby(lobby_id, msg)
-        for m in [lobby['host']] + lobby['guests']:
-            notify_player(m['game_id'], msg)
-        return jsonify({'lobby_id': lobby_id, 'host': lobby['host'], 'guests': lobby['guests']})
-
-
-@app.route('/api/lobby/leave', methods=['POST', 'OPTIONS'])
-def leave_lobby():
-    if request.method == 'OPTIONS':
-        return '', 204
-    lobby_id = (request.args.get('lobby_id') or '').strip()
-    data = request.get_json() or {}
-    with lock:
-        player = find_player(data.get('guest_id'))
-        if not player or lobby_id not in lobbies:
-            return jsonify({'ok': True})
-        lobby = lobbies[lobby_id]
-        if lobby['host']['game_id'] == player['game_id']:
-            notify_lobby(lobby_id, {'type': 'system', 'text': 'Хост закрыл лобби'})
-            del lobbies[lobby_id]
-        else:
-            lobby['guests'] = [g for g in lobby['guests'] if g['game_id'] != player['game_id']]
-            lobby['game_state'] = None
-            notify_lobby(lobby_id, {'type': 'system', 'text': f"{player['name']} покинул лобби"})
-            msg = {'type': 'players', 'players': [lobby['host']] + lobby['guests']}
-            notify_lobby(lobby_id, msg)
-            for m in [lobby['host']] + lobby['guests']:
-                notify_player(m['game_id'], msg)
-    return jsonify({'ok': True})
-
-
-@app.route('/api/lobby/state')
-def lobby_state():
-    lobby_id = (request.args.get('lobby_id') or '').strip()
-    if lobby_id not in lobbies:
-        return jsonify({'error': 'not_found'})
-    l = lobbies[lobby_id]
-    return jsonify({
-        'lobby_id': lobby_id,
-        'host': l['host'],
-        'guests': l['guests'],
-        'game_type': l['game_type']
-    })
-
-
-# НОВОЕ: polling endpoint — синхронизация состояния лобби и игры
-@app.route('/api/lobby/poll')
-def lobby_poll():
-    lobby_id = (request.args.get('lobby_id') or '').strip()
-    guest_id = (request.args.get('guest_id') or '').strip()
-    if lobby_id not in lobbies:
-        return jsonify({'error': 'not_found'})
-    lobby = lobbies[lobby_id]
-    return jsonify({
-        'lobby_id': lobby_id,
-        'players': [lobby['host']] + (lobby.get('guests') or []),
-        'game_state': lobby.get('game_state')
-    })
-
-
-def make_initial_state(game_type, num_players):
-    gs = {'type': game_type, 'phase': 'playing'}
-    if game_type == 'lucky20':
-        gs['win_idx'] = random.randint(0, 19)
-        gs['turn'] = 'host'
-        gs['opened'] = []
-    elif game_type == 'horserace':
-        r = random.random(); acc = 0
-        weights = [0.30, 0.25, 0.20, 0.13, 0.08, 0.04]
-        winner = 0
-        for i, w in enumerate(weights):
-            acc += w
-            if r < acc:
-                winner = i; break
-        gs['winner_horse'] = winner
-        gs['picks'] = {}
-        gs['phase'] = 'picking'
-    elif game_type == 'dice':
-        gs['rolls'] = {}
-    elif game_type == 'blackjack':
-        gs['deck'] = _make_deck()
-        gs['dealer'] = []
-        gs['hands'] = {}
-        gs['state'] = {}
-        gs['turn_order'] = []
-        gs['turn_idx'] = 0
-        gs['phase'] = 'player_turns'
-        gs['with_dealer'] = (num_players == 2)
-    return gs
-
-
-def _make_deck():
-    suits = ['♠','♥','♦','♣']
-    ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K']
-    d = [{'s': s, 'r': r} for s in suits for r in ranks]
-    random.shuffle(d)
-    return d
-
-
-def _card_val(c):
-    if c['r'] == 'A': return 11
-    if c['r'] in ('J','Q','K','10'): return 10
-    return int(c['r'])
-
-
-def _hand_score(hand):
-    s = sum(_card_val(c) for c in hand)
-    aces = sum(1 for c in hand if c['r'] == 'A')
-    while s > 21 and aces > 0:
-        s -= 10; aces -= 1
-    return s
-
-
-@app.route('/api/lobby/game/init', methods=['POST', 'OPTIONS'])
-def game_init():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    lobby_id = data.get('lobby_id')
-    guest_id = data.get('guest_id')
-    game_type = data.get('game_type')
-    if lobby_id not in lobbies:
-        return jsonify({'error': 'not_found'})
-    with lock:
-        player = find_player(guest_id)
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        lobby = lobbies[lobby_id]
-        if lobby['host']['game_id'] != player['game_id']:
-            return jsonify({'error': 'not_host'})
-        if not lobby['guests']:
-            return jsonify({'error': 'no_guest'})
-        num_players = 1 + len(lobby['guests'])
-        gs = make_initial_state(game_type, num_players)
-        lobby['game_state'] = gs
-        if game_type == 'blackjack':
-            _bj_start(lobby, gs)
-        msg = {'type': 'game_init', 'game_state': gs}
-        notify_lobby(lobby_id, msg)
-        for m in [lobby['host']] + lobby['guests']:
-            notify_player(m['game_id'], msg)
-        return jsonify({'ok': True})
-
-
-def _bj_start(lobby, gs):
-    order = [lobby['host']] + lobby['guests']
-    gs['turn_order'] = [p['game_id'] for p in order]
-    gs['turn_idx'] = 0
-    for p in order:
-        gs['hands'][p['game_id']] = [gs['deck'].pop(), gs['deck'].pop()]
-        gs['state'][p['game_id']] = 'playing'
-    if gs.get('with_dealer'):
-        gs['dealer'] = [gs['deck'].pop(), gs['deck'].pop()]
-    gs['phase'] = 'player_turns'
-
-
-@app.route('/api/lobby/game/move', methods=['POST', 'OPTIONS'])
-def game_move():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    lobby_id = data.get('lobby_id')
-    guest_id = data.get('guest_id')
-    move = data.get('move', {})
-    if lobby_id not in lobbies:
-        return jsonify({'error': 'not_found'})
-    with lock:
-        player = find_player(guest_id)
-        if not player:
-            return jsonify({'error': 'not_registered'})
-        lobby = lobbies[lobby_id]
-        gs = lobby.get('game_state')
-        if not gs:
-            return jsonify({'error': 'no_game'})
-        pid = player['game_id']
-        is_host = lobby['host']['game_id'] == pid
-
-        if gs['type'] == 'lucky20':
-            if (is_host and gs['turn'] != 'host') or (not is_host and gs['turn'] != 'guest'):
-                return jsonify({'error': 'not_your_turn'})
-            idx = int(move.get('idx', -1))
-            if idx < 0 or idx > 19 or idx in gs['opened']:
-                return jsonify({'error': 'bad_move'})
-            gs['opened'].append(idx)
-            if idx == gs['win_idx']:
-                gs['phase'] = 'done'
-                gs['winner'] = pid
-            else:
-                gs['turn'] = 'guest' if is_host else 'host'
-
-        elif gs['type'] == 'horserace':
-            if gs.get('phase') == 'picking':
-                horse = int(move.get('horse', -1))
-                if horse < 0 or horse > 5:
-                    return jsonify({'error': 'bad_move'})
-                for other_pid, other_horse in gs['picks'].items():
-                    if other_horse == horse and other_pid != pid:
-                        return jsonify({'error': 'horse_taken'})
-                gs['picks'][pid] = horse
-                if len(gs['picks']) == 1 + len(lobby['guests']):
-                    gs['phase'] = 'racing'
-                    gs['race_start_ts'] = now()
-
-        elif gs['type'] == 'dice':
-            dice = move.get('dice', [0, 0])
-            if not isinstance(dice, list) or len(dice) != 2:
-                return jsonify({'error': 'bad_move'})
-            gs['rolls'][pid] = dice
-            if len(gs['rolls']) == 1 + len(lobby['guests']):
-                gs['phase'] = 'done'
-                best = -1; winners = []
-                for p, d in gs['rolls'].items():
-                    s = sum(d)
-                    if s > best:
-                        best = s; winners = [p]
-                    elif s == best:
-                        winners.append(p)
-                gs['winners'] = winners
-                gs['best'] = best
-
-        elif gs['type'] == 'blackjack':
-            if gs.get('phase') != 'player_turns':
-                return jsonify({'error': 'not_your_turn'})
-            order = gs['turn_order']
-            if gs['turn_idx'] >= len(order) or order[gs['turn_idx']] != pid:
-                return jsonify({'error': 'not_your_turn'})
-            action = move.get('action')
-            hand = gs['hands'][pid]
-            if action == 'hit':
-                hand.append(gs['deck'].pop())
-                if _hand_score(hand) > 21:
-                    gs['state'][pid] = 'bust'
-                    _bj_next_turn(lobby, gs)
-            elif action == 'stand':
-                gs['state'][pid] = 'stand'
-                _bj_next_turn(lobby, gs)
-
-        msg = {'type': 'game_update', 'game_state': gs}
-        notify_lobby(lobby_id, msg)
-        for m in [lobby['host']] + lobby['guests']:
-            notify_player(m['game_id'], msg)
-        return jsonify({'ok': True})
-
-
-def _bj_next_turn(lobby, gs):
-    gs['turn_idx'] += 1
-    order = gs['turn_order']
-    while gs['turn_idx'] < len(order) and gs['state'].get(order[gs['turn_idx']]) != 'playing':
-        gs['turn_idx'] += 1
-    if gs['turn_idx'] >= len(order):
-        if gs.get('with_dealer'):
-            while _hand_score(gs['dealer']) < 17:
-                gs['dealer'].append(gs['deck'].pop())
-        gs['phase'] = 'done'
-        sd = _hand_score(gs['dealer']) if gs.get('with_dealer') else 0
-        winners = []
-        scores = {}
-        for pid, hand in gs['hands'].items():
-            s = _hand_score(hand)
-            scores[pid] = s
-            if gs['state'].get(pid) == 'bust':
-                continue
-            if s > 21:
-                continue
-            if gs.get('with_dealer'):
-                if sd > 21 or s > sd:
-                    winners.append(pid)
-            else:
-                winners.append(pid)
-        if not gs.get('with_dealer') and winners:
-            best = max(scores.get(pid, 0) for pid in scores if gs['state'].get(pid) != 'bust')
-            winners = [pid for pid in scores if scores[pid] == best and gs['state'].get(pid) != 'bust']
-        gs['winners'] = winners
-        gs['dealer_score'] = sd
-        gs['all_scores'] = scores
-
-
-@app.route('/api/lobby/game/reset', methods=['POST', 'OPTIONS'])
-def game_reset():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    lobby_id = data.get('lobby_id')
-    if lobby_id not in lobbies:
-        return jsonify({'error': 'not_found'})
-    with lock:
-        lobby = lobbies[lobby_id]
-        gs = lobby.get('game_state')
-        if not gs:
-            return jsonify({'error': 'no_game'})
-        num_players = 1 + len(lobby['guests'])
-        new_gs = make_initial_state(gs['type'], num_players)
-        if gs['type'] == 'blackjack':
-            _bj_start(lobby, new_gs)
-        lobby['game_state'] = new_gs
-        msg = {'type': 'game_reset', 'game_state': new_gs}
-        notify_lobby(lobby_id, msg)
-        for m in [lobby['host']] + lobby['guests']:
-            notify_player(m['game_id'], msg)
-    return jsonify({'ok': True})
-
-
-@sock.route('/ws/lobby/<lobby_id>')
-def lobby_ws(ws, lobby_id):
-    if lobby_id not in lobbies:
-        try:
-            ws.send(json.dumps({'type': 'system', 'text': 'Лобби не существует'}))
-            ws.close()
-        except Exception:
-            pass
+            print('❌ Ошибка рассылки:', e)
+            time.sleep(300)
+
+
+# ═══════════════════════════════════════════════════════════
+#  ОБРАБОТКА СООБЩЕНИЙ (polling)
+# ═══════════════════════════════════════════════════════════
+def handle_update(update):
+    """Обрабатывает одно обновление от Telegram."""
+    msg = update.get('message') or update.get('edited_message')
+    if not msg:
+        # Обработка my_chat_member (добавление/удаление из группы)
+        my_chat = update.get('my_chat_member')
+        if my_chat:
+            handle_my_chat_member(my_chat)
         return
-    lobby_sockets.setdefault(lobby_id, []).append(ws)
-    player_name = 'Игрок'
-    player_id = None
-    try:
-        while True:
-            raw = ws.receive()
-            if raw is None:
-                break
-            try:
-                msg = json.loads(raw)
-            except Exception:
-                continue
-            action = msg.get('action')
-            if action == 'hello':
-                player_name = msg.get('name', 'Игрок')
-                player_id = msg.get('player_id')
-                if player_id:
-                    player_sockets.setdefault(player_id, []).append(ws)
-                notify_lobby(lobby_id, {'type': 'system', 'text': f"{player_name} подключился"})
-                lobby = lobbies.get(lobby_id)
-                if lobby:
-                    notify_lobby(lobby_id, {
-                        'type': 'players',
-                        'players': [lobby['host']] + lobby['guests']
-                    })
-                    if lobby.get('game_state'):
-                        notify_lobby(lobby_id, {
-                            'type': 'game_update',
-                            'game_state': lobby['game_state']
-                        })
-            elif action == 'chat':
-                notify_lobby(lobby_id, {
-                    'type': 'chat',
-                    'text': msg.get('text', ''),
-                    'name': player_name
-                })
-            elif action == 'ping':
-                try:
-                    ws.send(json.dumps({'type': 'pong', 't': now()}))
-                except Exception:
-                    pass
-    except Exception as e:
-        print(f'WS error: {e}')
-    finally:
+
+    chat = msg.get('chat', {})
+    chat_id = chat.get('id')
+    chat_type = chat.get('type')
+    text = (msg.get('text') or '').strip()
+    from_user = msg.get('from', {})
+
+    # Группа/супергруппа
+    if chat_type in ('group', 'supergroup'):
+        # Добавляем в подписчики групп
+        if str(chat_id) not in subscribers['groups']:
+            subscribers['groups'][str(chat_id)] = {
+                'title': chat.get('title', 'Группа'),
+                'added_at': int(time.time())
+            }
+            save_data()
+            print(f'➕ Новая группа: {chat.get("title")} ({chat_id})')
+
+        # Команды в группе
+        if text == '/start':
+            send_message(chat_id, GROUP_MESSAGES[0], play_button_group())
+        elif text == '/play':
+            send_message(chat_id, '🎰 <b>Играть</b> 👇', play_button_group())
+        return
+
+    # Личка
+    if chat_type == 'private':
+        # Регистрируем юзера
+        if str(chat_id) not in subscribers['users']:
+            subscribers['users'][str(chat_id)] = {
+                'first_name': from_user.get('first_name', ''),
+                'username': from_user.get('username', ''),
+                'added_at': int(time.time())
+            }
+            save_data()
+            print(f'➕ Новый юзер: {from_user.get("first_name")} ({chat_id})')
+
+        # Команды
+        if text == '/start':
+            send_message(chat_id, WELCOME_TEXT, play_button())
+        elif text == '/play':
+            send_message(chat_id, '🎰 <b>Погнали!</b> 👇', play_button())
+        elif text == '/help':
+            send_message(chat_id,
+                '👑 <b>Golden Palace</b>\n\n'
+                '📋 Доступные команды:\n'
+                '/start — приветствие\n'
+                '/play — начать игру\n'
+                '/help — эта справка\n\n'
+                '🎰 Играй прямо в Telegram!',
+                play_button())
+
+
+def handle_my_chat_member(update):
+    """Обработка добавления/удаления бота из группы."""
+    chat = update.get('chat', {})
+    chat_id = chat.get('id')
+    new_status = update.get('new_chat_member', {}).get('status')
+    old_status = update.get('old_chat_member', {}).get('status')
+
+    # Добавили в группу
+    if old_status in ('left', 'kicked') and new_status in ('member', 'administrator'):
+        subscribers['groups'][str(chat_id)] = {
+            'title': chat.get('title', 'Группа'),
+            'added_at': int(time.time())
+        }
+        save_data()
+        print(f'➕ Бот добавлен в группу: {chat.get("title")}')
+        send_message(chat_id, GROUP_MESSAGES[0], play_button_group())
+
+    # Удалили из группы
+    elif new_status in ('left', 'kicked'):
+        if str(chat_id) in subscribers['groups']:
+            del subscribers['groups'][str(chat_id)]
+            save_data()
+            print(f'➖ Бот удалён из группы: {chat.get("title")}')
+
+
+def polling_loop():
+    """Основной цикл получения обновлений от Telegram (long polling)."""
+    print('🤖 Бот запущен (polling)')
+    offset = 0
+
+    while True:
         try:
-            lobby_sockets[lobby_id].remove(ws)
-            if player_id and player_id in player_sockets:
-                try:
-                    player_sockets[player_id].remove(ws)
-                except Exception:
-                    pass
-            notify_lobby(lobby_id, {'type': 'system', 'text': f"{player_name} отключился"})
-        except Exception:
-            pass
+            url = f'https://api.telegram.org/bot{BOT_TOKEN}/getUpdates'
+            payload = {
+                'offset': offset,
+                'timeout': 30,
+                'allowed_updates': ['message', 'edited_message', 'my_chat_member']
+            }
+            data = json.dumps(payload).encode()
+            req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
+
+            with urllib.request.urlopen(req, timeout=35) as resp:
+                result = json.loads(resp.read().decode())
+
+            if result.get('ok'):
+                for update in result.get('result', []):
+                    try:
+                        handle_update(update)
+                    except Exception as e:
+                        print('❌ Ошибка обработки:', e)
+                    offset = update['update_id'] + 1
+
+        except Exception as e:
+            print('❌ Polling error:', e)
+            time.sleep(5)
 
 
-@sock.route('/ws/player/<player_id>')
-def player_ws(ws, player_id):
-    player_sockets.setdefault(player_id, []).append(ws)
-    try:
-        while True:
-            raw = ws.receive()
-            if raw is None:
-                break
-            try:
-                msg = json.loads(raw)
-                if msg.get('action') == 'ping':
-                    ws.send(json.dumps({'type': 'pong', 't': now()}))
-            except Exception:
-                pass
-    except Exception:
-        pass
-    finally:
-        try:
-            player_sockets[player_id].remove(ws)
-        except Exception:
-            pass
+# ═══════════════════════════════════════════════════════════
+#  ЗАПУСК
+# ═══════════════════════════════════════════════════════════
+def start_bot():
+    """Запускает бота в фоновом потоке."""
+    if not BOT_TOKEN:
+        print('⚠️ BOT_TOKEN не задан — бот не запущен')
+        return
+
+    load_data()
+
+    # Поток для получения обновлений
+    threading.Thread(target=polling_loop, daemon=True).start()
+    # Поток для рассылок
+    threading.Thread(target=hourly_broadcast_loop, daemon=True).start()
+
+    print('✅ Бот инициализирован')
 
 
+# Если запускается отдельно
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    start_bot()
+    # Держим главный поток живым
+    while True:
+        time.sleep(60)
