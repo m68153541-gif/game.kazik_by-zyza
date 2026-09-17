@@ -64,14 +64,11 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 .menu-header{padding:20px 16px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;flex-shrink:0}
 .menu-header h1{font-size:32px;letter-spacing:4px;background:linear-gradient(90deg,#ff2d95,#00e5ff,#a855f7,#ff2d95);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:900;animation:logoShift 3s linear infinite}
 .balance-mini{background:linear-gradient(145deg,rgba(255,45,149,.15),rgba(0,229,255,.15));border:2px solid #ffd700;border-radius:16px;padding:10px 26px;font-size:17px;font-weight:900;color:#ffd700;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 0 25px rgba(255,215,0,.4)}
-
-/* НОВЫЙ БЕЙДЖ ПРОФИЛЯ */
 .my-profile-badge{display:flex;align-items:center;gap:10px;background:linear-gradient(145deg,rgba(0,229,255,.12),rgba(168,85,247,.12));border:2px solid #00e5ff;border-radius:14px;padding:8px 18px;font-size:13px;font-weight:bold;box-shadow:0 0 20px rgba(0,229,255,.3);transition:all .3s ease}
 .my-profile-badge .mp-name{color:#fff;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .my-profile-badge .mp-id{color:#22d3ee;font-family:monospace;letter-spacing:2px;font-size:14px}
 .my-profile-badge.loading{border-color:#a78bfa;opacity:.7}
 .my-profile-badge.registered{border-color:#22c55e;box-shadow:0 0 20px rgba(34,197,94,.4)}
-
 .player-names-row{display:flex;gap:10px;width:100%;max-width:440px;margin-top:4px}
 .player-names-row .pn{flex:1;font-size:12px;font-weight:bold;padding:7px 12px;border-radius:12px;background:rgba(26,16,53,.85);border:2px solid;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .player-names-row .pn.p1{border-color:#ff2d95;color:#ff2d95}
@@ -104,18 +101,37 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 .list-btn .lb-info .lb-d{font-size:11px;color:#a78bfa;font-weight:normal;margin-top:2px}
 .list-btn .lb-arrow{color:#ff2d95;font-size:20px}
 
-/* ONLINE COMING SOON */
-.online-coming-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;padding:30px 20px;max-width:420px;margin:0 auto;height:100%}
-.online-coming-soon .ocs-ico{font-size:90px;filter:drop-shadow(0 0 25px rgba(255,45,149,.7));animation:ocsPulse 2.4s ease-in-out infinite}
-@keyframes ocsPulse{0%,100%{transform:scale(1) rotate(-3deg)}50%{transform:scale(1.1) rotate(3deg)}}
-.online-coming-soon h2{font-size:24px;color:#ff2d95;letter-spacing:3px;font-weight:900;text-transform:uppercase}
-.online-coming-soon .ocs-badge{font-size:12px;background:linear-gradient(145deg,#ff2d95,#a855f7);color:#fff;padding:6px 18px;border-radius:16px;font-weight:bold;letter-spacing:2px;box-shadow:0 0 20px rgba(255,45,149,.5)}
-.online-coming-soon p{color:#cbd5e1;font-size:13px;line-height:1.7;max-width:340px}
-.online-coming-soon .ocs-features{display:flex;flex-direction:column;gap:8px;width:100%;max-width:340px;margin-top:6px}
-.online-coming-soon .ocs-feature{display:flex;align-items:center;gap:10px;background:rgba(26,16,53,.7);border:1px solid #3d2d70;border-radius:12px;padding:10px 14px;font-size:12px;color:#a78bfa;text-align:left}
-.online-coming-soon .ocs-feature .of-ico{font-size:18px}
-.online-coming-soon .ocs-feature .of-desc{color:#cbd5e1}
-.online-coming-soon .ocs-footer{font-size:11px;color:#666;font-style:italic;margin-top:10px}
+/* ONLINE */
+.online-tab-content{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:20px;max-width:420px;margin:0 auto}
+.online-tab-content .big-ico{font-size:70px;filter:drop-shadow(0 0 15px rgba(0,229,255,.6))}
+.online-tab-content h2{color:#00e5ff;font-size:22px;letter-spacing:2px}
+.online-tab-content .soon-badge{font-size:11px;background:linear-gradient(145deg,#ff2d95,#a855f7);color:#fff;padding:5px 14px;border-radius:14px;font-weight:bold;letter-spacing:2px}
+.online-tab-content p{color:#ccc;font-size:13px;line-height:1.6}
+.online-tab-content .support{color:#22d3ee;font-size:12px;font-style:italic}
+
+.lobby-players{display:flex;align-items:center;justify-content:center;gap:12px;padding:14px;flex-wrap:wrap}
+.lobby-player{flex:1;min-width:100px;max-width:150px;background:linear-gradient(145deg,rgba(26,16,53,.95),rgba(21,12,43,.95));border:2px solid #3d2d70;border-radius:16px;padding:12px 10px;text-align:center}
+.lobby-player.host{border-color:#ff2d95}
+.lobby-player.guest{border-color:#00e5ff}
+.lobby-player.guest.empty{border-color:#3d2d70;opacity:.6}
+.lobby-player .lp-avatar{font-size:32px;margin-bottom:6px}
+.lobby-player .lp-name{font-size:13px;font-weight:bold;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lobby-player .lp-badge{font-size:10px;font-weight:bold;margin-top:4px;padding:2px 8px;border-radius:8px;background:rgba(255,255,255,.08);color:#a78bfa;display:inline-block}
+.lobby-chat{flex:1;overflow-y:auto;background:rgba(10,14,26,.6);border-radius:16px;padding:12px;margin:0 16px;display:flex;flex-direction:column;gap:6px;min-height:100px;max-height:200px}
+.chat-msg{font-size:13px;padding:8px 12px;border-radius:12px;max-width:85%;word-wrap:break-word}
+.chat-msg.chat-user{background:linear-gradient(145deg,rgba(255,45,149,.25),rgba(168,85,247,.25));color:#fff;align-self:flex-start;border:1px solid rgba(255,45,149,.4)}
+.chat-msg.chat-system{background:rgba(61,45,112,.5);color:#a78bfa;font-style:italic;font-size:12px;align-self:center;text-align:center}
+.lobby-chat-input{display:flex;gap:8px;padding:12px 16px}
+.lobby-chat-input input{flex:1;padding:12px 16px;background:rgba(26,16,53,.9);border:2px solid #3d2d70;border-radius:24px;color:#fff;font-size:14px;outline:none}
+.lobby-chat-input button{width:48px;height:48px;border-radius:50%;background:linear-gradient(145deg,#ff2d95,#a855f7);border:none;color:#fff;font-size:20px;cursor:pointer}
+.lobby-actions{padding:0 16px 16px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.lobby-hint{font-size:12px;color:#a78bfa;text-align:center;padding:8px 14px;background:rgba(26,16,53,.6);border-radius:12px;max-width:340px}
+.lobby-hint b{color:#00e5ff;letter-spacing:2px}
+
+.online-stage{width:100%;max-width:480px}
+.online-cell{background:linear-gradient(145deg,#1e2a4a,#16213e);border:2px solid #2d4070;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;color:#00e5ff;cursor:pointer;transition:all .3s ease}
+.online-cell.opened{opacity:.5;cursor:default}
+.online-cell.win{background:linear-gradient(145deg,#22d3ee,#0891b2)!important;border-color:#22d3ee!important;color:#fff;box-shadow:0 0 30px #22d3ee}
 
 .game-screen{background:#0a0e1a;position:relative;z-index:1}
 .top-bar{display:flex;align-items:center;padding:10px 14px;gap:10px;background:linear-gradient(180deg,rgba(20,28,54,.95),rgba(10,14,26,.85));border-bottom:1px solid #3d2d70;flex-shrink:0;z-index:100}
@@ -383,7 +399,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 <div class="flash" id="flashBox"></div>
 <div class="ping-display" id="pingDisplay" style="display:none">📡 -- ms</div>
 
-<!-- TECH BREAK OVERLAY -->
 <div class="tech-break-overlay" id="techBreakOverlay">
   <div class="tech-break-box">
     <h2>🔧 ТЕХНИЧЕСКИЙ ПЕРЕРЫВ</h2>
@@ -395,7 +410,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
   </div>
 </div>
 
-<!-- MODALS -->
 <div class="modal-overlay" id="changeNameModal"><div class="modal"><h3>✏️ Смена ника</h3><p>Введи новый ник</p><input type="text" id="changeNameInput" maxlength="20" placeholder="Новый ник" style="letter-spacing:1px;font-size:16px;text-align:left"><div class="modal-actions"><button class="m-cancel" id="changeNameCancel">Отмена</button><button class="m-ok" id="changeNameOk">Сохранить</button></div></div></div>
 <div class="modal-overlay" id="bugModal"><div class="modal" style="border-color:#ff5252"><h3 id="bugTitle">🐛 Игра недоступна</h3><p id="bugText">В игре найдены баги 😔</p><div class="modal-actions"><button class="m-ok" id="bugOk">Понятно</button></div></div></div>
 <div class="modal-overlay" id="adminLoginModal"><div class="modal" style="border-color:#ffd700"><h3>🔐 Вход в админ-панель</h3><p>Только для администратора</p><input type="text" id="adminLoginInput" placeholder="Логин" style="letter-spacing:2px;font-size:16px"><input type="password" id="adminPassInput" placeholder="Пароль" style="letter-spacing:2px;font-size:16px"><div class="modal-actions"><button class="m-cancel" id="adminLoginCancel">Отмена</button><button class="m-ok" id="adminLoginOk" style="background:linear-gradient(145deg,#ffd700,#f59e0b);color:#0a0e1a">Войти</button></div></div></div>
@@ -422,7 +436,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
   </div>
   <div class="tab-content active" id="tabGames">
     <div class="games-grid">
-      <!-- АКТИВНЫЕ ИГРЫ ВВЕРХУ -->
       <div class="game-tile" data-game="plinko"><div class="g-badge">НОВИНКА</div><div class="g-ico">🎯</div><div class="g-name">Plinko</div><div class="g-desc">Падающий шарик</div></div>
       <div class="game-tile" data-game="bj"><div class="g-ico">🃏</div><div class="g-name">Blackjack</div><div class="g-desc">21 и победа</div></div>
       <div class="game-tile" data-game="dice"><div class="g-ico">🎲</div><div class="g-name">Dice</div><div class="g-desc">Больше / меньше</div></div>
@@ -431,7 +444,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
       <div class="game-tile" data-game="coinflip"><div class="g-ico">🪙</div><div class="g-name">Coin Flip</div><div class="g-desc">Орёл или решка</div></div>
       <div class="game-tile" data-game="horserace"><div class="g-ico">🐎</div><div class="g-name">Horse Race</div><div class="g-desc">Скачки</div></div>
       <div class="game-tile" data-game="lucky"><div class="g-ico">💎</div><div class="g-name">Lucky 20</div><div class="g-desc">Найди алмаз</div></div>
-      <!-- СКОРО ВНИЗУ -->
       <div class="game-tile disabled" data-game="tower"><div class="g-badge">СКОРО</div><div class="g-ico">🏗️</div><div class="g-name">Tower</div><div class="g-desc">Строй башню</div></div>
       <div class="game-tile disabled" data-game="mines"><div class="g-badge">СКОРО</div><div class="g-ico">💣</div><div class="g-name">Mines</div><div class="g-desc">5×5 · где мины?</div></div>
       <div class="game-tile disabled" data-game="keno"><div class="g-badge">СКОРО</div><div class="g-ico">🎱</div><div class="g-name">Keno</div><div class="g-desc">Угадай числа</div></div>
@@ -439,26 +451,20 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
     </div>
   </div>
   <div class="tab-content" id="tabOnline">
-    <div class="online-coming-soon">
-      <div class="ocs-ico">🛠️</div>
-      <h2>Онлайн на переработке</h2>
-      <div class="ocs-badge">СКОРО</div>
-      <p>Мы полностью переделываем онлайн-режим, чтобы игры запускались мгновенно, без задержек и багов.</p>
-      <div class="ocs-features">
-        <div class="ocs-feature"><span class="of-ico">⚡</span><span class="of-desc">Мгновенный запуск игр</span></div>
-        <div class="ocs-feature"><span class="of-ico">🎯</span><span class="of-desc">Plinko с настоящей физикой</span></div>
-        <div class="ocs-feature"><span class="of-ico">🃏</span><span class="of-desc">Blackjack с дилером</span></div>
-        <div class="ocs-feature"><span class="of-ico">👥</span><span class="of-desc">Друзья и приглашения</span></div>
-      </div>
-      <div class="ocs-footer">Следи за обновлениями в нашем боте 💖</div>
+    <div class="online-tab-content">
+      <div class="big-ico">🌐</div>
+      <h2>Онлайн-режим</h2>
+      <div class="soon-badge">2 ИГРЫ · БЕЗ СТАВОК</div>
+      <p>Играй с другом по сети — Lucky 20 и Dice</p>
+      <p class="support">💎 Найди алмаз первым · 🎲 У кого больше</p>
+      <button class="btn-deal" id="createLobbyBtn" style="margin-top:16px;padding:14px 40px;width:100%;max-width:340px">➕ Создать лобби</button>
+      <button class="btn-deal" id="joinLobbyBtn" style="margin-top:10px;padding:14px 40px;width:100%;max-width:340px;background:linear-gradient(145deg,#00e5ff,#0891b2)">🔗 Войти по ID</button>
     </div>
   </div>
   <div class="tab-content" id="tabMore">
-    <button class="list-btn" id="openShopBtn"><div class="lb-ico">🛒</div><div class="lb-info"><div class="lb-n">Магазин монет</div><div class="lb-d">Купить монеты за звёзды Telegram</div></div><div class="lb-arrow">›</div></button>
-    <button class="list-btn" id="openBonusBtn"><div class="lb-ico">🎁</div><div class="lb-info"><div class="lb-n">Почасовой бонус</div><div class="lb-d">0.2 монеты в час · Забрать от 50</div></div><div class="lb-arrow">›</div></button>
     <button class="list-btn" id="openSettingsBtn"><div class="lb-ico">⚙️</div><div class="lb-info"><div class="lb-n">Настройки</div><div class="lb-d">Звук, вибрация, имена</div></div><div class="lb-arrow">›</div></button>
     <button class="list-btn" id="openAboutBtn"><div class="lb-ico">ℹ️</div><div class="lb-info"><div class="lb-n">О игре</div><div class="lb-d">Что это и как играть</div></div><div class="lb-arrow">›</div></button>
-    <div style="text-align:center;color:#555;font-size:11px;margin-top:16px;">версия 2.0</div>
+    <div style="text-align:center;color:#555;font-size:11px;margin-top:16px;">версия 2.1</div>
   </div>
 </div>
 
@@ -489,35 +495,18 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
 <div class="screen game-screen" id="aboutScreen">
   <div class="top-bar"><button class="back-btn" id="aboutBack">◀ Назад</button><div class="game-title">ℹ️ О игре</div><div style="width:60px"></div></div>
   <div class="scroll-content">
-    <div class="about-card"><div class="about-icon">🎰</div><h2>КАЗИК</h2><p class="about-version">версия 2.0 · by zyza</p><p class="about-love">💖 с любовью от Зюзи 💖</p></div>
-    <div class="about-block"><h3>🎯 Что это?</h3><p>Мини-казино внутри Telegram. Играй в мини-игры, соревнуйся с друзьями.</p></div>
-    <div class="about-block"><h3>💰 Как играть?</h3><p>Один общий баланс. Делай ставки — выигрывай монеты. При заходе создаётся твой профиль с уникальным ID.</p></div>
+    <div class="about-card"><div class="about-icon">🎰</div><h2>КАЗИК</h2><p class="about-version">версия 2.1 · by zyza</p><p class="about-love">💖 с любовью от Зюзи 💖</p></div>
+    <div class="about-block"><h3>🎯 Что это?</h3><p>Мини-казино внутри Telegram.</p></div>
+    <div class="about-block"><h3>🌐 Онлайн</h3><p>Создай лобби, позови друга по ID и играйте вместе в Lucky 20 и Dice без ставок.</p></div>
     <div class="about-block" style="border-color:#22d3ee"><p style="color:#22d3ee;text-align:center">💚 Спасибо что играешь!</p></div>
   </div>
 </div>
-
 <!-- ===== SHOP ===== -->
 <div class="screen game-screen" id="shopScreen">
-  <div class="top-bar"><button class="back-btn" id="shopBack">◀ Назад</button><div class="game-title">🛒 Магазин монет</div><div style="width:60px"></div></div>
+  <div class="top-bar"><button class="back-btn" id="shopBack">◀ Назад</button><div class="game-title">🛒 Магазин</div><div style="width:60px"></div></div>
   <div class="scroll-content">
-    <div class="about-card" style="border-color:#ffd700"><div class="about-icon">🛒</div><h2 style="font-size:22px;color:#ffd700">Магазин монет</h2><p class="about-version">Оплата звёздами Telegram ⭐</p></div>
-    <div class="bonus-card daily" style="border-color:#ffd700">
-      <h3>⭐ СУПЕР-ПРЕДЛОЖЕНИЕ</h3>
-      <div class="bonus-amount">50 💰</div>
-      <div class="bonus-hint">за 1 звезду ⭐ · только 1 раз в 2 суток</div>
-      <button class="shop-buy-btn" onclick="buyCoins(50,1,true)" style="width:100%;border-width:3px;padding:14px 0;font-size:15px" id="dailyStarBtn">⭐ Задонатить 1 ⭐</button>
-      <div id="dailyStarTimer" style="font-size:11px;color:#a78bfa;margin-top:8px"></div>
-    </div>
-    <div class="shop-card">
-      <h3 style="color:#ffd700;margin-bottom:10px">💎 Наборы монет</h3>
-      <div class="shop-row"><div><span class="sr-coins">💰 100 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(100,25)">25 ⭐</button></div>
-      <div class="shop-row"><div><span class="sr-coins">💰 200 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(200,50)">50 ⭐</button></div>
-      <div class="shop-row"><div><span class="sr-coins">💰 500 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(500,100)">100 ⭐</button></div>
-      <div class="shop-row"><div><span class="sr-coins">💰 1 000 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(1000,180)">180 ⭐</button></div>
-      <div class="shop-row"><div><span class="sr-coins">💰 2 500 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(2500,400)">400 ⭐</button></div>
-      <div class="shop-row"><div><span class="sr-coins">💰 5 000 монет</span></div><button class="shop-buy-btn" onclick="buyCoins(5000,750)">750 ⭐</button></div>
-    </div>
-    <div class="about-block" style="border-color:#ffd700"><h3 style="color:#ffd700">ℹ️ О звёздах</h3><p>Оплата звёздами работает только внутри Telegram. Открой игру через бота, чтобы покупать монеты.</p></div>
+    <div class="about-card" style="border-color:#ffd700"><div class="about-icon">🛒</div><h2 style="font-size:22px;color:#ffd700">Магазин</h2><p class="about-version">Оплата звёздами Telegram ⭐</p></div>
+    <div class="about-block" style="border-color:#ffd700"><h3 style="color:#ffd700">ℹ️ Временно недоступно</h3><p>Оплата звёздами появится в следующем обновлении.</p></div>
   </div>
 </div>
 
@@ -531,9 +520,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
       <div class="bonus-hint">+0.2 монеты каждый час · Забрать от 50</div>
       <button class="btn-deal" id="bonusClaimBtn" onclick="claimBonus()" style="width:100%">💰 Забрать</button>
     </div>
-    <div class="about-block"><h3>ℹ️ Как это работает</h3><p>Пока ты не в игре, каждые 60 минут начисляется 0.2 монеты. Когда накопится минимум 50 — можно забрать.</p></div>
   </div>
 </div>
+
 <!-- ===== ADMIN PANEL ===== -->
 <div class="screen game-screen" id="adminScreen">
   <div class="top-bar"><button class="back-btn" id="adminBack">◀ Назад</button><div class="game-title">🔐 Админ-панель</div><div style="width:60px"></div></div>
@@ -564,6 +553,40 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
       <div id="adminPlayersList" style="max-height:60vh;overflow-y:auto"></div>
       <button class="shop-buy-btn" id="adminRefreshPlayers" style="margin-top:10px;width:100%">🔄 Обновить список</button>
     </div>
+  </div>
+</div>
+
+<!-- ===== JOIN LOBBY ===== -->
+<div class="screen game-screen" id="joinLobbyScreen">
+  <div class="top-bar"><button class="back-btn" id="joinBack">◀ Назад</button><div class="game-title">🔗 Войти по ID</div><div style="width:60px"></div></div>
+  <div class="scroll-content" style="justify-content:center">
+    <div style="font-size:60px;text-align:center">🔗</div>
+    <h2 style="color:#00e5ff;text-align:center">Введи ID лобби</h2>
+    <p style="color:#a78bfa;text-align:center;font-size:13px;max-width:300px">Попроси друга создать лобби и передать тебе его ID</p>
+    <input class="name-input p1" id="joinLobbyInput" type="tel" inputmode="numeric" maxlength="6" placeholder="123456" style="text-align:center;letter-spacing:8px;font-size:24px;font-weight:bold;max-width:340px">
+    <button class="btn-deal" id="joinLobbyConfirmBtn" style="margin-top:14px;max-width:340px;width:100%">🚀 Войти</button>
+    <div id="joinLobbyError" style="color:#ff5252;font-size:12px;margin-top:8px;min-height:16px;text-align:center"></div>
+  </div>
+</div>
+
+<!-- ===== LOBBY ===== -->
+<div class="screen game-screen" id="lobbyScreen">
+  <div class="top-bar"><button class="back-btn" id="lobbyLeaveBtn">◀ Выйти</button><div class="game-title">🎮 Лобби</div><div class="bal-mini" id="lobbyIdDisplay">#000000</div></div>
+  <div class="lobby-players" id="lobbyPlayers"></div>
+  <div class="lobby-chat" id="lobbyChat"></div>
+  <div class="lobby-chat-input"><input id="chatInput" placeholder="Сообщение..." maxlength="200"><button id="chatSendBtn">➤</button></div>
+  <div class="lobby-actions" id="lobbyActions"></div>
+</div>
+
+<!-- ===== ONLINE GAME ===== -->
+<div class="screen game-screen" id="onlineGameScreen">
+  <div class="top-bar">
+    <button class="back-btn" id="onlineGameLeaveBtn">◀ Выйти</button>
+    <div class="game-title" id="onlineGameTitle">🎮 Игра</div>
+    <div class="bal-mini" style="border-color:#a78bfa;color:#a78bfa">🎮 Онлайн</div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;gap:12px;overflow-y:auto">
+    <div id="onlineGameStage" class="online-stage"></div>
   </div>
 </div>
 
@@ -740,7 +763,6 @@ var ONLINE_KEY='kazik_online_profile_v1';
 var GUEST_KEY='kazik_guest_id';
 var NAME1_KEY='player1_name_v1';
 var NAME2_KEY='player2_name_v1';
-var DAILY_KEY='kazik_daily_star_v1';
 var onlineProfile=null;
 try{onlineProfile=JSON.parse(localStorage.getItem(ONLINE_KEY)||'null')}catch(e){}
 if(onlineProfile&&typeof onlineProfile.balance==='number')BALANCE_IS_SERVER=true;
@@ -918,8 +940,6 @@ function showScreen(id){
   setTimeout(function(){
     if(id==='menu'){updateWalletUI();updateNamesUI();updateProfileBadge()}
     if(id==='settingsScreen')openSettings();
-    if(id==='bonusScreen')loadBonusState();
-    if(id==='shopScreen')updateDailyStarBtn();
     if(id==='plinkoGame')setTimeout(plinkoResize,400);
   },30);
 }
@@ -965,10 +985,10 @@ document.querySelectorAll('.game-tile').forEach(function(b){
 document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',function(){showScreen('menu')})});
 document.getElementById('openSettingsBtn').addEventListener('click',function(){showScreen('settingsScreen')});
 document.getElementById('openAboutBtn').addEventListener('click',function(){showScreen('aboutScreen')});
-document.getElementById('openShopBtn').addEventListener('click',function(){showScreen('shopScreen')});
-document.getElementById('openBonusBtn').addEventListener('click',function(){showScreen('bonusScreen')});
-document.getElementById('shopBack').addEventListener('click',function(){showScreen('menu')});
-document.getElementById('bonusBack').addEventListener('click',function(){showScreen('menu')});
+document.getElementById('openShopBtn')&&document.getElementById('openShopBtn').addEventListener('click',function(){showScreen('shopScreen')});
+document.getElementById('openBonusBtn')&&document.getElementById('openBonusBtn').addEventListener('click',function(){showScreen('bonusScreen')});
+document.getElementById('shopBack')&&document.getElementById('shopBack').addEventListener('click',function(){showScreen('menu')});
+document.getElementById('bonusBack')&&document.getElementById('bonusBack').addEventListener('click',function(){showScreen('menu')});
 document.getElementById('settingsBack').addEventListener('click',function(){showScreen('menu')});
 document.getElementById('aboutBack').addEventListener('click',function(){showScreen('menu')});
 document.getElementById('adminBack').addEventListener('click',function(){showScreen('settingsScreen')});
@@ -1033,13 +1053,15 @@ document.getElementById('techBreakCloseBtn').addEventListener('click',function()
    ============================================================ */
 var playerSocket=null;
 var playerSocketPingInt=null;
+var playerSocketReconnectInt=null;
 
 function connectPlayerWs(){
   if(!onlineProfile||!onlineProfile.game_id)return;
   if(playerSocket&&playerSocket.readyState===WebSocket.OPEN)return;
-  var url=API_URL.replace('https://','wss://').replace('http://','ws://')+'/ws/player/'+onlineProfile.game_id;
+  if(playerSocket&&playerSocket.readyState===WebSocket.CONNECTING)return;
+  var wsUrl=API_URL.replace('https://','wss://').replace('http://','ws://')+'/ws/player/'+onlineProfile.game_id;
   try{
-    playerSocket=new WebSocket(url);
+    playerSocket=new WebSocket(wsUrl);
     playerSocket.onopen=function(){
       console.log('🔌 WS подключён');
       if(playerSocketPingInt)clearInterval(playerSocketPingInt);
@@ -1066,22 +1088,26 @@ function connectPlayerWs(){
             ov.classList.remove('show');
           }
         }
-        if(msg.type==='friends_update'){
-          // TODO: обновление списка друзей если экран открыт
-        }
       }catch(err){}
     };
     playerSocket.onclose=function(){
       if(playerSocketPingInt){clearInterval(playerSocketPingInt);playerSocketPingInt=null}
-      setTimeout(connectPlayerWs,5000);
+      if(playerSocketReconnectInt)clearTimeout(playerSocketReconnectInt);
+      playerSocketReconnectInt=setTimeout(function(){
+        if(onlineProfile&&onlineProfile.game_id)connectPlayerWs();
+      },3000);
     };
-  }catch(e){console.error('WS ошибка:', e);}
+  }catch(e){
+    if(playerSocketReconnectInt)clearTimeout(playerSocketReconnectInt);
+    playerSocketReconnectInt=setTimeout(function(){
+      if(onlineProfile&&onlineProfile.game_id)connectPlayerWs();
+    },5000);
+  }
 }
 
 function silentRegister(){
-  console.log('🔄 Регистрация на сервере...');
+  console.log('🔄 Регистрация...');
   updateProfileBadge();
-
   var name='Игрок';
   try{
     if(window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initDataUnsafe&&window.Telegram.WebApp.initDataUnsafe.user){
@@ -1103,13 +1129,7 @@ function silentRegister(){
   })
   .then(function(r){return r.json()})
   .then(function(data){
-    console.log('✅ Регистрация:', data);
-    if(data.error){
-      console.error('❌ Ошибка:', data.error);
-      var badge=document.getElementById('myProfileBadge');
-      if(badge)badge.classList.remove('loading');
-      return;
-    }
+    if(data.error)return;
     if(data.player){
       onlineProfile=data.player;
       localStorage.setItem(ONLINE_KEY,JSON.stringify(data.player));
@@ -1119,15 +1139,11 @@ function silentRegister(){
       }
       updateProfileBadge();
       updateNamesUI();
-      console.log('🎮 ID:', data.player.game_id, '· Баланс:', data.player.balance);
+      console.log('🎮 ID:', data.player.game_id);
       connectPlayerWs();
     }
   })
-  .catch(function(e){
-    console.error('❌ Сеть:', e);
-    var badge=document.getElementById('myProfileBadge');
-    if(badge)badge.classList.remove('loading');
-  });
+  .catch(function(e){console.error('Сеть:', e);});
 }
 
 /* ============================================================
@@ -1149,7 +1165,6 @@ document.getElementById('adminLoginOk').addEventListener('click',function(){
   var login=document.getElementById('adminLoginInput').value.trim();
   var password=document.getElementById('adminPassInput').value.trim();
   if(!login||!password){showToast('Введите логин и пароль');return}
-
   fetch(API_URL+'/api/admin/login',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -1163,7 +1178,6 @@ document.getElementById('adminLoginOk').addEventListener('click',function(){
       return;
     }
     ADMIN_TOKEN=data.token;
-    console.log('✅ Админ вошёл, токен:', ADMIN_TOKEN);
     document.getElementById('adminLoginModal').classList.remove('show');
     document.getElementById('techBreakOverlay').classList.remove('show');
     document.getElementById('techBreakCloseBtn').style.display='inline-block';
@@ -1171,27 +1185,17 @@ document.getElementById('adminLoginOk').addEventListener('click',function(){
     loadAdminPlayers();
     sndBig();
   })
-  .catch(function(e){
-    console.error('Login error:', e);
-    showToast('Сервер не отвечает');
-    sndLose();
-  });
+  .catch(function(){showToast('Сервер не отвечает');sndLose();});
 });
 
 function loadAdminPlayers(){
-  if(!ADMIN_TOKEN){
-    showToast('Сначала войдите');
-    return;
-  }
+  if(!ADMIN_TOKEN){showToast('Сначала войдите');return}
   fetch(API_URL+'/api/admin/players',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({admin_token:ADMIN_TOKEN})
   })
-  .then(function(r){
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    return r.json();
-  })
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
   .then(function(data){
     if(data.error==='unauthorized'){
       showToast('Сессия истекла — войдите заново');
@@ -1199,10 +1203,7 @@ function loadAdminPlayers(){
       document.getElementById('adminLoginModal').classList.add('show');
       return;
     }
-    if(data.error){
-      showToast('Ошибка: '+data.error);
-      return;
-    }
+    if(data.error){showToast('Ошибка: '+data.error);return}
     document.getElementById('adminPlayerCount').textContent=data.players.length;
     document.getElementById('techBreakStatus').textContent=data.tech_break?'ВКЛ':'ВЫКЛ';
     document.getElementById('techBreakStatus').style.color=data.tech_break?'#ff5252':'#22c55e';
@@ -1215,7 +1216,7 @@ function loadAdminPlayers(){
       data.players.forEach(function(p){
         html+='<div class="admin-player-row">'+
           '<div class="ap-info"><div class="ap-name">'+(p.online?'🟢 ':'⚪ ')+p.name+'</div>'+
-          '<div class="ap-id">ID: '+p.game_id+' · Бонус: '+(p.pending_bonus||0).toFixed(2)+'</div></div>'+
+          '<div class="ap-id">ID: '+p.game_id+'</div></div>'+
           '<div class="ap-balance">💰 '+fmt(p.balance)+'</div>'+
           '<div class="ap-actions"><button onclick="openAdminEdit(\''+p.game_id+'\',\''+p.name.replace(/'/g,"\\'")+'\','+p.balance+')">✏️</button></div>'+
         '</div>';
@@ -1224,10 +1225,7 @@ function loadAdminPlayers(){
     document.getElementById('adminPlayersList').innerHTML=html;
   })
   .catch(function(e){
-    console.error('Load players error:', e);
-    document.getElementById('adminPlayersList').innerHTML=
-      '<div style="text-align:center;color:#ff5252;padding:20px">⚠ Сервер не отвечает<br>'+
-      '<span style="font-size:11px;color:#a78bfa">'+e.message+'</span></div>';
+    document.getElementById('adminPlayersList').innerHTML='<div style="text-align:center;color:#ff5252;padding:20px">⚠ Сервер не отвечает</div>';
     document.getElementById('adminPlayerCount').textContent='?';
   });
 }
@@ -1279,7 +1277,7 @@ function adminSelfBonus(amount){
   .then(function(data){
     if(data.error){showToast('Ошибка: '+data.error);return}
     setWallet(data.balance);updateWalletUI();
-    showToast('+'+fmt(amount)+' монет начислено');
+    showToast('+'+fmt(amount)+' монет');
     sndBig();spawnCoins(10);loadAdminPlayers();
   })
   .catch(function(){showToast('Сервер не отвечает')});
@@ -1332,37 +1330,342 @@ document.getElementById('adminEditAdd').addEventListener('click',function(){
 });
 
 /* ============================================================
-   МАГАЗИН / БОНУС
+   БОНУС
    ============================================================ */
-function getDailyData(){try{return JSON.parse(localStorage.getItem(DAILY_KEY)||'{"last":0}')}catch(e){return {last:0}}}
-function setDailyData(d){localStorage.setItem(DAILY_KEY,JSON.stringify(d))}
-function updateDailyStarBtn(){
-  var d=getDailyData(),now=Date.now(),cooldown=48*3600*1000;
-  var btn=document.getElementById('dailyStarBtn'),timer=document.getElementById('dailyStarTimer');
-  if(!btn||!timer)return;
-  var left=cooldown-(now-d.last);
-  if(left>0){
-    btn.disabled=true;btn.style.opacity='.4';
-    var h=Math.floor(left/3600000),m=Math.floor((left%3600000)/60000);
-    timer.textContent='Доступно через '+h+'ч '+m+'мин';
-  } else {
-    btn.disabled=false;btn.style.opacity='1';
-    timer.textContent='Доступно!';
-  }
-}
-function buyCoins(coins,stars,isDaily){
-  if(isDaily){
-    var d=getDailyData(),now=Date.now(),cooldown=48*3600*1000;
-    if(now-d.last<cooldown){showToast('Доступно раз в 2 суток');return}
-  }
-  showToast('Оплата временно недоступна');
-}
-function loadBonusState(){
-  var el=document.getElementById('bonusAmount');
-  if(el)el.textContent='0.00';
-}
 function claimBonus(){
   showToast('Бонус временно недоступен');
+}
+
+/* ============================================================
+   ОНЛАЙН — ЛОББИ + 2 ИГРЫ
+   ============================================================ */
+var currentLobby=null;
+var lobbySocket=null;
+var lobbyPingInt=null;
+var isHost=false;
+var onlineGameState=null;
+var ONLINE_NAMES={};
+
+document.getElementById('createLobbyBtn').addEventListener('click',function(){
+  if(!onlineProfile||!onlineProfile.game_id){showToast('Сначала дождись регистрации');return}
+  fetch(API_URL+'/api/lobby/create',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({guest_id:getGuestId()})
+  })
+  .then(function(r){return r.json()})
+  .then(function(data){
+    if(data.error){showToast('Ошибка: '+data.error);return}
+    currentLobby={lobby_id:data.lobby_id,host:data.host,guests:data.guests||[]};
+    isHost=true;
+    openLobbyScreen();
+  })
+  .catch(function(){showToast('Сервер не отвечает')});
+});
+
+document.getElementById('joinLobbyBtn').addEventListener('click',function(){
+  showScreen('joinLobbyScreen');
+  document.getElementById('joinLobbyInput').value='';
+  document.getElementById('joinLobbyError').textContent='';
+});
+document.getElementById('joinBack').addEventListener('click',function(){showScreen('menu')});
+
+document.getElementById('joinLobbyConfirmBtn').addEventListener('click',function(){
+  var lid=document.getElementById('joinLobbyInput').value.trim();
+  if(lid.length!==6||!/^\d+$/.test(lid)){
+    document.getElementById('joinLobbyError').textContent='ID из 6 цифр';
+    return;
+  }
+  document.getElementById('joinLobbyError').textContent='Подключаемся...';
+  fetch(API_URL+'/api/lobby/join?lobby_id='+lid,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({guest_id:getGuestId()})
+  })
+  .then(function(r){return r.json()})
+  .then(function(data){
+    if(data.error){
+      var m={not_found:'Лобби не найдено',own_lobby:'Это твоё лобби',full:'Лобби заполнено',already_in:'Ты уже в лобби'};
+      document.getElementById('joinLobbyError').textContent=m[data.error]||data.error;
+      return;
+    }
+    currentLobby={lobby_id:data.lobby_id,host:data.host,guests:data.guests||[]};
+    isHost=false;
+    openLobbyScreen();
+  })
+  .catch(function(){document.getElementById('joinLobbyError').textContent='Сервер не отвечает'});
+});
+
+function openLobbyScreen(){
+  document.getElementById('lobbyIdDisplay').textContent='#'+currentLobby.lobby_id;
+  document.getElementById('lobbyChat').innerHTML='';
+  document.getElementById('chatInput').value='';
+  renderLobbyPlayers();
+  renderLobbyActions();
+  showScreen('lobbyScreen');
+  connectLobbyWs();
+}
+
+function renderLobbyPlayers(){
+  var html='';
+  html+='<div class="lobby-player host"><div class="lp-avatar">👑</div><div class="lp-name">'+(currentLobby.host?currentLobby.host.name:'—')+'</div><div class="lp-badge">Хост</div></div>';
+  var gs=currentLobby.guests||[];
+  var g=gs[0];
+  html+='<div class="lobby-player guest'+(g?'':' empty')+'">';
+  if(g)html+='<div class="lp-avatar">🎮</div><div class="lp-name">'+g.name+'</div><div class="lp-badge">Игрок 2</div>';
+  else html+='<div class="lp-avatar">⏳</div><div class="lp-name">Свободно</div><div class="lp-badge">—</div>';
+  html+='</div>';
+  document.getElementById('lobbyPlayers').innerHTML=html;
+}
+
+function renderLobbyActions(){
+  var html='';
+  if(isHost){
+    html+='<div class="lobby-hint">📋 ID лобби: <b>'+currentLobby.lobby_id+'</b></div>';
+    if(currentLobby.guests.length>0){
+      html+='<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;justify-content:center">'+
+        '<button class="btn-deal" onclick="startOnlineGame(\'lucky20\')" style="padding:12px 18px;font-size:13px;background:linear-gradient(145deg,#22d3ee,#0891b2)">💎 Lucky 20</button>'+
+        '<button class="btn-deal" onclick="startOnlineGame(\'dice\')" style="padding:12px 18px;font-size:13px;background:linear-gradient(145deg,#a855f7,#ff2d95)">🎲 Dice</button>'+
+      '</div>';
+    } else {
+      html+='<div class="lobby-hint" style="margin-top:10px">⏳ Ждём второго игрока...</div>';
+    }
+  } else {
+    html+='<div class="lobby-hint">⏳ Ждём когда хост выберет игру...</div>';
+  }
+  document.getElementById('lobbyActions').innerHTML=html;
+}
+
+function connectLobbyWs(){
+  if(lobbySocket){try{lobbySocket.close()}catch(e){}}
+  var url=API_URL.replace('https://','wss://').replace('http://','ws://')+'/ws/lobby/'+currentLobby.lobby_id;
+  try{
+    lobbySocket=new WebSocket(url);
+    lobbySocket.onopen=function(){
+      lobbySocket.send(JSON.stringify({action:'hello',player_id:String(onlineProfile.game_id),name:onlineProfile.name}));
+      if(lobbyPingInt)clearInterval(lobbyPingInt);
+      lobbyPingInt=setInterval(function(){
+        if(lobbySocket&&lobbySocket.readyState===WebSocket.OPEN)
+          lobbySocket.send(JSON.stringify({action:'ping'}));
+      },20000);
+    };
+    lobbySocket.onmessage=function(e){
+      try{handleLobbyMessage(JSON.parse(e.data))}catch(err){}
+    };
+    lobbySocket.onclose=function(){
+      if(lobbyPingInt){clearInterval(lobbyPingInt);lobbyPingInt=null}
+    };
+  }catch(e){}
+}
+
+function handleLobbyMessage(msg){
+  if(msg.type==='system')appendChatMessage('system',msg.text,'');
+  else if(msg.type==='chat')appendChatMessage('user',msg.text,msg.name);
+  else if(msg.type==='pong'){}
+  else if(msg.type==='players'){
+    if(msg.players){
+      currentLobby.host=msg.players[0];
+      currentLobby.guests=msg.players.slice(1);
+      // Запоминаем имена
+      msg.players.forEach(function(p){ONLINE_NAMES[p.game_id]=p.name;});
+      renderLobbyPlayers();
+      renderLobbyActions();
+    }
+  }
+  else if(msg.type==='game_init'||msg.type==='game_update'||msg.type==='game_reset'){
+    handleOnlineGameState(msg.game_state);
+  }
+}
+
+function appendChatMessage(type,text,author){
+  var chat=document.getElementById('lobbyChat');
+  var div=document.createElement('div');
+  if(type==='system'){div.className='chat-msg chat-system';div.textContent='⚙ '+text}
+  else{div.className='chat-msg chat-user';div.innerHTML='<b>'+author+':</b> '+text}
+  chat.appendChild(div);
+  chat.scrollTop=chat.scrollHeight;
+}
+
+document.getElementById('chatSendBtn').addEventListener('click',sendChat);
+document.getElementById('chatInput').addEventListener('keydown',function(e){if(e.key==='Enter')sendChat()});
+function sendChat(){
+  var inp=document.getElementById('chatInput'),text=inp.value.trim();
+  if(!text)return;
+  if(lobbySocket&&lobbySocket.readyState===WebSocket.OPEN){
+    lobbySocket.send(JSON.stringify({action:'chat',text:text}));
+    inp.value='';
+  } else showToast('Чат недоступен');
+}
+
+document.getElementById('lobbyLeaveBtn').addEventListener('click',function(){
+  leaveCurrentLobby();
+  showScreen('menu');
+});
+
+function leaveCurrentLobby(){
+  if(lobbySocket){try{lobbySocket.close()}catch(e){}lobbySocket=null}
+  if(lobbyPingInt){clearInterval(lobbyPingInt);lobbyPingInt=null}
+  if(currentLobby){
+    fetch(API_URL+'/api/lobby/leave?lobby_id='+currentLobby.lobby_id,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({guest_id:getGuestId()})
+    }).catch(function(){});
+  }
+  currentLobby=null;
+  onlineGameState=null;
+}
+
+document.getElementById('onlineGameLeaveBtn').addEventListener('click',function(){
+  leaveCurrentLobby();
+  showScreen('menu');
+});
+
+function startOnlineGame(gameType){
+  if(!isHost){showToast('Только хост');return}
+  if(!currentLobby||currentLobby.guests.length===0){showToast('Нужен второй игрок');return}
+  fetch(API_URL+'/api/lobby/game/init',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({lobby_id:currentLobby.lobby_id,guest_id:getGuestId(),game_type:gameType})
+  })
+  .then(function(r){return r.json()})
+  .then(function(data){
+    if(data.error){showToast('Ошибка: '+data.error);return}
+    sndBig();
+  })
+  .catch(function(){showToast('Сервер не отвечает')});
+}
+
+/* ============================================================
+   ОНЛАЙН ИГРЫ
+   ============================================================ */
+function handleOnlineGameState(gs){
+  if(!gs)return;
+  onlineGameState=gs;
+  var title=document.getElementById('onlineGameTitle');
+  var stage=document.getElementById('onlineGameStage');
+  if(!document.getElementById('onlineGameScreen').classList.contains('active'))showScreen('onlineGameScreen');
+  if(gs.type==='lucky20'){title.textContent='💎 Lucky 20';renderOnlineLucky20(stage,gs)}
+  else if(gs.type==='dice'){title.textContent='🎲 Dice';renderOnlineDice(stage,gs)}
+}
+
+// ---------- LUCKY 20 ОНЛАЙН ----------
+function renderOnlineLucky20(stage,gs){
+  var html='<div style="text-align:center;padding:12px">';
+  var myId=onlineProfile.game_id;
+  var isHostMe=isHost;
+
+  if(gs.phase==='done'){
+    var iWin=(gs.winner===myId);
+    html+='<div style="font-size:18px;font-weight:bold;color:#22d3ee;margin-bottom:8px">🎉 Игра окончена</div>';
+    html+='<div style="font-size:14px;color:#a78bfa;margin-bottom:12px">Алмаз был в ячейке №'+(gs.win_idx+1)+'</div>';
+    html+='<div style="font-size:16px;font-weight:bold;color:'+(iWin?'#22d3ee':'#ff5252')+';margin:12px 0">'+(iWin?'🏆 Ты победил!':'😔 Ты проиграл')+'</div>';
+    html+=renderLucky20Grid(gs,true);
+    html+='<div style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap">'+
+      (isHost?'<button class="btn-deal" onclick="onlineResetGame()" style="padding:12px 24px">🔄 Ещё раз</button>':'')+
+      '<button class="btn-deal" onclick="backToLobby()" style="padding:12px 24px;background:linear-gradient(145deg,#00e5ff,#a855f7)">🏠 В лобби</button>'+
+    '</div>';
+  } else {
+    var isMyTurn=(isHostMe&&gs.turn==='host')||(!isHostMe&&gs.turn!=='host');
+    html+='<div style="font-size:14px;color:#a78bfa;margin-bottom:8px">💎 Найди алмаз! Ходы по очереди</div>';
+    html+='<div style="font-size:15px;font-weight:bold;color:'+(isMyTurn?'#22d3ee':'#a78bfa')+';margin-bottom:12px">'+(isMyTurn?'🎯 Твой ход!':'⌛ Ход соперника...')+'</div>';
+    html+=renderLucky20Grid(gs,false);
+  }
+  html+='</div>';
+  stage.innerHTML=html;
+
+  if(gs.phase!=='done'){
+    var isMyTurn2=(isHostMe&&gs.turn==='host')||(!isHostMe&&gs.turn!=='host');
+    if(isMyTurn2){
+      stage.querySelectorAll('[data-online-idx]').forEach(function(el){
+        el.addEventListener('click',function(){
+          var idx=parseInt(this.getAttribute('data-online-idx'));
+          if(gs.opened.indexOf(idx)>=0)return;
+          fetch(API_URL+'/api/lobby/game/move',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({lobby_id:currentLobby.lobby_id,guest_id:getGuestId(),move:{idx:idx}})
+          }).catch(function(){});
+          sndCard();
+        });
+      });
+    }
+  }
+}
+
+function renderLucky20Grid(gs,reveal){
+  var html='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;max-width:340px;margin:0 auto">';
+  for(var i=0;i<20;i++){
+    var opened=gs.opened.indexOf(i)>=0;
+    var isWin=reveal&&i===gs.win_idx;
+    var cls='online-cell'+(opened?' opened':'')+(isWin?' win':'');
+    html+='<div class="'+cls+'" data-online-idx="'+i+'" style="aspect-ratio:1/1;font-size:20px;cursor:'+(opened?'default':'pointer')+'">'+(opened?(isWin?'💎':'✖'):'?')+'</div>';
+  }
+  return html+'</div>';
+}
+
+// ---------- DICE ОНЛАЙН ----------
+function renderOnlineDice(stage,gs){
+  var rolls=gs.rolls||{};
+  var allPlayers=[currentLobby.host].concat(currentLobby.guests||[]);
+  var myRoll=rolls[onlineProfile.game_id];
+  var html='<div style="text-align:center;padding:12px">';
+
+  if(gs.phase==='done'){
+    html+='<div style="font-size:20px;font-weight:bold;color:#22d3ee;margin-bottom:16px">🎲 Игра завершена</div>';
+    for(var i=0;i<allPlayers.length;i++){
+      var p=allPlayers[i],d=rolls[p.game_id]||[0,0];
+      html+='<div style="font-size:14px;color:'+(i===0?'#ff2d95':'#00e5ff')+';margin-bottom:6px">'+p.name+': '+d[0]+' + '+d[1]+' = <b>'+(d[0]+d[1])+'</b></div>';
+    }
+    var iWin=(gs.winner===onlineProfile.game_id);
+    var isDraw=(gs.winner===null);
+    var msg=isDraw?'🤝 Ничья':(iWin?'🏆 Ты победил!':'😔 Ты проиграл');
+    var color=isDraw?'#a78bfa':(iWin?'#22d3ee':'#ff5252');
+    html+='<div style="font-size:16px;font-weight:bold;color:'+color+';margin:12px 0">'+msg+'</div>';
+    html+='<div style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap">'+
+      (isHost?'<button class="btn-deal" onclick="onlineResetGame()" style="padding:12px 24px">🔄 Ещё раз</button>':'')+
+      '<button class="btn-deal" onclick="backToLobby()" style="padding:12px 24px;background:linear-gradient(145deg,#00e5ff,#a855f7)">🏠 В лобби</button>'+
+    '</div>';
+    if(iWin){sndBig();spawnConfetti(80);spawnCoins(10)}else if(!isDraw)sndLose();
+  } else {
+    html+='<div style="font-size:15px;font-weight:bold;color:#00e5ff;margin-bottom:12px">🎲 У кого больше?</div>';
+    html+='<div class="dice-3d-stage" style="padding:20px;min-height:120px;justify-content:center">';
+    html+='<div class="die-3d'+(myRoll?'':' rolling')+'" style="width:60px;height:60px"><div class="face" data-face="1"><span class="pip"></span></div><div class="face" data-face="2"><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="3"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="4"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="5"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="6"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div></div>';
+    html+='<div class="die-3d'+(myRoll?'':' rolling')+'" style="width:60px;height:60px"><div class="face" data-face="1"><span class="pip"></span></div><div class="face" data-face="2"><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="3"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="4"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="5"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div><div class="face" data-face="6"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div></div>';
+    html+='</div>';
+    for(var j=0;j<allPlayers.length;j++){
+      var pl=allPlayers[j],r=rolls[pl.game_id];
+      html+='<div style="font-size:13px;color:'+(pl.game_id===onlineProfile.game_id?'#22d3ee':'#a78bfa')+';margin-bottom:4px">'+pl.name+': '+(r?'✅ '+r[0]+' + '+r[1]+' = '+(r[0]+r[1]):'⌛ Ждём...')+'</div>';
+    }
+    if(!myRoll)html+='<button class="btn-deal" onclick="onlineRollDice()" style="padding:14px 40px;margin-top:16px">🎲 Бросить</button>';
+    else html+='<div style="font-size:13px;color:#a78bfa;margin-top:12px">⏳ Ждём соперника...</div>';
+  }
+  stage.innerHTML=html+'</div>';
+}
+
+function onlineRollDice(){
+  var d1=Math.floor(Math.random()*6)+1,d2=Math.floor(Math.random()*6)+1;
+  sndWin();
+  fetch(API_URL+'/api/lobby/game/move',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({lobby_id:currentLobby.lobby_id,guest_id:getGuestId(),move:{dice:[d1,d2]}})
+  }).catch(function(){});
+}
+
+function onlineResetGame(){
+  fetch(API_URL+'/api/lobby/game/reset',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({lobby_id:currentLobby.lobby_id,guest_id:getGuestId()})
+  }).catch(function(){});
+}
+
+function backToLobby(){
+  onlineGameState=null;
+  if(currentLobby){showScreen('lobbyScreen');renderLobbyPlayers();renderLobbyActions();}
+  else showScreen('menu');
 }
 
 /* ============================================================
@@ -1370,17 +1673,14 @@ function claimBonus(){
    ============================================================ */
 (function(){
   var TOTAL=20,MAX=3,MODE=1,winIdx=-1,triesLeft=MAX,over=false,turn=1;
-  var w1=parseInt(localStorage.getItem('lucky_wins1_v1')||'0');
-  var w2=parseInt(localStorage.getItem('lucky_wins2_v1')||'0');
   var bet=500;
   function build(){var g=document.getElementById('grid');g.innerHTML='';for(var i=0;i<TOTAL;i++){var c=document.createElement('div');c.className='lucky-cell';c.setAttribute('data-index',i);c.textContent='?';c.addEventListener('click',onClick);g.appendChild(c)}}
-  function rewardForFind(){return Math.floor(bet*1.5)}
   function onClick(){
     if(over||this.dataset.opened)return;
     var idx=parseInt(this.getAttribute('data-index'));this.dataset.opened='1';
     if(idx===winIdx){
       this.classList.add('win');this.textContent='💎';over=true;
-      var prize=rewardForFind();setWallet(getWallet()+prize);updateWalletUI();
+      var prize=Math.floor(bet*1.5);setWallet(getWallet()+prize);updateWalletUI();
       sndBig();vibPattern([60,40,60,40,120]);flashScreen();spawnConfetti(80);spawnCoins(10);
       document.getElementById('luckyTitle').textContent='🎉 Победа! +'+fmt(prize);
       document.getElementById('luckyRestart').style.display='inline-block';
@@ -1402,7 +1702,7 @@ function claimBonus(){
     winIdx=Math.floor(Math.random()*TOTAL);triesLeft=MAX;over=false;turn=1;build();
     document.getElementById('luckyLeft').style.display='';document.getElementById('luckyRight').style.display=MODE===2?'':'none';
     if(MODE===1)document.getElementById('luckyLeft').innerHTML='🎯 Попытки: <span id="luckyTries">'+triesLeft+'</span>';
-    else document.getElementById('luckyLeft').textContent='🏆 '+w1+' : '+w2;
+    else document.getElementById('luckyLeft').textContent='🏆 0 : 0';
     document.getElementById('luckyTitle').textContent='Найди 💎 среди 20 ячеек!';
     document.getElementById('luckyMsg').textContent=MODE===1?'Выбери ячейку. 3 попытки.':'Ход '+player1Name;
     document.getElementById('luckyRestart').style.display='none';
@@ -1805,7 +2105,7 @@ function claimBonus(){
 })();
 
 /* ============================================================
-   PLINKO — широкая треугольная карта
+   PLINKO
    ============================================================ */
 var plinkoState={
   pegs:[], slots:[], ball:null, W:0, H:0, canvas:null, ctx:null,
@@ -1978,10 +2278,9 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
 })();
 
 /* ============================================================
-   BLACKJACK — с правильным сбросом ставок
+   BLACKJACK
    ============================================================ */
 var BJ_STATE={mode:1,deck:[],dealer:[],p1:[],p2:[],p1Bet:500,p2Bet:500,baseP1Bet:500,baseP2Bet:500,phase:'bet',holeHidden:false,p1BJ:false,p2BJ:false};
-
 function bjNewDeck(){
   var suits=['♠','♥','♦','♣'],ranks=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
   var d=[];
@@ -2046,8 +2345,7 @@ function bjNewRound(){
   var inp2=document.getElementById('bjP2BetInput');
   st.p1Bet=parseInt(inp1.value)||500;
   st.p2Bet=parseInt(inp2.value)||500;
-  st.baseP1Bet=st.p1Bet;
-  st.baseP2Bet=st.p2Bet;
+  st.baseP1Bet=st.p1Bet;st.baseP2Bet=st.p2Bet;
   document.getElementById('bjP1Badge').innerHTML='';
   document.getElementById('bjP2Badge').innerHTML='';
   document.getElementById('bjDealerBadge').innerHTML='';
@@ -2236,19 +2534,15 @@ function initTelegramBackButton(){
   });
 }
 
-// ============================================================
-//  СТАРТ
-// ============================================================
+// СТАРТ
 updateNamesUI();
 updateWalletUI();
 updateProfileBadge();
 initTelegramBackButton();
 bjInit();
-updateDailyStarBtn();
-setInterval(updateDailyStarBtn,60000);
 startPing();
 
-// Авторегистрация сразу + повтор через 3 сек
+// Авторегистрация
 silentRegister();
 setTimeout(silentRegister, 3000);
 </script>
