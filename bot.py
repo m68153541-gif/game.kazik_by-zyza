@@ -1,7 +1,8 @@
 """
 Telegram-бот для Golden Palace
 - Приветствие при /start
-- Рассылки каждый час (разным игрокам в разное время)
+- Рассылка каждый час — всем сразу, но разными сообщениями
+- Задержка 3 секунды между отправками
 - Интересные факты, напоминания, новости
 - Работает в личке и в группах
 """
@@ -11,7 +12,6 @@ import time
 import random
 import threading
 import urllib.request
-import urllib.parse
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN', '')
 GAME_URL = 'https://game-kazik-by-zyza.onrender.com'
@@ -24,6 +24,10 @@ subscribers = {
     'users': {},   # {chat_id: {'first_name': ..., 'username': ..., 'added_at': ts}}
     'groups': {}   # {chat_id: {'title': ..., 'added_at': ts}}
 }
+
+# Настройки рассылки
+BROADCAST_INTERVAL = 3600      # 1 час между рассылками
+SEND_DELAY = 3                 # 3 секунды между отправками
 
 
 def load_data():
@@ -41,18 +45,16 @@ def load_data():
 def save_data():
     try:
         with open(DATA_FILE, 'w') as f:
-            json.dump(subscribers, f)
+            json.dump(subscribers, f, ensure_ascii=False, indent=2)
     except Exception as e:
         print('❌ Ошибка сохранения подписчиков:', e)
 
 
 # ═══════════════════════════════════════════════════════════
-#  ОТПРАВКА СООБЩЕНИЙ
+#  TELEGRAM API
 # ═══════════════════════════════════════════════════════════
 def api_call(method, payload):
-    """Универсальный вызов Telegram API."""
     if not BOT_TOKEN:
-        print('❌ BOT_TOKEN не задан')
         return None
     url = f'https://api.telegram.org/bot{BOT_TOKEN}/{method}'
     try:
@@ -78,28 +80,16 @@ def send_message(chat_id, text, keyboard=None, parse_mode='HTML'):
 
 
 def play_button():
-    """Кнопка Играть под сообщением."""
-    return {
-        'inline_keyboard': [[
-            {'text': '🎰 ИГРАТЬ', 'url': GAME_URL}
-        ]]
-    }
+    return {'inline_keyboard': [[{'text': '🎰 ИГРАТЬ', 'url': GAME_URL}]]}
 
 
 def play_button_group():
-    """Кнопка Играть для групп (открывается в браузере)."""
-    return {
-        'inline_keyboard': [[
-            {'text': '🎰 ИГРАТЬ С ДРУЗЬЯМИ', 'url': GAME_URL}
-        ]]
-    }
+    return {'inline_keyboard': [[{'text': '🎰 ИГРАТЬ С ДРУЗЬЯМИ', 'url': GAME_URL}]]}
 
 
 # ═══════════════════════════════════════════════════════════
-#  КОНТЕНТ — РАЗНЫЕ ТИПЫ СООБЩЕНИЙ
+#  КОНТЕНТ
 # ═══════════════════════════════════════════════════════════
-
-# Приветствие
 WELCOME_TEXT = """👑 <b>ДОБРО ПОЖАЛОВАТЬ В GOLDEN PALACE!</b> 👑
 
 🎰 <b>Премиум казино прямо в Telegram</b>
@@ -123,7 +113,6 @@ WELCOME_TEXT = """👑 <b>ДОБРО ПОЖАЛОВАТЬ В GOLDEN PALACE!</b> 
 Жми кнопку и вперёд за удачей! 👇"""
 
 
-# Напоминания "пора поиграть"
 REMINDERS = [
     """👋 <b>Скучаешь?</b>
 
@@ -169,10 +158,16 @@ REMINDERS = [
 🎲 Dice — больше или меньше
 
 Играй прямо сейчас! 👇""",
+
+    """🎯 <b>Пора играть!</b>
+
+Одна ставка — и ты можешь стать легендой!
+🎱 Keno ×2 · 🃏 BJ ×2.5 · 🎰 Slots ×15
+
+Попробуй удачу! 👇""",
 ]
 
 
-# Интересные факты
 FACTS = [
     """🎲 <b>Интересный факт</b>
 
@@ -221,10 +216,21 @@ Keno появилось в Древнем Китае более <b>2000 лет �
 Название «Plinko» происходит от звука, который издаёт шарик — <b>«plink»</b> — когда ударяется о пеги!
 
 Запусти шарик и услышь это сам! 👇""",
+
+    """💰 <b>Интересный факт</b>
+
+В Монте-Карло казино запрещено местным жителям — только туристам. Своим вход туда закрыт с 1911 года!
+
+А в Golden Palace вход открыт всем 🎰""",
+
+    """🎲 <b>Про кубики</b>
+
+Игра в кости — <b>древнейшая</b> азартная игра. Ей больше 5000 лет, играли ещё в Древнем Египте и Месопотамии!
+
+Кинь кубики в Dice! 👇""",
 ]
 
 
-# Новости / обновления
 NEWS = [
     """📢 <b>Новости Golden Palace</b>
 
@@ -248,10 +254,17 @@ NEWS = [
 👑 Премиум-стиль во всём
 
 Загляни посмотреть! 👇""",
+
+    """📢 <b>Golden Palace растёт!</b>
+
+👥 Уже сотни игроков заходят каждый день
+💰 Разыгрываются миллионы монет
+🎁 Почасовой бонус для всех
+
+Присоединяйся! 👇""",
 ]
 
 
-# Сообщения для групп
 GROUP_MESSAGES = [
     """👑 <b>Golden Palace — премиум казино!</b>
 
@@ -290,26 +303,42 @@ GROUP_MESSAGES = [
 🌐 Онлайн-режим с друзьями
 
 Заходи, попробуй! 👇""",
+
+    """🎯 <b>Испытай удачу!</b>
+
+В <b>Golden Palace</b> каждый может стать миллионером:
+🎰 Slots ×15 · 🃏 BJ ×2.5
+🎱 Keno ×2 · 🎯 Plinko ×5
+
+Попробуй прямо сейчас! 👇""",
+
+    """🎁 <b>Хочешь лёгких денег?</b>
+
+<b>Golden Palace</b> выдаёт:
+💰 5000 монет новым игрокам
+🎁 0.2 монеты каждый час
+🏆 Множители до ×15
+
+Жми и забирай! 👇""",
 ]
 
 
 # ═══════════════════════════════════════════════════════════
-#  РАССЫЛКА (разным получателям в разное время)
+#  РАССЫЛКА — ВСЕМ СРАЗУ, НО РАЗНЫЕ СООБЩЕНИЯ
 # ═══════════════════════════════════════════════════════════
 def hourly_broadcast_loop():
     """
     Каждый час:
-    - Берём случайных подписчиков (примерно 1/6 от всех)
-    - Отправляем им случайное сообщение
-    - Через час — другим
-    Так получается "всем в разное время, примерно каждый час"
+    1. Собираем всех подписчиков (юзеры + группы)
+    2. Перемешиваем
+    3. Каждому отправляем СЛУЧАЙНОЕ сообщение
+    4. Задержка 3 секунды между отправками
     """
     time.sleep(120)  # ждём 2 минуты после запуска
-    print('📢 Рассылка запущена')
+    print('📢 Рассылка запущена (каждый час, задержка 3 сек)')
 
     while True:
         try:
-            # Собираем всех подписчиков (юзеры + группы)
             all_recipients = []
             for chat_id, info in subscribers['users'].items():
                 all_recipients.append(('user', chat_id, info))
@@ -318,43 +347,44 @@ def hourly_broadcast_loop():
 
             if not all_recipients:
                 print('📢 Нет подписчиков — спим час')
-                time.sleep(3600)
+                time.sleep(BROADCAST_INTERVAL)
                 continue
 
-            # Перемешиваем и берём ~1/6 (чтобы за 6 часов охватить всех)
             random.shuffle(all_recipients)
-            batch_size = max(1, len(all_recipients) // 6)
-            batch = all_recipients[:batch_size]
+            total = len(all_recipients)
+            print(f'📢 Рассылка для {total} получателей')
+            print(f'⏱ Займёт примерно {total * SEND_DELAY} секунд ({(total * SEND_DELAY) // 60} мин)')
 
-            print(f'📢 Отправляем {len(batch)}/{len(all_recipients)} подписчикам')
+            sent_count = 0
+            failed_count = 0
 
-            for rec_type, chat_id, info in batch:
+            for idx, (rec_type, chat_id, info) in enumerate(all_recipients, 1):
                 try:
                     if rec_type == 'user':
-                        # Разные типы для юзеров
-                        choice = random.random()
-                        if choice < 0.4:
-                            text = random.choice(REMINDERS)
-                        elif choice < 0.7:
-                            text = random.choice(FACTS)
-                        else:
-                            text = random.choice(NEWS)
+                        # Для юзера — случайное из пула
+                        pool = random.choice([REMINDERS, FACTS, NEWS, REMINDERS])
+                        text = random.choice(pool)
                         send_message(chat_id, text, play_button())
                     else:
-                        # Для групп
+                        # Для группы — отдельный пул
                         text = random.choice(GROUP_MESSAGES)
                         send_message(chat_id, text, play_button_group())
 
-                    print(f'  ✅ Отправлено: {rec_type} {chat_id}')
+                    sent_count += 1
+                    if idx % 10 == 0:
+                        print(f'  📤 {idx}/{total} отправлено')
 
-                    # Небольшая задержка чтобы не спамить
-                    time.sleep(0.5)
+                    # Задержка между отправками
+                    time.sleep(SEND_DELAY)
 
                 except Exception as e:
+                    failed_count += 1
                     print(f'  ❌ Ошибка {chat_id}:', e)
 
-            # Спим час до следующей партии
-            time.sleep(3600)
+            print(f'✅ Рассылка завершена: {sent_count} успешно, {failed_count} ошибок')
+
+            # Спим час до следующей рассылки
+            time.sleep(BROADCAST_INTERVAL)
 
         except Exception as e:
             print('❌ Ошибка рассылки:', e)
@@ -362,13 +392,11 @@ def hourly_broadcast_loop():
 
 
 # ═══════════════════════════════════════════════════════════
-#  ОБРАБОТКА СООБЩЕНИЙ (polling)
+#  ОБРАБОТКА СООБЩЕНИЙ
 # ═══════════════════════════════════════════════════════════
 def handle_update(update):
-    """Обрабатывает одно обновление от Telegram."""
     msg = update.get('message') or update.get('edited_message')
     if not msg:
-        # Обработка my_chat_member (добавление/удаление из группы)
         my_chat = update.get('my_chat_member')
         if my_chat:
             handle_my_chat_member(my_chat)
@@ -380,9 +408,8 @@ def handle_update(update):
     text = (msg.get('text') or '').strip()
     from_user = msg.get('from', {})
 
-    # Группа/супергруппа
+    # Группа
     if chat_type in ('group', 'supergroup'):
-        # Добавляем в подписчики групп
         if str(chat_id) not in subscribers['groups']:
             subscribers['groups'][str(chat_id)] = {
                 'title': chat.get('title', 'Группа'),
@@ -391,7 +418,6 @@ def handle_update(update):
             save_data()
             print(f'➕ Новая группа: {chat.get("title")} ({chat_id})')
 
-        # Команды в группе
         if text == '/start':
             send_message(chat_id, GROUP_MESSAGES[0], play_button_group())
         elif text == '/play':
@@ -400,7 +426,6 @@ def handle_update(update):
 
     # Личка
     if chat_type == 'private':
-        # Регистрируем юзера
         if str(chat_id) not in subscribers['users']:
             subscribers['users'][str(chat_id)] = {
                 'first_name': from_user.get('first_name', ''),
@@ -410,7 +435,6 @@ def handle_update(update):
             save_data()
             print(f'➕ Новый юзер: {from_user.get("first_name")} ({chat_id})')
 
-        # Команды
         if text == '/start':
             send_message(chat_id, WELCOME_TEXT, play_button())
         elif text == '/play':
@@ -427,13 +451,11 @@ def handle_update(update):
 
 
 def handle_my_chat_member(update):
-    """Обработка добавления/удаления бота из группы."""
     chat = update.get('chat', {})
     chat_id = chat.get('id')
     new_status = update.get('new_chat_member', {}).get('status')
     old_status = update.get('old_chat_member', {}).get('status')
 
-    # Добавили в группу
     if old_status in ('left', 'kicked') and new_status in ('member', 'administrator'):
         subscribers['groups'][str(chat_id)] = {
             'title': chat.get('title', 'Группа'),
@@ -443,7 +465,6 @@ def handle_my_chat_member(update):
         print(f'➕ Бот добавлен в группу: {chat.get("title")}')
         send_message(chat_id, GROUP_MESSAGES[0], play_button_group())
 
-    # Удалили из группы
     elif new_status in ('left', 'kicked'):
         if str(chat_id) in subscribers['groups']:
             del subscribers['groups'][str(chat_id)]
@@ -452,7 +473,6 @@ def handle_my_chat_member(update):
 
 
 def polling_loop():
-    """Основной цикл получения обновлений от Telegram (long polling)."""
     print('🤖 Бот запущен (polling)')
     offset = 0
 
@@ -487,24 +507,17 @@ def polling_loop():
 #  ЗАПУСК
 # ═══════════════════════════════════════════════════════════
 def start_bot():
-    """Запускает бота в фоновом потоке."""
     if not BOT_TOKEN:
         print('⚠️ BOT_TOKEN не задан — бот не запущен')
         return
 
     load_data()
-
-    # Поток для получения обновлений
     threading.Thread(target=polling_loop, daemon=True).start()
-    # Поток для рассылок
     threading.Thread(target=hourly_broadcast_loop, daemon=True).start()
-
     print('✅ Бот инициализирован')
 
 
-# Если запускается отдельно
 if __name__ == '__main__':
     start_bot()
-    # Держим главный поток живым
     while True:
         time.sleep(60)
