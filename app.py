@@ -4,12 +4,16 @@ import time
 import random
 import string
 import threading
+import urllib.request
 from flask import Flask, request, jsonify, send_from_directory
 from flask_sock import Sock
 
 app = Flask(__name__, static_folder='.')
 sock = Sock(app)
 
+# ============================================================
+#  CORS
+# ============================================================
 @app.after_request
 def add_cors(resp):
     resp.headers['Access-Control-Allow-Origin'] = '*'
@@ -17,13 +21,21 @@ def add_cors(resp):
     resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
     return resp
 
+# ============================================================
+#  КОНСТАНТЫ
+# ============================================================
 ADMIN_LOGIN = '2'
 ADMIN_PASSWORD = 'диана'
 HOUR_BONUS = 0.2
 HOUR_SECONDS = 3600
 MIN_WITHDRAW = 50
 BOT_TOKEN = os.environ.get('BOT_TOKEN', '')
+GAME_URL = 'https://game-kazik-by-zyza.onrender.com'
+BOT_DATA_FILE = 'bot_subscribers.json'
 
+# ============================================================
+#  ХРАНИЛИЩА ИГРЫ
+# ============================================================
 players = {}
 guests = {}
 tg_users = {}
@@ -178,12 +190,11 @@ _create_virtual_player()
 
 
 # ============================================================
-#  АНТИСОН (управляемый из админки)
+#  АНТИСОН
 # ============================================================
 _keepalive_stop = threading.Event()
 
 def keepalive_loop():
-    import urllib.request
     while True:
         try:
             if global_settings.get('keepalive'):
@@ -232,7 +243,6 @@ def hourly_bonus_loop():
         except Exception as e:
             print('bonus loop error:', e)
 
-
 threading.Thread(target=hourly_bonus_loop, daemon=True).start()
 
 
@@ -243,7 +253,7 @@ threading.Thread(target=hourly_bonus_loop, daemon=True).start()
 def index():
     if os.path.exists('index.html'):
         return send_from_directory('.', 'index.html')
-    return 'Kazik server is running'
+    return 'Golden Palace server is running'
 
 
 @app.route('/<path:path>')
@@ -257,13 +267,23 @@ def static_files(path):
 def health():
     return jsonify({
         'ok': True,
-        'players': len(players) - 1,  # не считаем виртуального
+        'players': len(players) - 1,
         'tg_users': len(tg_users),
         'sockets': len(player_sockets),
         'lobbies': len(lobbies),
         'keepalive': global_settings.get('keepalive', False),
-        'tech_break': global_settings.get('tech_break', False)
+        'tech_break': global_settings.get('tech_break', False),
+        'bot_subscribers': _bot_count()
     })
+
+
+def _bot_count():
+    try:
+        with open(BOT_DATA_FILE, 'r') as f:
+            data = json.load(f)
+            return len(data.get('users', {})) + len(data.get('groups', {}))
+    except Exception:
+        return 0
 
 
 @app.route('/api/global/status')
@@ -802,6 +822,298 @@ def lobby_ws(ws, lobby_id):
             pass
 
 
+# ═══════════════════════════════════════════════════════════
+#  TELEGRAM-БОТ (встроен в тот же процесс)
+# ═══════════════════════════════════════════════════════════
+bot_subscribers = {
+    'users': {},
+    'groups': {}
+}
+BROADCAST_INTERVAL = 3600
+SEND_DELAY = 3
+
+
+def bot_load_data():
+    global bot_subscribers
+    try:
+        with open(BOT_DATA_FILE, 'r') as f:
+            data = json.load(f)
+            bot_subscribers['users'] = data.get('users', {})
+            bot_subscribers['groups'] = data.get('groups', {})
+            print(f'📊 Бот: {len(bot_subscribers["users"])} юзеров, {len(bot_subscribers["groups"])} групп')
+    except Exception:
+        print('📊 Бот: файл подписчиков пуст')
+
+
+def bot_save_data():
+    try:
+        with open(BOT_DATA_FILE, 'w') as f:
+            json.dump(bot_subscribers, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print('❌ Бот: ошибка сохранения:', e)
+
+
+def bot_api(method, payload):
+    if not BOT_TOKEN:
+        return None
+    url = f'https://api.telegram.org/bot{BOT_TOKEN}/{method}'
+    try:
+        data = json.dumps(payload).encode()
+        req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            return json.loads(resp.read().decode())
+    except Exception as e:
+        print(f'❌ Bot API {method}:', e)
+        return None
+
+
+def bot_send(chat_id, text, keyboard=None):
+    payload = {
+        'chat_id': chat_id,
+        'text': text,
+        'parse_mode': 'HTML',
+        'disable_web_page_preview': True
+    }
+    if keyboard:
+        payload['reply_markup'] = keyboard
+    return bot_api('sendMessage', payload)
+
+
+def btn_play():
+    return {'inline_keyboard': [[{'text': '🎰 ИГРАТЬ', 'url': GAME_URL}]]}
+
+
+def btn_play_group():
+    return {'inline_keyboard': [[{'text': '🎰 ИГРАТЬ С ДРУЗЬЯМИ', 'url': GAME_URL}]]}
+
+
+BOT_WELCOME = """👑 <b>ДОБРО ПОЖАЛОВАТЬ В GOLDEN PALACE!</b> 👑
+
+🎰 <b>Премиум казино прямо в Telegram</b>
+
+Здесь ты найдёшь:
+🎯 <b>Plinko</b> — падающий шарик с множителями до ×5
+🎱 <b>Keno</b> — угадай число, выиграй ×2
+🎲 <b>Dice</b> — больше или меньше
+🃏 <b>Blackjack</b> — набери 21
+🎡 <b>Roulette</b> — красное или чёрное
+🎰 <b>Slots</b> — лови три в ряд
+🪙 <b>Coin Flip</b> — орёл или решка
+🐎 <b>Horse Race</b> — почувствуй азарт
+💎 <b>Lucky 20</b> — найди алмаз
+
+🌐 <b>Онлайн-режим</b> — играй с друзьями!
+
+💰 Начинаешь с <b>5000 монет</b>
+🎁 Каждый час +0.2 монеты бонусом
+
+Жми кнопку и вперёд за удачей! 👇"""
+
+
+BOT_REMINDERS = [
+    """👋 <b>Скучаешь?</b>\n\nВ Golden Palace ждут:\n🎯 Plinko до ×5\n🎱 Keno\n🃏 Blackjack\n\nЗабери свой куш! 💰""",
+    """🔥 <b>Заходи, мы скучали!</b>\n\n🎰 Slots · 🎡 Roulette · 🎲 Dice\n\nВсего 1 клик до азарта! 👇""",
+    """💎 <b>Тебя ждут 5000+ монет!</b>\n\n🎯 Plinko · 💎 Lucky 20 · 🐎 Horse Race\n\nНе заставляй удачу ждать! 💰""",
+    """⏰ <b>Напоминание от Golden Palace</b>\n\nТвой ежечасный бонус капает! Загляни — вдруг уже на хорошую ставку? 🎰""",
+    """🎰 <b>Golden Palace заждалось!</b>\n\n🔥 Plinko ×5 · 🃏 BJ ×2.5 · 🎰 Slots ×15\n\nИграй прямо сейчас! 👇""",
+    """🎯 <b>Пора играть!</b>\n\nОдна ставка — и ты легенда!\n🎱 Keno ×2 · 🃏 BJ ×2.5 · 🎰 Slots ×15""",
+]
+
+BOT_FACTS = [
+    """🎲 <b>Интересный факт</b>\n\nСамое старое казино в мире — <b>Casino di Venezia</b> (Венеция, 1638). Ему почти 400 лет! 🏛️\n\nСыграй в Golden Palace! 👇""",
+    """🎰 <b>Знаешь ли ты?</b>\n\nАвтомат <b>«Liberty Bell»</b> (1895) — первый в мире слот с 3 барабанами. Он подарил нам 🍒🍋🍇!\n\nИспытай удачу! 👇""",
+    """💎 <b>Интересный факт</b>\n\nСлово «казино» с итальянского — <b>«маленький дом»</b>. Так называли виллы знати, где устраивали игры.\n\nВ Golden Palace мы тоже дома 🏠""",
+    """🎡 <b>Про рулетку</b>\n\nВ европейской рулетке <b>37 чисел</b>, в американской — <b>38</b> (ещё 00). У нас классическая европейская 🎯""",
+    """🃏 <b>Знаешь ли ты?</b>\n\nВ Blackjack «Ace + 10» = блэкджек, платит <b>×2.5</b> вместо ×2!\n\nИспытай удачу! 👇""",
+    """🎱 <b>Про Keno</b>\n\nKeno появилось в Древнем Китае <b>2000+ лет назад</b>. Вместо шариков — деревянные дощечки!\n\nПопробуй современную версию! 👇""",
+    """🐎 <b>Интересный факт</b>\n\nПервые записи о ставках на лошадей — <b>VI век н.э.</b> в Греции.\n\nВыбери фаворита! 🏁""",
+    """🎯 <b>Про Plinko</b>\n\n«Plinko» — от звука, который издаёт шарик <b>«plink»</b>, ударяясь о пеги!\n\nЗапусти и услышь сам! 👇""",
+    """💰 <b>Интересный факт</b>\n\nВ Монте-Карло казино запрещено местным — только туристам. С 1911 года!\n\nА у нас вход открыт всем 🎰""",
+    """🎲 <b>Про кубики</b>\n\nИгра в кости — <b>древнейшая</b> азартная игра. Ей больше 5000 лет!\n\nКинь кубики в Dice! 👇""",
+]
+
+BOT_NEWS = [
+    """📢 <b>Новости Golden Palace</b>\n\n🎱 <b>Новая игра — Keno!</b>\nУгадай число 1-10 и выиграй ×2!\n\nПопробуй 👇""",
+    """📢 <b>Обновление!</b>\n\n🌐 <b>Онлайн-режим</b> — играй с друзьями в Lucky 20 и Dice!\n\nЗаходи 👇""",
+    """📢 <b>Что нового</b>\n\n✨ Обновили дизайн\n🎵 Добавили музыку\n👑 Премиум-стиль\n\nЗагляни! 👇""",
+    """📢 <b>Golden Palace растёт!</b>\n\n👥 Сотни игроков\n💰 Миллионы монет\n🎁 Почасовой бонус\n\nПрисоединяйся! 👇""",
+]
+
+BOT_GROUP_MSGS = [
+    """👑 <b>Golden Palace — премиум казино!</b>\n\n🎯 Plinko · 🎱 Keno · 🎲 Dice\n🃏 Blackjack · 🎡 Roulette · 🎰 Slots\n🪙 Coin Flip · 🐎 Horse Race · 💎 Lucky 20\n\n💰 5000 монет бесплатно!\n🎁 +0.2 монеты каждый час\n\nЖми 👇""",
+    """🎰 <b>Пора играть!</b>\n\n🎯 Plinko ×5 · 🎱 Keno ×2 · 🃏 BJ ×2.5\n\nВсего 1 клик до азарта! 👇""",
+    """💎 <b>Golden Palace ждёт!</b>\n\n🎲 Dice · 🎡 Roulette · 🎰 Slots\n🐎 Horse Race · 💎 Lucky 20\n\nОнлайн с друзьями! 👇""",
+    """🔥 <b>Не пропусти!</b>\n\n💰 5000 монет новым\n🎁 Почасовой бонус\n🌐 Онлайн-режим\n\nЗаходи! 👇""",
+    """🎯 <b>Испытай удачу!</b>\n\n🎰 Slots ×15 · 🃏 BJ ×2.5\n🎱 Keno ×2 · 🎯 Plinko ×5\n\nПопробуй! 👇""",
+    """🎁 <b>Хочешь лёгких денег?</b>\n\n💰 5000 монет новым\n🎁 0.2 монеты/час\n🏆 Множители до ×15\n\nЖми 👇""",
+]
+
+
+def bot_broadcast_loop():
+    """Рассылка ВСЕМ сразу каждые BROADCAST_INTERVAL секунд, с задержкой SEND_DELAY"""
+    time.sleep(120)
+    print('📢 Бот: рассылка запущена')
+
+    while True:
+        try:
+            recipients = []
+            for cid, info in bot_subscribers['users'].items():
+                recipients.append(('user', cid))
+            for cid, info in bot_subscribers['groups'].items():
+                recipients.append(('group', cid))
+
+            if not recipients:
+                print('📢 Бот: нет подписчиков — спим')
+                time.sleep(BROADCAST_INTERVAL)
+                continue
+
+            random.shuffle(recipients)
+            total = len(recipients)
+            print(f'📢 Бот: рассылка для {total} получателей')
+            print(f'⏱ Займёт ~{total * SEND_DELAY} сек ({(total * SEND_DELAY) // 60} мин)')
+
+            sent = 0
+            for idx, (rtype, chat_id) in enumerate(recipients, 1):
+                try:
+                    if rtype == 'user':
+                        pool = random.choice([BOT_REMINDERS, BOT_FACTS, BOT_NEWS, BOT_REMINDERS])
+                        text = random.choice(pool)
+                        bot_send(chat_id, text, btn_play())
+                    else:
+                        text = random.choice(BOT_GROUP_MSGS)
+                        bot_send(chat_id, text, btn_play_group())
+                    sent += 1
+                    if idx % 10 == 0:
+                        print(f'  📤 {idx}/{total}')
+                    time.sleep(SEND_DELAY)
+                except Exception as e:
+                    print(f'  ❌ {chat_id}:', e)
+
+            print(f'✅ Бот: рассылка завершена ({sent}/{total})')
+            time.sleep(BROADCAST_INTERVAL)
+
+        except Exception as e:
+            print('❌ Бот: ошибка рассылки:', e)
+            time.sleep(300)
+
+
+def bot_handle_update(update):
+    msg = update.get('message') or update.get('edited_message')
+    if not msg:
+        my_chat = update.get('my_chat_member')
+        if my_chat:
+            bot_handle_my_chat_member(my_chat)
+        return
+
+    chat = msg.get('chat', {})
+    chat_id = chat.get('id')
+    chat_type = chat.get('type')
+    text = (msg.get('text') or '').strip()
+    from_user = msg.get('from', {})
+
+    if chat_type in ('group', 'supergroup'):
+        if str(chat_id) not in bot_subscribers['groups']:
+            bot_subscribers['groups'][str(chat_id)] = {
+                'title': chat.get('title', 'Группа'),
+                'added_at': int(time.time())
+            }
+            bot_save_data()
+            print(f'➕ Бот: группа {chat.get("title")}')
+        if text == '/start':
+            bot_send(chat_id, BOT_GROUP_MSGS[0], btn_play_group())
+        elif text == '/play':
+            bot_send(chat_id, '🎰 <b>Играть</b> 👇', btn_play_group())
+        return
+
+    if chat_type == 'private':
+        if str(chat_id) not in bot_subscribers['users']:
+            bot_subscribers['users'][str(chat_id)] = {
+                'first_name': from_user.get('first_name', ''),
+                'username': from_user.get('username', ''),
+                'added_at': int(time.time())
+            }
+            bot_save_data()
+            print(f'➕ Бот: юзер {from_user.get("first_name")}')
+        if text == '/start':
+            bot_send(chat_id, BOT_WELCOME, btn_play())
+        elif text == '/play':
+            bot_send(chat_id, '🎰 <b>Погнали!</b> 👇', btn_play())
+        elif text == '/help':
+            bot_send(chat_id,
+                '👑 <b>Golden Palace</b>\n\n'
+                '📋 Команды:\n'
+                '/start — приветствие\n'
+                '/play — начать игру\n'
+                '/help — справка\n\n'
+                '🎰 Играй прямо в Telegram!',
+                btn_play())
+
+
+def bot_handle_my_chat_member(update):
+    chat = update.get('chat', {})
+    chat_id = chat.get('id')
+    new_status = update.get('new_chat_member', {}).get('status')
+    old_status = update.get('old_chat_member', {}).get('status')
+
+    if old_status in ('left', 'kicked') and new_status in ('member', 'administrator'):
+        bot_subscribers['groups'][str(chat_id)] = {
+            'title': chat.get('title', 'Группа'),
+            'added_at': int(time.time())
+        }
+        bot_save_data()
+        print(f'➕ Бот добавлен в группу: {chat.get("title")}')
+        bot_send(chat_id, BOT_GROUP_MSGS[0], btn_play_group())
+    elif new_status in ('left', 'kicked'):
+        if str(chat_id) in bot_subscribers['groups']:
+            del bot_subscribers['groups'][str(chat_id)]
+            bot_save_data()
+            print(f'➖ Бот удалён из группы: {chat.get("title")}')
+
+
+def bot_polling_loop():
+    print('🤖 Бот: polling запущен')
+    offset = 0
+    while True:
+        try:
+            url = f'https://api.telegram.org/bot{BOT_TOKEN}/getUpdates'
+            payload = {
+                'offset': offset,
+                'timeout': 30,
+                'allowed_updates': ['message', 'edited_message', 'my_chat_member']
+            }
+            data = json.dumps(payload).encode()
+            req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
+            with urllib.request.urlopen(req, timeout=35) as resp:
+                result = json.loads(resp.read().decode())
+            if result.get('ok'):
+                for update in result.get('result', []):
+                    try:
+                        bot_handle_update(update)
+                    except Exception as e:
+                        print('❌ Бот: ошибка обработки:', e)
+                    offset = update['update_id'] + 1
+        except Exception as e:
+            print('❌ Бот: polling error:', e)
+            time.sleep(5)
+
+
+def start_bot():
+    if not BOT_TOKEN:
+        print('⚠️ BOT_TOKEN не задан — бот не запущен')
+        return
+    bot_load_data()
+    threading.Thread(target=bot_polling_loop, daemon=True).start()
+    threading.Thread(target=bot_broadcast_loop, daemon=True).start()
+    print('✅ Бот инициализирован')
+
+
+# Запускаем бота сразу при импорте
+start_bot()
+
+
+# ============================================================
+#  ЗАПУСК СЕРВЕРА
+# ============================================================
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
