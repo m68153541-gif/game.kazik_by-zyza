@@ -3243,6 +3243,68 @@ startSessionTimer();
 
 silentRegister();
 setTimeout(silentRegister, 3000);
+     // ============================================================
+//  🎵 ФОНОВАЯ МУЗЫКА (зацикливается автоматически)
+// ============================================================
+(function(){
+  var music = document.getElementById('bgMusic');
+  var btn = document.getElementById('musicToggle');
+  if(!music){ console.warn('audio не найден'); return; }
+  if(!btn){ console.warn('кнопка не найдена'); return; }
+
+  music.volume = 0.35;
+  var musicOn = localStorage.getItem('gp_music') !== 'off';
+
+  function updateBtn(){
+    if(musicOn){ btn.textContent='🔊'; btn.style.color='#d4af37'; btn.style.borderColor='#d4af37'; }
+    else { btn.textContent='🔇'; btn.style.color='#888'; btn.style.borderColor='#666'; }
+  }
+
+  function tryPlay(){
+    if(!musicOn) return;
+    var p = music.play();
+    if(p && p.catch) p.catch(function(){ console.log('Автоплей отложен — ждём тап'); });
+  }
+
+  tryPlay();
+
+  document.addEventListener('click', function once(){
+    if(musicOn) tryPlay();
+    document.removeEventListener('click', once);
+  }, {once:true});
+  document.addEventListener('touchstart', function once(){
+    if(musicOn) tryPlay();
+    document.removeEventListener('touchstart', once);
+  }, {once:true});
+
+  btn.addEventListener('click', function(e){
+    e.stopPropagation();
+    musicOn = !musicOn;
+    if(musicOn){
+      music.play().catch(function(){});
+      localStorage.setItem('gp_music','on');
+      showToast('🔊 Музыка включена');
+    } else {
+      music.pause();
+      localStorage.setItem('gp_music','off');
+      showToast('🔇 Музыка выключена');
+    }
+    updateBtn();
+  });
+
+  // Автоповтор
+  music.addEventListener('ended', function(){
+    if(musicOn){ music.currentTime = 0; music.play().catch(function(){}); }
+  });
+
+  music.addEventListener('error', function(){
+    console.error('❌ Не удалось загрузить zyza.mp3');
+    showToast('⚠ Музыка не загрузилась');
+  });
+
+  updateBtn();
+  console.log('🎵 Музыка готова:', musicOn ? 'ВКЛ' : 'ВЫКЛ');
+})(); 
 </script>
 </body>
 </html>
