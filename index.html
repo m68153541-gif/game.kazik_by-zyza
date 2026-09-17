@@ -529,6 +529,16 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
   <div class="scroll-content">
     <div class="shop-card" style="border-color:#ffd700">
       <h3 style="color:#ffd700;margin-bottom:10px">🔧 Тех-перерыв</h3>
+          <div class="shop-card" style="border-color:#22c55e">
+      <h3 style="color:#22c55e;margin-bottom:10px">🛡 Антисон</h3>
+      <div style="font-size:12px;color:#a78bfa;margin-bottom:10px;line-height:1.5">
+        Когда включено — сервер сам себя пингует каждые 5 минут, чтобы не засыпать на Render. Игроки этого не видят.
+      </div>
+      <div class="shop-row">
+        <div>Статус: <span id="keepaliveStatus" style="color:#888;font-weight:bold">ВЫКЛ</span></div>
+        <button class="shop-buy-btn" id="toggleKeepalive" style="border-color:#22c55e;color:#22c55e">Включить</button>
+      </div>
+    </div>
       <div class="shop-row">
         <div>Статус: <span id="techBreakStatus" style="color:#22c55e;font-weight:bold">ВЫКЛ</span></div>
         <button class="shop-buy-btn" id="toggleTechBreak">Включить</button>
@@ -746,6 +756,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;user-select:none;color:#fff;positio
   </div>
 </div>
 <script>
+<script>
 /* ============================================================
    УТИЛИТЫ
    ============================================================ */
@@ -882,10 +893,11 @@ function startPing(){
   el.style.display='block';
   function doPing(){
     var t0=performance.now();
-    fetch(API_URL+'/health',{cache:'no-store'}).then(function(){
+    fetch(API_URL+'/health',{cache:'no-store'}).then(function(r){return r.json()}).then(function(data){
       var ms=Math.round(performance.now()-t0);
       el.textContent='📡 '+ms+' ms';
       el.className='ping-display '+(ms<150?'good':ms<400?'medium':'bad');
+      if(data.keepalive!==undefined)console.log('🛡 Антисон:', data.keepalive?'ВКЛ':'ВЫКЛ');
     }).catch(function(){
       el.textContent='📡 offline';
       el.className='ping-display bad';
@@ -985,10 +997,6 @@ document.querySelectorAll('.game-tile').forEach(function(b){
 document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',function(){showScreen('menu')})});
 document.getElementById('openSettingsBtn').addEventListener('click',function(){showScreen('settingsScreen')});
 document.getElementById('openAboutBtn').addEventListener('click',function(){showScreen('aboutScreen')});
-document.getElementById('openShopBtn')&&document.getElementById('openShopBtn').addEventListener('click',function(){showScreen('shopScreen')});
-document.getElementById('openBonusBtn')&&document.getElementById('openBonusBtn').addEventListener('click',function(){showScreen('bonusScreen')});
-document.getElementById('shopBack')&&document.getElementById('shopBack').addEventListener('click',function(){showScreen('menu')});
-document.getElementById('bonusBack')&&document.getElementById('bonusBack').addEventListener('click',function(){showScreen('menu')});
 document.getElementById('settingsBack').addEventListener('click',function(){showScreen('menu')});
 document.getElementById('aboutBack').addEventListener('click',function(){showScreen('menu')});
 document.getElementById('adminBack').addEventListener('click',function(){showScreen('settingsScreen')});
@@ -1049,7 +1057,7 @@ document.getElementById('techBreakCloseBtn').addEventListener('click',function()
 });
 
 /* ============================================================
-   АВТОРЕГИСТРАЦИЯ + WEBSOCKET
+   АВТОРЕГИСТРАЦИЯ + WEBSOCKET ИГРОКА
    ============================================================ */
 var playerSocket=null;
 var playerSocketPingInt=null;
@@ -1063,7 +1071,7 @@ function connectPlayerWs(){
   try{
     playerSocket=new WebSocket(wsUrl);
     playerSocket.onopen=function(){
-      console.log('🔌 WS подключён');
+      console.log('🔌 WS игрока подключён');
       if(playerSocketPingInt)clearInterval(playerSocketPingInt);
       playerSocketPingInt=setInterval(function(){
         if(playerSocket&&playerSocket.readyState===WebSocket.OPEN)
@@ -1209,6 +1217,20 @@ function loadAdminPlayers(){
     document.getElementById('techBreakStatus').style.color=data.tech_break?'#ff5252':'#22c55e';
     document.getElementById('toggleTechBreak').textContent=data.tech_break?'Выключить':'Включить';
     document.getElementById('techBreakMsgInput').value=data.tech_break_message||'';
+
+    // Антисон
+    if(data.keepalive!==undefined){
+      var kaStatus=document.getElementById('keepaliveStatus');
+      var kaBtn=document.getElementById('toggleKeepalive');
+      if(kaStatus&&kaBtn){
+        kaStatus.textContent=data.keepalive?'ВКЛ':'ВЫКЛ';
+        kaStatus.style.color=data.keepalive?'#22c55e':'#888';
+        kaBtn.textContent=data.keepalive?'Выключить':'Включить';
+        kaBtn.style.borderColor=data.keepalive?'#ff5252':'#22c55e';
+        kaBtn.style.color=data.keepalive?'#ff5252':'#22c55e';
+      }
+    }
+
     var html='';
     if(data.players.length===0){
       html='<div style="text-align:center;color:#a78bfa;padding:20px">Пока нет игроков<br><span style="font-size:11px">Заходите в игру — игроки появятся автоматически</span></div>';
@@ -1245,6 +1267,24 @@ document.getElementById('toggleTechBreak').addEventListener('click',function(){
     if(data.error){showToast('Ошибка: '+data.error);return}
     loadAdminPlayers();
     showToast(!isOn?'Тех-перерыв включён':'Тех-перерыв выключен');
+  })
+  .catch(function(){showToast('Сервер не отвечает')});
+});
+
+document.getElementById('toggleKeepalive').addEventListener('click',function(){
+  if(!ADMIN_TOKEN){showToast('Сначала войдите');return}
+  var isOn=document.getElementById('keepaliveStatus').textContent==='ВКЛ';
+  fetch(API_URL+'/api/admin/keepalive',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({admin_token:ADMIN_TOKEN,enabled:!isOn})
+  })
+  .then(function(r){return r.json()})
+  .then(function(data){
+    if(data.error){showToast('Ошибка: '+data.error);return}
+    loadAdminPlayers();
+    showToast(!isOn?'🛡 Антисон включён':'🛡 Антисон выключен');
+    sndClick();
   })
   .catch(function(){showToast('Сервер не отвечает')});
 });
@@ -1328,13 +1368,6 @@ document.getElementById('adminEditAdd').addEventListener('click',function(){
   })
   .catch(function(){showToast('Сервер не отвечает')});
 });
-
-/* ============================================================
-   БОНУС
-   ============================================================ */
-function claimBonus(){
-  showToast('Бонус временно недоступен');
-}
 
 /* ============================================================
    ОНЛАЙН — ЛОББИ + 2 ИГРЫ
@@ -1466,7 +1499,6 @@ function handleLobbyMessage(msg){
     if(msg.players){
       currentLobby.host=msg.players[0];
       currentLobby.guests=msg.players.slice(1);
-      // Запоминаем имена
       msg.players.forEach(function(p){ONLINE_NAMES[p.game_id]=p.name;});
       renderLobbyPlayers();
       renderLobbyActions();
@@ -1550,7 +1582,7 @@ function handleOnlineGameState(gs){
   else if(gs.type==='dice'){title.textContent='🎲 Dice';renderOnlineDice(stage,gs)}
 }
 
-// ---------- LUCKY 20 ОНЛАЙН ----------
+/* ---------- LUCKY 20 ОНЛАЙН ---------- */
 function renderOnlineLucky20(stage,gs){
   var html='<div style="text-align:center;padding:12px">';
   var myId=onlineProfile.game_id;
@@ -1605,7 +1637,7 @@ function renderLucky20Grid(gs,reveal){
   return html+'</div>';
 }
 
-// ---------- DICE ОНЛАЙН ----------
+/* ---------- DICE ОНЛАЙН ---------- */
 function renderOnlineDice(stage,gs){
   var rolls=gs.rolls||{};
   var allPlayers=[currentLobby.host].concat(currentLobby.guests||[]);
@@ -2109,7 +2141,6 @@ function backToLobby(){
    ============================================================ */
 var plinkoState={
   pegs:[], slots:[], ball:null, W:0, H:0, canvas:null, ctx:null,
-  // Симметрично от края к центру
   mults:[-4, 0, 0.5, 2, 5, 2, 0.5, 0, -4],
   rows:11, bet:500, dropping:false, targetSlot:0, frameCount:0, maxFrames:0
 };
@@ -2117,16 +2148,13 @@ var plinkoState={
 function plinkoBuildPegs(){
   var st=plinkoState;
   st.pegs=[];
-
   var padTop=25;
   var padBot=st.H-70;
   var rowGap=(padBot-padTop)/st.rows;
-
   var pegsBottomCount=st.rows+2;
   var totalWidth=st.W-20;
   var pegGap=totalWidth/(pegsBottomCount-1);
   if(pegGap<24)pegGap=24;
-
   for(var r=0;r<st.rows;r++){
     var cols=r+3;
     var y=padTop+r*rowGap;
@@ -2136,8 +2164,6 @@ function plinkoBuildPegs(){
       st.pegs.push({x:startX + c*pegGap, y:y, r:4});
     }
   }
-
-  // 9 ячеек
   st.slots=[];
   var sc=st.mults.length;
   var slotTotalW=st.W-16;
@@ -2156,7 +2182,6 @@ function plinkoDraw(){
   var st=plinkoState;
   if(!st.ctx)return;
   st.ctx.clearRect(0,0,st.W,st.H);
-
   for(var i=0;i<st.pegs.length;i++){
     var p=st.pegs[i];
     var grad=st.ctx.createRadialGradient(p.x-2,p.y-2,1,p.x,p.y,p.r);
@@ -2170,8 +2195,6 @@ function plinkoDraw(){
     st.ctx.fill();
     st.ctx.shadowBlur=0;
   }
-
-  // Ячейки с цветами по величине
   for(var s=0;s<st.slots.length;s++){
     var sl=st.slots[s];
     var c;
@@ -2179,9 +2202,7 @@ function plinkoDraw(){
     else if(sl.mult === 0) c = '#4a4a4a';
     else if(sl.mult >= 5) c = '#ffd700';
     else if(sl.mult >= 2) c = '#22d3ee';
-    else if(sl.mult >= 0.5) c = '#a855f7';
-    else c = '#b71c1c';
-
+    else c = '#a855f7';
     st.ctx.fillStyle=c;
     st.ctx.beginPath();
     if(st.ctx.roundRect) st.ctx.roundRect(sl.x-sl.w/2,sl.y-16,sl.w,26,6);
@@ -2197,7 +2218,6 @@ function plinkoDraw(){
     else label = '×'+sl.mult;
     st.ctx.fillText(label, sl.x, sl.y-3);
   }
-
   if(st.ball){
     var g2=st.ctx.createRadialGradient(st.ball.x-3,st.ball.y-3,1,st.ball.x,st.ball.y,st.ball.r);
     g2.addColorStop(0,'#fff');
@@ -2246,8 +2266,7 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
     else if(m===0)cls+=' empty';
     else if(m>=5)cls+=' max';
     else if(m>=2)cls+=' high';
-    else if(m>=0.5)cls+=' mid';
-    else cls+=' low';
+    else cls+=' mid';
     var label;
     if(m<0) label = m+'';
     else if(m===0) label = '×0';
@@ -2258,13 +2277,11 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
 
   setupBetInput('plinkoBetInput','plinkoBetUp','plinkoBetDown',function(v){plinkoState.bet=v});
 
-  // Функция обработки результата — вызывается СРАЗУ при достижении низа
   function finishDrop(){
     var st=plinkoState;
     if(!st.ball)return;
     var mult = st.mults[st.targetSlot];
     var win = Math.floor(st.bet * mult);
-
     if(mult > 0){
       setWallet(getWallet() + win);
       updateWalletUI();
@@ -2285,7 +2302,6 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
       document.getElementById('plinkoMsg').style.color='#ff5252';
       sndLose();
     }
-
     st.ball=null;
     st.dropping=false;
     plinkoDraw();
@@ -2314,29 +2330,17 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
 
     function step(){
       st.frameCount++;
-
-      // Гравитация
       st.ball.vy += GRAVITY;
-
-      // Мягкое притяжение к цели
       var dx = targetSlot.x - st.ball.x;
       st.ball.vx += dx * 0.0008;
-
-      // Трение
       st.ball.vx *= AIR_FRICTION;
       st.ball.vy *= AIR_FRICTION;
-
-      // Лимит скорости
       var maxV = 8;
       if(st.ball.vy > maxV) st.ball.vy = maxV;
       if(st.ball.vx > maxV) st.ball.vx = maxV;
       if(st.ball.vx < -maxV) st.ball.vx = -maxV;
-
-      // Позиция
       st.ball.x += st.ball.vx;
       st.ball.y += st.ball.vy;
-
-      // Столкновения с пегами
       for(var i=0;i<st.pegs.length;i++){
         var p=st.pegs[i];
         var ddx = st.ball.x - p.x;
@@ -2347,25 +2351,16 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
           var dist = Math.sqrt(distSq);
           var nx = ddx / dist;
           var ny = ddy / dist;
-
-          // Выталкивание
           var overlap = minDist - dist;
           st.ball.x += nx * overlap;
           st.ball.y += ny * overlap;
-
-          // Отражение
           var dot = st.ball.vx * nx + st.ball.vy * ny;
           st.ball.vx -= (1 + BOUNCE) * dot * nx;
           st.ball.vy -= (1 + BOUNCE) * dot * ny;
-
-          // Лёгкий подкрут
           st.ball.vx += (Math.random()-0.5) * 0.6;
-
           if(Math.random() > 0.7) sndTick();
         }
       }
-
-      // Стены
       if(st.ball.x < st.ball.r + 4){
         st.ball.x = st.ball.r + 4;
         st.ball.vx = Math.abs(st.ball.vx) * 0.6;
@@ -2374,15 +2369,11 @@ window.addEventListener('resize',function(){if(document.getElementById('plinkoGa
         st.ball.x = st.W - st.ball.r - 4;
         st.ball.vx = -Math.abs(st.ball.vx) * 0.6;
       }
-
       plinkoDraw();
-
-      // ⚡ ГЛАВНОЕ ИСПРАВЛЕНИЕ: результат СРАЗУ как только мяч коснулся низа
       if(st.ball.y >= st.H - 30 || st.frameCount > st.maxFrames){
         finishDrop();
         return;
       }
-
       requestAnimationFrame(step);
     }
     step();
@@ -2655,7 +2646,6 @@ initTelegramBackButton();
 bjInit();
 startPing();
 
-// Авторегистрация
 silentRegister();
 setTimeout(silentRegister, 3000);
 </script>
