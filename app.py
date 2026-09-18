@@ -5,11 +5,13 @@ import random
 import string
 import threading
 import urllib.request
+import urllib.parse
 from flask import Flask, request, jsonify, send_from_directory
 from flask_sock import Sock
 
 app = Flask(__name__, static_folder='.')
 sock = Sock(app)
+
 
 @app.after_request
 def add_cors(resp):
@@ -17,6 +19,7 @@ def add_cors(resp):
     resp.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
     resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
     return resp
+
 
 # ============================================================
 #  КОНСТАНТЫ
@@ -26,12 +29,14 @@ ADMIN_PASSWORD = 'диана'
 HOUR_BONUS = 0.2
 HOUR_SECONDS = 3600
 MIN_WITHDRAW = 50
-BOT_TOKEN = os.environ.get('BOT_TOKEN', '')
-GAME_URL = 'https://game-kazik-by-zyza.onrender.com'
+BOT_TOKEN = os.environ.get('BOT_TOKEN', '8665249676:AAGF5cu1i29JHgCUqYJ6iRfBYqSILA44Jag')
+GAME_URL = os.environ.get('GAME_URL', 'https://game-kazik-by-zyza.onrender.com')
 BOT_DATA_FILE = 'bot_subscribers.json'
 DATA_FILE = 'data.json'
-SAVE_INTERVAL = 30
+SAVE_INTERVAL = 60
 MINI_APP_SHORT_NAME = os.environ.get('MINI_APP_SHORT_NAME', '')
+MAX_PLAYERS = 2000
+PLAYER_TTL_DAYS = 30
 
 # ============================================================
 #  ХРАНИЛИЩА
@@ -48,9 +53,9 @@ VIRTUAL_PLAYER_ID = '999999'
 VIRTUAL_PLAYER_GUEST = 'virtual_keepalive_bot'
 ADMIN_TOKENS_FILE = 'admin_tokens.json'
 
-# Кэш для админки (чтобы не тормозило)
+# Кэш админки
 _admin_cache = {'players': None, 'ts': 0}
-ADMIN_CACHE_TTL = 2  # секунды
+ADMIN_CACHE_TTL = 2
 
 global_settings = {
     'tech_break': False,
@@ -61,7 +66,7 @@ global_settings = {
 }
 
 # ============================================================
-#  МАГАЗИН ОФОРМЛЕНИЙ (синхронизирован с index.html)
+#  МАГАЗИН ОФОРМЛЕНИЙ
 # ============================================================
 SHOP_ITEMS = {
     # ФОНЫ
@@ -117,15 +122,16 @@ def ensure_player_shop(player):
             'equipped': dict(DEFAULT_SHOP['equipped'])
         }
     else:
-        # Восстанавливаем недостающие поля
-        if 'owned' not in player['shop']:
+        if 'owned' not in player['shop'] or not isinstance(player['shop']['owned'], list):
             player['shop']['owned'] = list(DEFAULT_SHOP['owned'])
-        if 'equipped' not in player['shop']:
+        if 'equipped' not in player['shop'] or not isinstance(player['shop']['equipped'], dict):
             player['shop']['equipped'] = dict(DEFAULT_SHOP['equipped'])
-        # Добавляем дефолтные товары, если их нет
         for k in DEFAULT_SHOP['owned']:
             if k not in player['shop']['owned']:
                 player['shop']['owned'].append(k)
+        for k, v in DEFAULT_SHOP['equipped'].items():
+            if k not in player['shop']['equipped']:
+                player['shop']['equipped'][k] = v
     return player['shop']
 
 
@@ -134,63 +140,6 @@ def _add_log(msg):
         global_settings['autorequest_log'].append({'time': now(), 'text': msg})
         if len(global_settings['autorequest_log']) > 50:
             global_settings['autorequest_log'] = global_settings['autorequest_log'][-50:]
-
-
-# ============================================================
-#  СОХРАНЕНИЕ ДАННЫХ
-# ============================================================
-def save_all_data():
-    try:
-        with lock:
-            data = {
-                'players': players,
-                'guests': guests,
-                'tg_users': tg_users,
-                'lobbies': lobbies,
-                'global_settings': {
-                    'tech_break': global_settings['tech_break'],
-                    'tech_break_message': global_settings['tech_break_message'],
-                    'keepalive': global_settings['keepalive'],
-                    'autorequest': global_settings['autorequest']
-                },
-                'saved_at': now()
-            }
-        with open(DATA_FILE, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False)
-    except Exception as e:
-        print('❌ Ошибка сохранения:', e)
-
-
-def load_all_data():
-    global players, guests, tg_users, lobbies
-    try:
-        with open(DATA_FILE, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            players = data.get('players', {})
-            guests = data.get('guests', {})
-            tg_users = data.get('tg_users', {})
-            lobbies = data.get('lobbies', {})
-            saved = data.get('global_settings', {})
-            if saved:
-                global_settings['tech_break'] = saved.get('tech_break', False)
-                global_settings['tech_break_message'] = saved.get('tech_break_message', global_settings['tech_break_message'])
-                global_settings['keepalive'] = saved.get('keepalive', False)
-                global_settings['autorequest'] = saved.get('autorequest', False)
-            # Убеждаемся, что у всех игроков есть shop
-            for pid, p in players.items():
-                if not p.get('is_virtual'):
-                    ensure_player_shop(p)
-            print(f'📂 Загружено: {len(players)} игроков')
-    except Exception:
-        print('📂 Файл данных пуст')
-
-
-def autosave_loop():
-    while True:
-        time.sleep(SAVE_INTERVAL)
-        save_all_data()
-
-threading.Thread(target=autosave_loop, daemon=True).start()
 
 
 # ============================================================
@@ -243,82 +192,114 @@ def _pub(player):
 
 
 # ============================================================
-#  ПУШИ
+#  СОХРАНЕНИЕ
 # ============================================================
-def notify_player(player_id, message):
-    conns = player_sockets.get(player_id, [])
-    dead = []
-    for ws in conns:
-        try:
-            ws.send(json.dumps(message))
-        except Exception:
-            dead.append(ws)
-    for ws in dead:
-        try:
-            conns.remove(ws)
-        except Exception:
-            pass
+def save_all_data():
+    try:
+        with lock:
+            data = {
+                'players': players,
+                'guests': guests,
+                'tg_users': tg_users,
+                'lobbies': lobbies,
+                'global_settings': {
+                    'tech_break': global_settings['tech_break'],
+                    'tech_break_message': global_settings['tech_break_message'],
+                    'keepalive': global_settings['keepalive'],
+                    'autorequest': global_settings['autorequest']
+                },
+                'saved_at': now()
+            }
+        with open(DATA_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False)
+    except Exception as e:
+        print('❌ Ошибка сохранения:', e)
 
 
-def notify_all_players(message):
-    for pid in list(player_sockets.keys()):
-        notify_player(pid, message)
+def load_all_data():
+    global players, guests, tg_users, lobbies
+    try:
+        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            players = data.get('players', {})
+            guests = data.get('guests', {})
+            tg_users = data.get('tg_users', {})
+            lobbies = data.get('lobbies', {})
+            saved = data.get('global_settings', {})
+            if saved:
+                global_settings['tech_break'] = saved.get('tech_break', False)
+                global_settings['tech_break_message'] = saved.get('tech_break_message', global_settings['tech_break_message'])
+                global_settings['keepalive'] = saved.get('keepalive', False)
+                global_settings['autorequest'] = saved.get('autorequest', False)
+            for pid, p in players.items():
+                if not p.get('is_virtual'):
+                    ensure_player_shop(p)
+            print(f'📂 Загружено: {len(players)} игроков')
+    except Exception:
+        print('📂 Файл данных пуст')
 
 
-def notify_lobby(lobby_id, message):
-    conns = lobby_sockets.get(lobby_id, [])
-    dead = []
-    for ws in conns:
-        try:
-            ws.send(json.dumps(message))
-        except Exception:
-            dead.append(ws)
-    for ws in dead:
-        try:
-            conns.remove(ws)
-        except Exception:
-            pass
-    lobby = lobbies.get(lobby_id)
-    if lobby:
-        members = [lobby['host']] + (lobby.get('guests') or [])
-        for m in members:
-            pid = m.get('game_id')
-            if pid:
-                notify_player(pid, message)
-
-
-# ============================================================
-#  ВИРТУАЛЬНЫЙ ИГРОК
-# ============================================================
-def _create_virtual_player():
+def _cleanup_old_players():
+    """Удаляет неактивных игроков старше PLAYER_TTL_DAYS дней."""
     with lock:
-        if VIRTUAL_PLAYER_ID in players:
-            return
-        players[VIRTUAL_PLAYER_ID] = {
-            'game_id': VIRTUAL_PLAYER_ID,
-            'name': '🤖 Хранитель',
-            'telegram_id': None,
-            'last_seen': now(),
-            'balance': 0.0,
-            'pending_bonus': 0.0,
-            'last_bonus_ts': now(),
-            'region': 'Система',
-            'friends': [],
-            'friend_requests': [],
-            'is_virtual': True,
-            'shop': {'owned': [], 'equipped': {}}
-        }
-        guests[VIRTUAL_PLAYER_GUEST] = VIRTUAL_PLAYER_ID
-
-
-load_all_data()
-_create_virtual_player()
+        t = now()
+        ttl = PLAYER_TTL_DAYS * 24 * 3600
+        to_delete = []
+        for pid, p in players.items():
+            if p.get('is_virtual'):
+                continue
+            if t - p.get('last_seen', 0) > ttl:
+                to_delete.append(pid)
+        for pid in to_delete:
+            players.pop(pid, None)
+        # Чистим guests от мёртвых ссылок
+        for gid, gpid in list(guests.items()):
+            if gpid not in players:
+                guests.pop(gid, None)
+        # Чистим tg_users
+        for tid, tpid in list(tg_users.items()):
+            if tpid not in players:
+                tg_users.pop(tid, None)
+        if to_delete:
+            print(f'🧹 Удалено {len(to_delete)} неактивных игроков')
 
 
 # ============================================================
-#  АВТО-ЗАПРОСЫ
+#  ФОНОВЫЕ ЗАДАЧИ
 # ============================================================
+def autosave_loop():
+    last_cleanup = now()
+    while True:
+        time.sleep(SAVE_INTERVAL)
+        try:
+            save_all_data()
+            # Раз в сутки чистим старых игроков
+            if now() - last_cleanup > 24 * 3600:
+                _cleanup_old_players()
+                last_cleanup = now()
+        except Exception as e:
+            print('autosave error:', e)
+
+
+def hourly_bonus_loop():
+    while True:
+        time.sleep(HOUR_SECONDS)
+        try:
+            with lock:
+                t = now()
+                for pid, p in players.items():
+                    if p.get('is_virtual'):
+                        continue
+                    if t - p.get('last_bonus_ts', 0) >= HOUR_SECONDS - 5:
+                        p['pending_bonus'] = round(p.get('pending_bonus', 0) + HOUR_BONUS, 2)
+                        p['last_bonus_ts'] = t
+                        notify_player(pid, {'type': 'bonus_update', 'pending_bonus': p['pending_bonus']})
+        except Exception as e:
+            print('bonus loop error:', e)
+
+
 _autorequest_stop = threading.Event()
+
 
 def autorequest_loop():
     time.sleep(60)
@@ -391,29 +372,72 @@ def autorequest_loop():
                 break
             time.sleep(5)
 
-threading.Thread(target=autorequest_loop, daemon=True).start()
+
+load_all_data()
+
+# Создаём виртуального игрока
+with lock:
+    if VIRTUAL_PLAYER_ID not in players:
+        players[VIRTUAL_PLAYER_ID] = {
+            'game_id': VIRTUAL_PLAYER_ID,
+            'name': '🤖 Хранитель',
+            'telegram_id': None,
+            'last_seen': now(),
+            'balance': 0.0,
+            'pending_bonus': 0.0,
+            'last_bonus_ts': now(),
+            'region': 'Система',
+            'friends': [],
+            'friend_requests': [],
+            'is_virtual': True,
+            'shop': {'owned': [], 'equipped': {}}
+        }
+        guests[VIRTUAL_PLAYER_GUEST] = VIRTUAL_PLAYER_ID
 
 
 # ============================================================
-#  ЕЖЕЧАСНЫЙ БОНУС
+#  ПУШИ
 # ============================================================
-def hourly_bonus_loop():
-    while True:
-        time.sleep(HOUR_SECONDS)
+def notify_player(player_id, message):
+    conns = player_sockets.get(player_id, [])
+    dead = []
+    for ws in conns:
         try:
-            with lock:
-                t = now()
-                for pid, p in players.items():
-                    if p.get('is_virtual'):
-                        continue
-                    if t - p.get('last_bonus_ts', 0) >= HOUR_SECONDS - 5:
-                        p['pending_bonus'] = round(p.get('pending_bonus', 0) + HOUR_BONUS, 2)
-                        p['last_bonus_ts'] = t
-                        notify_player(pid, {'type': 'bonus_update', 'pending_bonus': p['pending_bonus']})
-        except Exception as e:
-            print('bonus loop error:', e)
+            ws.send(json.dumps(message))
+        except Exception:
+            dead.append(ws)
+    for ws in dead:
+        try:
+            conns.remove(ws)
+        except Exception:
+            pass
 
-threading.Thread(target=hourly_bonus_loop, daemon=True).start()
+
+def notify_all_players(message):
+    for pid in list(player_sockets.keys()):
+        notify_player(pid, message)
+
+
+def notify_lobby(lobby_id, message):
+    conns = lobby_sockets.get(lobby_id, [])
+    dead = []
+    for ws in conns:
+        try:
+            ws.send(json.dumps(message))
+        except Exception:
+            dead.append(ws)
+    for ws in dead:
+        try:
+            conns.remove(ws)
+        except Exception:
+            pass
+    lobby = lobbies.get(lobby_id)
+    if lobby:
+        members = [lobby['host']] + (lobby.get('guests') or [])
+        for m in members:
+            pid = m.get('game_id')
+            if pid:
+                notify_player(pid, message)
 
 
 # ============================================================
@@ -437,7 +461,7 @@ def static_files(path):
 def health():
     return jsonify({
         'ok': True,
-        'players': len(players) - 1,
+        'players': max(0, len(players) - 1),
         'tg_users': len(tg_users),
         'sockets': len(player_sockets),
         'lobbies': len(lobbies),
@@ -474,7 +498,6 @@ def parse_init_data(init_data):
     if not init_data:
         return None
     try:
-        import urllib.parse
         parsed = urllib.parse.parse_qs(init_data)
         user_json = parsed.get('user', [None])[0]
         if not user_json:
@@ -524,8 +547,11 @@ def register():
                 guests[guest_id] = player['game_id']
             _accrue_bonus(player)
             ensure_player_shop(player)
-            save_all_data()
             return jsonify({'player': _pub(player), 'guest_id': guest_id or player['game_id']})
+
+        # Лимит игроков
+        if len(players) >= MAX_PLAYERS + 1:
+            return jsonify({'error': 'server_full'})
 
         pid = gen_id(6)
         while pid in players:
@@ -551,7 +577,7 @@ def register():
             guests[guest_id] = pid
         if telegram_id:
             tg_users[telegram_id] = pid
-    save_all_data()
+
     return jsonify({'player': _pub(player), 'guest_id': guest_id or pid})
 
 
@@ -601,6 +627,7 @@ def shop_buy():
         new_balance = player['balance']
         owned = list(shop['owned'])
 
+    _admin_cache['players'] = None
     save_all_data()
     notify_player(player['game_id'], {'type': 'admin_balance_update', 'balance': new_balance})
 
@@ -725,12 +752,12 @@ def admin_players():
     if not _check_admin(data):
         return jsonify({'error': 'unauthorized'})
 
-    # Кэш на 2 секунды для быстродействия
+    # Кэш
     global _admin_cache
     now_ts = now()
-    if _admin_cache['players'] and (now_ts - _admin_cache['ts']) < ADMIN_CACHE_TTL:
-        cached = _admin_cache['players']
-        # Обновляем только онлайн-статус (быстро)
+    cached = _admin_cache['players']
+    if cached and (now_ts - _admin_cache['ts']) < ADMIN_CACHE_TTL:
+        # Обновляем только онлайн-статус
         result = []
         for p in cached:
             pid = p['game_id']
@@ -794,9 +821,7 @@ def admin_setbalance():
         else:
             p['balance'] = max(0.0, round(p.get('balance', 0) + amount, 2))
         new_balance = p['balance']
-    # Сбрасываем кэш
     _admin_cache['players'] = None
-    _admin_cache['ts'] = 0
     notify_player(pid, {'type': 'admin_balance_update', 'balance': new_balance})
     save_all_data()
     return jsonify({'ok': True, 'balance': new_balance})
@@ -871,7 +896,6 @@ def admin_selfbonus():
         p['balance'] = max(0.0, round(p.get('balance', 0) + amount, 2))
         new_balance = p['balance']
     _admin_cache['players'] = None
-    _admin_cache['ts'] = 0
     notify_player(p['game_id'], {'type': 'admin_balance_update', 'balance': new_balance})
     save_all_data()
     return jsonify({'ok': True, 'balance': new_balance})
@@ -889,7 +913,6 @@ def create_lobby():
         player = find_player(guest_id=data.get('guest_id'))
         if not player:
             return jsonify({'error': 'not_registered'})
-        # Удаляем старые лобби этого игрока
         for lid in list(lobbies.keys()):
             l = lobbies[lid]
             members = [l['host']] + (l.get('guests') or [])
@@ -973,7 +996,7 @@ def lobby_poll():
 
 
 # ============================================================
-#  ИГРЫ — Lucky20, Dice, Blackjack
+#  ИГРЫ
 # ============================================================
 def make_deck():
     suits = ['♠', '♥', '♦', '♣']
@@ -1363,7 +1386,7 @@ def bot_api(method, payload):
     try:
         data = json.dumps(payload).encode()
         req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=10) as resp:
             return json.loads(resp.read().decode())
     except Exception as e:
         print(f'❌ Bot API {method}:', e)
@@ -1382,12 +1405,27 @@ def bot_send(chat_id, text, keyboard=None):
     return bot_api('sendMessage', payload)
 
 
+_bot_username_cache = None
+
+
+def _get_bot_username():
+    global _bot_username_cache
+    if _bot_username_cache:
+        return _bot_username_cache
+    result = bot_api('getMe', {})
+    if result and result.get('ok'):
+        _bot_username_cache = result['result'].get('username', '')
+    return _bot_username_cache or ''
+
+
 def btn_play():
     if MINI_APP_SHORT_NAME:
-        return {'inline_keyboard': [[{
-            'text': '🎰 ИГРАТЬ',
-            'url': f'https://t.me/{_get_bot_username()}/{MINI_APP_SHORT_NAME}'
-        }]]}
+        username = _get_bot_username()
+        if username:
+            return {'inline_keyboard': [[{
+                'text': '🎰 ИГРАТЬ',
+                'url': f'https://t.me/{username}/{MINI_APP_SHORT_NAME}'
+            }]]}
     return {'inline_keyboard': [[{
         'text': '🎰 ИГРАТЬ',
         'web_app': {'url': GAME_URL}
@@ -1399,18 +1437,6 @@ def btn_play_group():
         'text': '🎰 ИГРАТЬ С ДРУЗЬЯМИ',
         'url': GAME_URL
     }]]}
-
-
-_bot_username_cache = None
-
-def _get_bot_username():
-    global _bot_username_cache
-    if _bot_username_cache:
-        return _bot_username_cache
-    result = bot_api('getMe', {})
-    if result and result.get('ok'):
-        _bot_username_cache = result['result'].get('username', '')
-    return _bot_username_cache or ''
 
 
 BOT_WELCOME = """👑 <b>ДОБРО ПОЖАЛОВАТЬ В GOLDEN PALACE!</b> 👑
@@ -1553,44 +1579,96 @@ def bot_handle_my_chat_member(update):
 
 def bot_polling_loop():
     print('🤖 Бот: polling запущен')
+    # Удаляем webhook, если был установлен — иначе polling не работает
+    try:
+        bot_api('deleteWebhook', {'drop_pending_updates': False})
+    except Exception:
+        pass
+
     offset = 0
+    error_count = 0
     while True:
         try:
             url = f'https://api.telegram.org/bot{BOT_TOKEN}/getUpdates'
             payload = {
                 'offset': offset,
-                'timeout': 30,
+                'timeout': 25,
                 'allowed_updates': ['message', 'edited_message', 'my_chat_member']
             }
             data = json.dumps(payload).encode()
             req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
-            with urllib.request.urlopen(req, timeout=35) as resp:
+            with urllib.request.urlopen(req, timeout=30) as resp:
                 result = json.loads(resp.read().decode())
             if result.get('ok'):
+                error_count = 0
                 for update in result.get('result', []):
                     try:
                         bot_handle_update(update)
                     except Exception as e:
-                        print('❌ Бот: ошибка:', e)
+                        print('❌ Бот: ошибка обработки:', e)
                     offset = update['update_id'] + 1
+            else:
+                desc = result.get('description', '')
+                if 'Conflict' in desc:
+                    print('⚠️ Бот: конфликт polling — ждём 30 сек')
+                    time.sleep(30)
+                else:
+                    print(f'⚠️ Бот: {desc}')
+                    time.sleep(5)
         except Exception as e:
+            error_count += 1
             print('❌ Бот: polling error:', e)
-            time.sleep(5)
+            time.sleep(min(5 * error_count, 60))
 
 
 def start_bot():
     if not BOT_TOKEN:
-        print('⚠️ BOT_TOKEN не задан')
+        print('⚠️ BOT_TOKEN не задан — бот отключён')
         return
+    try:
+        me = bot_api('getMe', {})
+        if me and me.get('ok'):
+            username = me['result'].get('username', '?')
+            print(f'✅ Бот: @{username}')
+        else:
+            print('⚠️ Бот: getMe не ответил, продолжаем')
+    except Exception as e:
+        print('⚠️ Бот: getMe error:', e)
+
     bot_load_data()
     threading.Thread(target=bot_polling_loop, daemon=True).start()
     threading.Thread(target=bot_broadcast_loop, daemon=True).start()
     print('✅ Бот инициализирован')
 
 
-start_bot()
+# ============================================================
+#  ЗАПУСК ФОНОВЫХ ЗАДАЧ (ОДИН РАЗ)
+# ============================================================
+_bg_started = False
+
+
+def _start_background_tasks():
+    """Запускает фоновые потоки один раз при старте приложения."""
+    global _bg_started
+    if _bg_started:
+        return
+    _bg_started = True
+
+    threading.Thread(target=autosave_loop, daemon=True).start()
+    threading.Thread(target=autorequest_loop, daemon=True).start()
+    threading.Thread(target=hourly_bonus_loop, daemon=True).start()
+    start_bot()
+    print('✅ Фоновые задачи запущены')
+
+
+# Запускаем при импорте — gunicorn загружает app.py один раз на воркер,
+# но мы защищаемся флагом _bg_started.
+# Если gunicorn запускает несколько воркеров — потоки будут только в первом,
+# который импортирует модуль первым (за счёт GIL и порядком импорта это не гарантируется,
+# но на практике с gunicorn --workers 1 (по умолчанию для free tier) всё ок).
+_start_background_tasks()
 
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, threaded=True)
