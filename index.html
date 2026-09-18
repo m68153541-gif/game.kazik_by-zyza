@@ -1764,11 +1764,13 @@ document.querySelectorAll('.shop-cat').forEach(function(cat){
   });
 });
 
-/* Модалка предпросмотра */
-document.getElementById('shopPreviewClose').addEventListener('click',function(){
+/* Модалка предпросмотра (безопасно) */
+var _spc = document.getElementById('shopPreviewClose');
+if(_spc) _spc.addEventListener('click',function(){
   document.getElementById('shopPreviewModal').classList.remove('show');
 });
-document.getElementById('shopPreviewBuy').addEventListener('click',function(){
+var _spb = document.getElementById('shopPreviewBuy');
+if(_spb) _spb.addEventListener('click',function(){
   if(shopPreviewKey) buyItem(shopPreviewKey);
 });
 
