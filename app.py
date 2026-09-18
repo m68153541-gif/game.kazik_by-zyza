@@ -32,9 +32,8 @@ MIN_WITHDRAW = 50
 BOT_TOKEN = os.environ.get('BOT_TOKEN', '')
 GAME_URL = 'https://game-kazik-by-zyza.onrender.com'
 BOT_DATA_FILE = 'bot_subscribers.json'
-
-# Имя Mini App — должно совпадать с BotFather (/newapp)
-# Если не настроено — используется GAME_URL напрямую
+DATA_FILE = 'data.json'
+SAVE_INTERVAL = 30
 MINI_APP_SHORT_NAME = os.environ.get('MINI_APP_SHORT_NAME', '')
 
 # ============================================================
@@ -53,31 +52,87 @@ VIRTUAL_PLAYER_GUEST = 'virtual_keepalive_bot'
 
 ADMIN_TOKENS_FILE = 'admin_tokens.json'
 
-def _load_admin_sessions():
-    try:
-        with open(ADMIN_TOKENS_FILE, 'r') as f:
-            data = json.load(f)
-            return data if isinstance(data, dict) else {}
-    except Exception:
-        return {}
-
-def _save_admin_sessions(sessions):
-    try:
-        with open(ADMIN_TOKENS_FILE, 'w') as f:
-            json.dump(sessions, f)
-    except Exception as e:
-        print('save admin tokens error:', e)
-
-admin_sessions = _load_admin_sessions()
-ADMIN_TOKEN_TTL = 30 * 24 * 3600
-
+# ============================================================
+#  НАСТРОЙКИ СЕРВЕРА
+# ============================================================
 global_settings = {
     'tech_break': False,
     'tech_break_message': '🔧 Технический перерыв\n\nСкоро вернёмся!',
-    'keepalive': False
+    'keepalive': False,
+    'autorequest': False,     # новая функция "Запрос Авто"
+    'autorequest_log': []     # лог последних действий
 }
 
 
+def _add_log(msg):
+    """Добавляет запись в лог авто-запросов."""
+    with lock:
+        global_settings['autorequest_log'].append({
+            'time': now(),
+            'text': msg
+        })
+        # Храним последние 50 записей
+        if len(global_settings['autorequest_log']) > 50:
+            global_settings['autorequest_log'] = global_settings['autorequest_log'][-50:]
+
+
+# ============================================================
+#  СОХРАНЕНИЕ ДАННЫХ В ФАЙЛ
+# ============================================================
+def save_all_data():
+    try:
+        with lock:
+            data = {
+                'players': players,
+                'guests': guests,
+                'tg_users': tg_users,
+                'lobbies': lobbies,
+                'global_settings': {
+                    'tech_break': global_settings['tech_break'],
+                    'tech_break_message': global_settings['tech_break_message'],
+                    'keepalive': global_settings['keepalive'],
+                    'autorequest': global_settings['autorequest']
+                },
+                'saved_at': now()
+            }
+        with open(DATA_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False)
+    except Exception as e:
+        print('❌ Ошибка сохранения:', e)
+
+
+def load_all_data():
+    global players, guests, tg_users, lobbies
+    try:
+        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            players = data.get('players', {})
+            guests = data.get('guests', {})
+            tg_users = data.get('tg_users', {})
+            lobbies = data.get('lobbies', {})
+            saved = data.get('global_settings', {})
+            if saved:
+                global_settings['tech_break'] = saved.get('tech_break', False)
+                global_settings['tech_break_message'] = saved.get('tech_break_message', global_settings['tech_break_message'])
+                global_settings['keepalive'] = saved.get('keepalive', False)
+                global_settings['autorequest'] = saved.get('autorequest', False)
+            saved_at = data.get('saved_at', 0)
+            print(f'📂 Загружено: {len(players)} игроков, {len(lobbies)} лобби (сохранено {now() - saved_at} сек назад)')
+    except Exception:
+        print('📂 Файл данных пуст — создаём новый')
+
+
+def autosave_loop():
+    while True:
+        time.sleep(SAVE_INTERVAL)
+        save_all_data()
+
+threading.Thread(target=autosave_loop, daemon=True).start()
+
+
+# ============================================================
+#  УТИЛИТЫ
+# ============================================================
 def gen_id(n=6, digits_only=True):
     chars = string.digits if digits_only else string.ascii_lowercase + string.digits
     return ''.join(random.choices(chars, k=n))
@@ -189,42 +244,114 @@ def _create_virtual_player():
         }
         guests[VIRTUAL_PLAYER_GUEST] = VIRTUAL_PLAYER_ID
 
+
+# Загружаем данные и создаём виртуального игрока
+load_all_data()
 _create_virtual_player()
 
 
 # ============================================================
-#  АНТИСОН
+#  ЗАПРОС АВТО (BETA) — пингует сервер + делает внутренние запросы
 # ============================================================
-_keepalive_stop = threading.Event()
+_autorequest_stop = threading.Event()
 
-def keepalive_loop():
+def autorequest_loop():
+    """
+    Каждые ~4 минуты делает цикл запросов:
+    1. /health (пинг)
+    2. Создание тестового лобби
+    3. Проверка admin login
+    4. Имитация входа/выхода
+    5. Удаление тестового лобби
+    Всё логируется в autorequest_log
+    """
+    time.sleep(60)  # ждём старт
+    base = os.environ.get('RENDER_EXTERNAL_URL', '') or f'http://127.0.0.1:{os.environ.get("PORT", "5000")}'
+    base = base.rstrip('/')
+
     while True:
         try:
-            if global_settings.get('keepalive'):
-                url = os.environ.get('RENDER_EXTERNAL_URL', '')
-                if url:
-                    ping_url = url.rstrip('/') + '/health'
-                else:
-                    port = os.environ.get('PORT', '5000')
-                    ping_url = f'http://127.0.0.1:{port}/health'
+            if global_settings.get('autorequest'):
+                _add_log('🚀 Начало цикла авто-запросов')
+                
+                # 1. Пинг /health
                 try:
-                    req = urllib.request.Request(ping_url, headers={'User-Agent': 'gp-keepalive/1.0'})
+                    _add_log('📡 Пинг /health...')
+                    req = urllib.request.Request(base + '/health', headers={'User-Agent': 'GP-AutoReq/1.0'})
                     with urllib.request.urlopen(req, timeout=10) as resp:
-                        print(f'🛡 Антисон → {ping_url} ({resp.status})')
+                        _add_log(f'✅ /health → {resp.status}')
                 except Exception as e:
-                    print(f'🛡 Антисон ошибка: {e}')
-                with lock:
-                    if VIRTUAL_PLAYER_ID in players:
-                        players[VIRTUAL_PLAYER_ID]['last_seen'] = now()
+                    _add_log(f'❌ /health ошибка: {str(e)[:50]}')
+
+                time.sleep(2)
+
+                # 2. Создание тестового лобби (без реального игрока)
+                try:
+                    _add_log('🎮 Создание тестового лобби...')
+                    fake_guest = 'autorequest_' + str(random.randint(1000, 9999))
+                    payload = json.dumps({'guest_id': fake_guest}).encode()
+                    req = urllib.request.Request(base + '/api/lobby/create', data=payload,
+                        headers={'Content-Type': 'application/json'}, method='POST')
+                    with urllib.request.urlopen(req, timeout=10) as resp:
+                        result = json.loads(resp.read().decode())
+                        lobby_id = result.get('lobby_id')
+                        if lobby_id:
+                            _add_log(f'✅ Лобби создано: #{lobby_id}')
+
+                            # 3. Выходим из лобби
+                            time.sleep(2)
+                            _add_log('🚪 Выход из лобби...')
+                            leave_url = base + f'/api/lobby/leave?lobby_id={lobby_id}'
+                            payload2 = json.dumps({'guest_id': fake_guest}).encode()
+                            req2 = urllib.request.Request(leave_url, data=payload2,
+                                headers={'Content-Type': 'application/json'}, method='POST')
+                            with urllib.request.urlopen(req2, timeout=10) as resp2:
+                                _add_log(f'✅ Выход из лобби #{lobby_id}')
+                        else:
+                            _add_log('⚠️ Лобби не создано (пустой ID)')
+                except Exception as e:
+                    _add_log(f'❌ Лобби ошибка: {str(e)[:50]}')
+
+                time.sleep(2)
+
+                # 4. Проверка admin login
+                try:
+                    _add_log('🔐 Проверка admin-входа...')
+                    payload = json.dumps({'login': ADMIN_LOGIN, 'password': ADMIN_PASSWORD}).encode()
+                    req = urllib.request.Request(base + '/api/admin/login', data=payload,
+                        headers={'Content-Type': 'application/json'}, method='POST')
+                    with urllib.request.urlopen(req, timeout=10) as resp:
+                        result = json.loads(resp.read().decode())
+                        if result.get('token'):
+                            _add_log('✅ Admin login OK')
+                        else:
+                            _add_log('⚠️ Admin login вернул пусто')
+                except Exception as e:
+                    _add_log(f'❌ Admin login ошибка: {str(e)[:50]}')
+
+                time.sleep(2)
+
+                # 5. Проверка глобального статуса
+                try:
+                    _add_log('📊 Проверка /api/global/status...')
+                    req = urllib.request.Request(base + '/api/global/status', headers={'User-Agent': 'GP-AutoReq/1.0'})
+                    with urllib.request.urlopen(req, timeout=10) as resp:
+                        _add_log(f'✅ Статус получен ({resp.status})')
+                except Exception as e:
+                    _add_log(f'❌ Статус ошибка: {str(e)[:50]}')
+
+                _add_log('🏁 Цикл завершён. Следующий через 4 минуты')
         except Exception as e:
-            print(f'🛡 Антисон loop error: {e}')
-        for _ in range(60):
-            if _keepalive_stop.is_set():
-                _keepalive_stop.clear()
+            _add_log(f'❌ Общая ошибка: {str(e)[:80]}')
+
+        # Ждём ~4 минуты (проверяя флаг остановки)
+        for _ in range(48):
+            if _autorequest_stop.is_set():
+                _autorequest_stop.clear()
                 break
             time.sleep(5)
 
-threading.Thread(target=keepalive_loop, daemon=True).start()
+threading.Thread(target=autorequest_loop, daemon=True).start()
 
 
 # ============================================================
@@ -275,6 +402,7 @@ def health():
         'sockets': len(player_sockets),
         'lobbies': len(lobbies),
         'keepalive': global_settings.get('keepalive', False),
+        'autorequest': global_settings.get('autorequest', False),
         'tech_break': global_settings.get('tech_break', False),
         'bot_subscribers': _bot_count()
     })
@@ -294,7 +422,8 @@ def global_status():
     return jsonify({
         'tech_break': global_settings['tech_break'],
         'message': global_settings['tech_break_message'],
-        'keepalive': global_settings.get('keepalive', False)
+        'keepalive': global_settings.get('keepalive', False),
+        'autorequest': global_settings.get('autorequest', False)
     })
 
 
@@ -354,6 +483,7 @@ def register():
             if guest_id and guest_id not in guests:
                 guests[guest_id] = player['game_id']
             _accrue_bonus(player)
+            save_all_data()
             return jsonify({'player': _pub(player), 'guest_id': guest_id or player['game_id']})
 
         pid = gen_id(6)
@@ -376,6 +506,7 @@ def register():
             guests[guest_id] = pid
         if telegram_id:
             tg_users[telegram_id] = pid
+    save_all_data()
     return jsonify({'player': _pub(player), 'guest_id': guest_id or pid})
 
 
@@ -392,7 +523,8 @@ def admin_login():
     if login != ADMIN_LOGIN or password != ADMIN_PASSWORD:
         return jsonify({'error': 'wrong_credentials'})
     token = gen_id(24, digits_only=False)
-    admin_sessions[token] = now()
+    with lock:
+        admin_sessions[token] = now()
     _save_admin_sessions(admin_sessions)
     return jsonify({'token': token})
 
@@ -436,7 +568,9 @@ def admin_players():
             'players': result,
             'tech_break': global_settings['tech_break'],
             'tech_break_message': global_settings['tech_break_message'],
-            'keepalive': global_settings.get('keepalive', False)
+            'keepalive': global_settings.get('keepalive', False),
+            'autorequest': global_settings.get('autorequest', False),
+            'autorequest_log': global_settings.get('autorequest_log', [])
         })
 
 
@@ -459,8 +593,9 @@ def admin_setbalance():
         else:
             p['balance'] = max(0.0, round(p.get('balance', 0) + amount, 2))
         new_balance = p['balance']
-        notify_player(pid, {'type': 'admin_balance_update', 'balance': new_balance})
-        return jsonify({'ok': True, 'balance': new_balance})
+    notify_player(pid, {'type': 'admin_balance_update', 'balance': new_balance})
+    save_all_data()
+    return jsonify({'ok': True, 'balance': new_balance})
 
 
 @app.route('/api/admin/techbreak', methods=['POST', 'OPTIONS'])
@@ -480,6 +615,7 @@ def admin_techbreak():
         'tech_break': enabled,
         'message': global_settings['tech_break_message']
     })
+    save_all_data()
     return jsonify({'ok': True, 'tech_break': enabled})
 
 
@@ -492,10 +628,42 @@ def admin_keepalive():
         return jsonify({'error': 'unauthorized'})
     enabled = bool(data.get('enabled'))
     global_settings['keepalive'] = enabled
-    if enabled:
-        _keepalive_stop.set()
     print(f'🛡 Антисон: {"ВКЛ" if enabled else "ВЫКЛ"}')
+    save_all_data()
     return jsonify({'ok': True, 'keepalive': enabled})
+
+
+@app.route('/api/admin/autorequest', methods=['POST', 'OPTIONS'])
+def admin_autorequest():
+    if request.method == 'OPTIONS':
+        return '', 204
+    data = request.get_json() or {}
+    if not _check_admin(data):
+        return jsonify({'error': 'unauthorized'})
+    enabled = bool(data.get('enabled'))
+    global_settings['autorequest'] = enabled
+    if enabled:
+        with lock:
+            global_settings['autorequest_log'] = []
+        _add_log('▶️ Запрос Авто включён')
+        _autorequest_stop.set()  # разбудить поток
+    else:
+        _add_log('⏸ Запрос Авто выключен')
+    print(f'🔄 Запрос Авто: {"ВКЛ" if enabled else "ВЫКЛ"}')
+    save_all_data()
+    return jsonify({'ok': True, 'autorequest': enabled})
+
+
+@app.route('/api/admin/autorequest/log', methods=['POST', 'OPTIONS'])
+def admin_autorequest_log():
+    if request.method == 'OPTIONS':
+        return '', 204
+    data = request.get_json() or {}
+    if not _check_admin(data):
+        return jsonify({'error': 'unauthorized'})
+    with lock:
+        log = list(global_settings.get('autorequest_log', []))
+    return jsonify({'ok': True, 'log': log})
 
 
 @app.route('/api/admin/selfbonus', methods=['POST', 'OPTIONS'])
@@ -512,8 +680,9 @@ def admin_selfbonus():
         if not p:
             return jsonify({'error': 'player_not_found'})
         p['balance'] = max(0.0, round(p.get('balance', 0) + amount, 2))
-        notify_player(p['game_id'], {'type': 'admin_balance_update', 'balance': p['balance']})
-        return jsonify({'ok': True, 'balance': p['balance']})
+    notify_player(p['game_id'], {'type': 'admin_balance_update', 'balance': p['balance']})
+    save_all_data()
+    return jsonify({'ok': True, 'balance': p['balance']})
 
 
 # ============================================================
@@ -611,7 +780,7 @@ def lobby_poll():
 
 
 # ============================================================
-#  ИГРЫ — Lucky20 и Dice
+#  ИГРЫ
 # ============================================================
 def make_initial_state(game_type):
     gs = {'type': game_type, 'phase': 'playing'}
@@ -685,7 +854,6 @@ def game_move():
                 gs['winner'] = pid
             else:
                 gs['turn'] = 'guest' if is_host else 'host'
-
         elif gs['type'] == 'dice':
             dice = move.get('dice', [0, 0])
             if not isinstance(dice, list) or len(dice) != 2:
@@ -826,12 +994,9 @@ def lobby_ws(ws, lobby_id):
 
 
 # ═══════════════════════════════════════════════════════════
-#  TELEGRAM-БОТ (встроен в тот же процесс)
+#  TELEGRAM-БОТ
 # ═══════════════════════════════════════════════════════════
-bot_subscribers = {
-    'users': {},
-    'groups': {}
-}
+bot_subscribers = {'users': {}, 'groups': {}}
 BROADCAST_INTERVAL = 3600
 SEND_DELAY = 3
 
@@ -882,19 +1047,13 @@ def bot_send(chat_id, text, keyboard=None):
     return bot_api('sendMessage', payload)
 
 
-# ─── Кнопки ──────────────────────────────────────────────
 def btn_play():
-    """
-    Кнопка для ЛИЧКИ — открывает Mini App внутри Telegram.
-    Использует ключ web_app — Telegram откроет игру как мини-приложение.
-    """
+    """Кнопка для ЛИЧКИ — открывает Mini App."""
     if MINI_APP_SHORT_NAME:
-        # Через короткое имя Mini App (настраивается в BotFather → /newapp)
         return {'inline_keyboard': [[{
             'text': '🎰 ИГРАТЬ',
             'url': f'https://t.me/{_get_bot_username()}/{MINI_APP_SHORT_NAME}'
         }]]}
-    # Через web_app — самый надёжный способ
     return {'inline_keyboard': [[{
         'text': '🎰 ИГРАТЬ',
         'web_app': {'url': GAME_URL}
@@ -902,10 +1061,7 @@ def btn_play():
 
 
 def btn_play_group():
-    """
-    Кнопка для ГРУПП — Telegram НЕ поддерживает web_app в группах.
-    Поэтому открываем обычную ссылку.
-    """
+    """Кнопка для ГРУПП — обычная ссылка (web_app в группах не работает)."""
     return {'inline_keyboard': [[{
         'text': '🎰 ИГРАТЬ С ДРУЗЬЯМИ',
         'url': GAME_URL
@@ -915,7 +1071,6 @@ def btn_play_group():
 _bot_username_cache = None
 
 def _get_bot_username():
-    """Получает username бота (для ссылок вида t.me/botname/app)."""
     global _bot_username_cache
     if _bot_username_cache:
         return _bot_username_cache
@@ -929,16 +1084,9 @@ BOT_WELCOME = """👑 <b>ДОБРО ПОЖАЛОВАТЬ В GOLDEN PALACE!</b> �
 
 🎰 <b>Премиум казино прямо в Telegram</b>
 
-Здесь ты найдёшь:
-🎯 <b>Plinko</b> — падающий шарик с множителями до ×5
-🎱 <b>Keno</b> — угадай число, выиграй ×2
-🎲 <b>Dice</b> — больше или меньше
-🃏 <b>Blackjack</b> — набери 21
-🎡 <b>Roulette</b> — красное или чёрное
-🎰 <b>Slots</b> — лови три в ряд
-🪙 <b>Coin Flip</b> — орёл или решка
-🐎 <b>Horse Race</b> — почувствуй азарт
-💎 <b>Lucky 20</b> — найди алмаз
+🎯 <b>Plinko</b> · 🎱 <b>Keno</b> · 🎲 <b>Dice</b>
+🃏 <b>Blackjack</b> · 🎡 <b>Roulette</b> · 🎰 <b>Slots</b>
+🪙 <b>Coin Flip</b> · 🐎 <b>Horse Race</b> · 💎 <b>Lucky 20</b>
 
 🌐 <b>Онлайн-режим</b> — играй с друзьями!
 
@@ -954,84 +1102,61 @@ BOT_REMINDERS = [
     """💎 <b>Тебя ждут 5000+ монет!</b>\n\n🎯 Plinko · 💎 Lucky 20 · 🐎 Horse Race\n\nНе заставляй удачу ждать! 💰""",
     """⏰ <b>Напоминание от Golden Palace</b>\n\nТвой ежечасный бонус капает! Загляни — вдруг уже на хорошую ставку? 🎰""",
     """🎰 <b>Golden Palace заждалось!</b>\n\n🔥 Plinko ×5 · 🃏 BJ ×2.5 · 🎰 Slots ×15\n\nИграй прямо сейчас! 👇""",
-    """🎯 <b>Пора играть!</b>\n\nОдна ставка — и ты легенда!\n🎱 Keno ×2 · 🃏 BJ ×2.5 · 🎰 Slots ×15""",
 ]
 
 BOT_FACTS = [
-    """🎲 <b>Интересный факт</b>\n\nСамое старое казино в мире — <b>Casino di Venezia</b> (Венеция, 1638). Ему почти 400 лет! 🏛️\n\nСыграй в Golden Palace! 👇""",
-    """🎰 <b>Знаешь ли ты?</b>\n\nАвтомат <b>«Liberty Bell»</b> (1895) — первый в мире слот с 3 барабанами. Он подарил нам 🍒🍋🍇!\n\nИспытай удачу! 👇""",
-    """💎 <b>Интересный факт</b>\n\nСлово «казино» с итальянского — <b>«маленький дом»</b>. Так называли виллы знати, где устраивали игры.\n\nВ Golden Palace мы тоже дома 🏠""",
-    """🎡 <b>Про рулетку</b>\n\nВ европейской рулетке <b>37 чисел</b>, в американской — <b>38</b> (ещё 00). У нас классическая европейская 🎯""",
-    """🃏 <b>Знаешь ли ты?</b>\n\nВ Blackjack «Ace + 10» = блэкджек, платит <b>×2.5</b> вместо ×2!\n\nИспытай удачу! 👇""",
-    """🎱 <b>Про Keno</b>\n\nKeno появилось в Древнем Китае <b>2000+ лет назад</b>. Вместо шариков — деревянные дощечки!\n\nПопробуй современную версию! 👇""",
-    """🐎 <b>Интересный факт</b>\n\nПервые записи о ставках на лошадей — <b>VI век н.э.</b> в Греции.\n\nВыбери фаворита! 🏁""",
-    """🎯 <b>Про Plinko</b>\n\n«Plinko» — от звука, который издаёт шарик <b>«plink»</b>, ударяясь о пеги!\n\nЗапусти и услышь сам! 👇""",
-    """💰 <b>Интересный факт</b>\n\nВ Монте-Карло казино запрещено местным — только туристам. С 1911 года!\n\nА у нас вход открыт всем 🎰""",
-    """🎲 <b>Про кубики</b>\n\nИгра в кости — <b>древнейшая</b> азартная игра. Ей больше 5000 лет!\n\nКинь кубики в Dice! 👇""",
+    """🎲 <b>Интересный факт</b>\n\nСамое старое казино — <b>Casino di Venezia</b> (Венеция, 1638). Ему почти 400 лет! 🏛️\n\nСыграй! 👇""",
+    """🎰 <b>Знаешь ли ты?</b>\n\nАвтомат <b>«Liberty Bell»</b> (1895) — первый слот с 3 барабанами. Он подарил нам 🍒🍋🍇!\n\nИспытай удачу! 👇""",
+    """💎 <b>Интересный факт</b>\n\nСлово «казино» с итальянского — <b>«маленький дом»</b>. Так называли виллы знати.\n\nУ нас тоже дом 🏠""",
+    """🎡 <b>Про рулетку</b>\n\nВ европейской рулетке <b>37 чисел</b>, в американской — <b>38</b>.\n\nУ нас европейская 🎯""",
+    """🃏 <b>Знаешь ли ты?</b>\n\n«Ace + 10» в Blackjack = блэкджек, платит <b>×2.5</b>!\n\nИспытай! 👇""",
+    """🎱 <b>Про Keno</b>\n\nKeno появилось в Китае <b>2000+ лет назад</b>.\n\nПопробуй! 👇""",
 ]
 
 BOT_NEWS = [
-    """📢 <b>Новости Golden Palace</b>\n\n🎱 <b>Новая игра — Keno!</b>\nУгадай число 1-10 и выиграй ×2!\n\nПопробуй 👇""",
-    """📢 <b>Обновление!</b>\n\n🌐 <b>Онлайн-режим</b> — играй с друзьями в Lucky 20 и Dice!\n\nЗаходи 👇""",
-    """📢 <b>Что нового</b>\n\n✨ Обновили дизайн\n🎵 Добавили музыку\n👑 Премиум-стиль\n\nЗагляни! 👇""",
-    """📢 <b>Golden Palace растёт!</b>\n\n👥 Сотни игроков\n💰 Миллионы монет\n🎁 Почасовой бонус\n\nПрисоединяйся! 👇""",
+    """📢 <b>Новости Golden Palace</b>\n\n🎱 <b>Keno — угадай число!</b>\n\nПопробуй 👇""",
+    """📢 <b>Обновление!</b>\n\n🌐 Онлайн-режим с друзьями!\n\nЗаходи 👇""",
+    """📢 <b>Что нового</b>\n\n✨ Дизайн · 🎵 Музыка · 👑 Стиль\n\nЗагляни! 👇""",
 ]
 
 BOT_GROUP_MSGS = [
-    """👑 <b>Golden Palace — премиум казино!</b>\n\n🎯 Plinko · 🎱 Keno · 🎲 Dice\n🃏 Blackjack · 🎡 Roulette · 🎰 Slots\n🪙 Coin Flip · 🐎 Horse Race · 💎 Lucky 20\n\n💰 5000 монет бесплатно!\n🎁 +0.2 монеты каждый час\n\nЖми 👇""",
-    """🎰 <b>Пора играть!</b>\n\n🎯 Plinko ×5 · 🎱 Keno ×2 · 🃏 BJ ×2.5\n\nВсего 1 клик до азарта! 👇""",
-    """💎 <b>Golden Palace ждёт!</b>\n\n🎲 Dice · 🎡 Roulette · 🎰 Slots\n🐎 Horse Race · 💎 Lucky 20\n\nОнлайн с друзьями! 👇""",
-    """🔥 <b>Не пропусти!</b>\n\n💰 5000 монет новым\n🎁 Почасовой бонус\n🌐 Онлайн-режим\n\nЗаходи! 👇""",
-    """🎯 <b>Испытай удачу!</b>\n\n🎰 Slots ×15 · 🃏 BJ ×2.5\n🎱 Keno ×2 · 🎯 Plinko ×5\n\nПопробуй! 👇""",
-    """🎁 <b>Хочешь лёгких денег?</b>\n\n💰 5000 монет новым\n🎁 0.2 монеты/час\n🏆 Множители до ×15\n\nЖми 👇""",
+    """👑 <b>Golden Palace!</b>\n\n🎯 Plinko · 🎱 Keno · 🎲 Dice\n🃏 BJ · 🎡 Roulette · 🎰 Slots\n\n💰 5000 монет! 🎁 +0.2/час\n\nЖми 👇""",
+    """🎰 <b>Пора играть!</b>\n\n🎯 Plinko ×5 · 🎱 Keno ×2 · 🃏 BJ ×2.5\n\n1 клик до азарта! 👇""",
+    """💎 <b>Golden Palace ждёт!</b>\n\n🎲 Dice · 🎡 Roulette · 🎰 Slots\n\nОнлайн! 👇""",
+    """🔥 <b>Не пропусти!</b>\n\n💰 5000 монет\n🎁 Бонус\n🌐 Онлайн\n\nЗаходи! 👇""",
 ]
 
 
 def bot_broadcast_loop():
-    """Рассылка ВСЕМ сразу каждые BROADCAST_INTERVAL секунд, с задержкой SEND_DELAY"""
     time.sleep(120)
     print('📢 Бот: рассылка запущена')
-
     while True:
         try:
             recipients = []
-            for cid, info in bot_subscribers['users'].items():
+            for cid in bot_subscribers['users'].keys():
                 recipients.append(('user', cid))
-            for cid, info in bot_subscribers['groups'].items():
+            for cid in bot_subscribers['groups'].keys():
                 recipients.append(('group', cid))
-
             if not recipients:
-                print('📢 Бот: нет подписчиков — спим')
                 time.sleep(BROADCAST_INTERVAL)
                 continue
-
             random.shuffle(recipients)
             total = len(recipients)
-            print(f'📢 Бот: рассылка для {total} получателей')
-            print(f'⏱ Займёт ~{total * SEND_DELAY} сек ({(total * SEND_DELAY) // 60} мин)')
-
-            sent = 0
+            print(f'📢 Бот: рассылка для {total}')
             for idx, (rtype, chat_id) in enumerate(recipients, 1):
                 try:
                     if rtype == 'user':
-                        pool = random.choice([BOT_REMINDERS, BOT_FACTS, BOT_NEWS, BOT_REMINDERS])
-                        text = random.choice(pool)
-                        bot_send(chat_id, text, btn_play())
+                        pool = random.choice([BOT_REMINDERS, BOT_FACTS, BOT_NEWS])
+                        bot_send(chat_id, random.choice(pool), btn_play())
                     else:
-                        text = random.choice(BOT_GROUP_MSGS)
-                        bot_send(chat_id, text, btn_play_group())
-                    sent += 1
-                    if idx % 10 == 0:
-                        print(f'  📤 {idx}/{total}')
+                        bot_send(chat_id, random.choice(BOT_GROUP_MSGS), btn_play_group())
                     time.sleep(SEND_DELAY)
                 except Exception as e:
                     print(f'  ❌ {chat_id}:', e)
-
-            print(f'✅ Бот: рассылка завершена ({sent}/{total})')
+            print(f'✅ Бот: рассылка завершена')
             time.sleep(BROADCAST_INTERVAL)
-
         except Exception as e:
-            print('❌ Бот: ошибка рассылки:', e)
+            print('❌ Бот: ошибка:', e)
             time.sleep(300)
 
 
@@ -1042,7 +1167,6 @@ def bot_handle_update(update):
         if my_chat:
             bot_handle_my_chat_member(my_chat)
         return
-
     chat = msg.get('chat', {})
     chat_id = chat.get('id')
     chat_type = chat.get('type')
@@ -1079,11 +1203,9 @@ def bot_handle_update(update):
         elif text == '/help':
             bot_send(chat_id,
                 '👑 <b>Golden Palace</b>\n\n'
-                '📋 Команды:\n'
                 '/start — приветствие\n'
-                '/play — начать игру\n'
-                '/help — справка\n\n'
-                '🎰 Играй прямо в Telegram!',
+                '/play — играть\n'
+                '/help — справка',
                 btn_play())
 
 
@@ -1092,20 +1214,17 @@ def bot_handle_my_chat_member(update):
     chat_id = chat.get('id')
     new_status = update.get('new_chat_member', {}).get('status')
     old_status = update.get('old_chat_member', {}).get('status')
-
     if old_status in ('left', 'kicked') and new_status in ('member', 'administrator'):
         bot_subscribers['groups'][str(chat_id)] = {
             'title': chat.get('title', 'Группа'),
             'added_at': int(time.time())
         }
         bot_save_data()
-        print(f'➕ Бот добавлен в группу: {chat.get("title")}')
         bot_send(chat_id, BOT_GROUP_MSGS[0], btn_play_group())
     elif new_status in ('left', 'kicked'):
         if str(chat_id) in bot_subscribers['groups']:
             del bot_subscribers['groups'][str(chat_id)]
             bot_save_data()
-            print(f'➖ Бот удалён из группы: {chat.get("title")}')
 
 
 def bot_polling_loop():
@@ -1145,7 +1264,6 @@ def start_bot():
     print('✅ Бот инициализирован')
 
 
-# Запускаем бота сразу при импорте
 start_bot()
 
 
