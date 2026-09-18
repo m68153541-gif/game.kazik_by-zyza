@@ -48,6 +48,10 @@ VIRTUAL_PLAYER_ID = '999999'
 VIRTUAL_PLAYER_GUEST = 'virtual_keepalive_bot'
 ADMIN_TOKENS_FILE = 'admin_tokens.json'
 
+# Кэш для админки (чтобы не тормозило)
+_admin_cache = {'players': None, 'ts': 0}
+ADMIN_CACHE_TTL = 2  # секунды
+
 global_settings = {
     'tech_break': False,
     'tech_break_message': '🔧 Технический перерыв\n\nСкоро вернёмся!',
@@ -57,20 +61,19 @@ global_settings = {
 }
 
 # ============================================================
-#  МАГАЗИН ОФОРМЛЕНИЙ
+#  МАГАЗИН ОФОРМЛЕНИЙ (синхронизирован с index.html)
 # ============================================================
-# Ключи товаров + цены
 SHOP_ITEMS = {
-    # ФОНЫ (backgrounds) — меняют цвет фона сайта
+    # ФОНЫ
+    'bg_dark':     {'name': '🌑 Тёмный фон',     'desc': 'Минимализм и элегантность',    'price': 0,     'type': 'bg',  'value': 'linear-gradient(180deg,#0a0a0a 0%,#1a1a1a 50%,#0a0a0a 100%)'},
     'bg_gold':     {'name': '👑 Золотой фон',    'desc': 'Классическое золото казино',    'price': 15000, 'type': 'bg',  'value': 'linear-gradient(180deg,#1a1408 0%,#3d2f08 50%,#1a1408 100%)'},
     'bg_emerald':  {'name': '💎 Изумрудный фон', 'desc': 'Роскошь и стабильность',      'price': 15000, 'type': 'bg',  'value': 'linear-gradient(180deg,#051a14 0%,#0d3d2f 50%,#051a14 100%)'},
     'bg_purple':   {'name': '🔮 Фиолетовый фон', 'desc': 'Мистика и загадка',           'price': 18000, 'type': 'bg',  'value': 'linear-gradient(180deg,#14082a 0%,#3a1d6b 50%,#14082a 100%)'},
     'bg_blood':    {'name': '🩸 Кровавый фон',   'desc': 'Для настоящих азартных',        'price': 25000, 'type': 'bg',  'value': 'linear-gradient(180deg,#1a0505 0%,#4a0d0d 50%,#1a0505 100%)'},
     'bg_ocean':    {'name': '🌊 Океанский фон',  'desc': 'Спокойствие и глубина',          'price': 22000, 'type': 'bg',  'value': 'linear-gradient(180deg,#041425 0%,#0c3d5e 50%,#041425 100%)'},
-    'bg_dark':     {'name': '🌑 Тёмный фон',     'desc': 'Минимализм и элегантность',    'price': 12000, 'type': 'bg',  'value': 'linear-gradient(180deg,#0a0a0a 0%,#1a1a1a 50%,#0a0a0a 100%)'},
     'bg_rainbow':  {'name': '🌈 Радужный фон',   'desc': 'Для ярких личностей',           'price': 50000, 'type': 'bg',  'value': 'linear-gradient(180deg,#2a0a3d 0%,#0a3d3d 25%,#3d2a0a 50%,#3d0a2a 75%,#2a0a3d 100%)'},
 
-    # ЦВЕТА (accent) — меняют цвет акцентов (кнопок, границ)
+    # ЦВЕТА
     'accent_gold':    {'name': '👑 Золотой акцент',    'desc': 'По умолчанию',   'price': 0,     'type': 'accent', 'value': '#d4af37'},
     'accent_emerald': {'name': '💚 Изумрудный акцент', 'desc': 'Зелёный стиль',  'price': 10000, 'type': 'accent', 'value': '#10b981'},
     'accent_purple':  {'name': '💜 Фиолетовый акцент', 'desc': 'Мистический',    'price': 10000, 'type': 'accent', 'value': '#a855f7'},
@@ -79,14 +82,14 @@ SHOP_ITEMS = {
     'accent_pink':    {'name': '💗 Розовый акцент',    'desc': 'Нежный стиль',   'price': 15000, 'type': 'accent', 'value': '#ff2d95'},
     'accent_rainbow': {'name': '🌈 Радужный акцент',   'desc': 'Анимированный',  'price': 75000, 'type': 'accent', 'value': 'rainbow'},
 
-    # ФОРМЫ ОКОН (shape) — меняют border-radius
+    # ФОРМЫ
     'shape_default': {'name': '⬛ Классика',   'desc': 'Скруглённые углы',   'price': 0,     'type': 'shape',  'value': '22px 10px 22px 10px'},
     'shape_round':   {'name': '⚪ Круглые',    'desc': 'Полностью круглые',  'price': 8000,  'type': 'shape',  'value': '24px'},
     'shape_sharp':   {'name': '🔲 Острые',     'desc': 'Строгие прямые',     'price': 8000,  'type': 'shape',  'value': '4px'},
     'shape_diamond': {'name': '💎 Ромбы',      'desc': 'Алмазная форма',     'price': 20000, 'type': 'shape',  'value': '30px 4px 30px 4px'},
     'shape_soft':    {'name': '🌊 Мягкие',     'desc': 'Очень плавные',      'price': 12000, 'type': 'shape',  'value': '30px'},
 
-    # ЛОГОТИПЫ (logo) — меняют emoji в главном меню
+    # ЛОГО
     'logo_crown':    {'name': '👑 Золотая корона', 'desc': 'Классика',     'price': 0,     'type': 'logo', 'value': '👑'},
     'logo_diamond':  {'name': '💎 Алмаз',          'desc': 'Драгоценный',   'price': 25000, 'type': 'logo', 'value': '💎'},
     'logo_lion':     {'name': '🦁 Лев',            'desc': 'Царь зверей',   'price': 30000, 'type': 'logo', 'value': '🦁'},
@@ -95,19 +98,34 @@ SHOP_ITEMS = {
     'logo_phoenix':  {'name': '🔥 Феникс',         'desc': 'Возрождение',   'price': 60000, 'type': 'logo', 'value': '🔥'},
 }
 
+DEFAULT_SHOP = {
+    'owned': ['accent_gold', 'shape_default', 'logo_crown', 'bg_dark'],
+    'equipped': {
+        'bg': 'bg_dark',
+        'accent': 'accent_gold',
+        'shape': 'shape_default',
+        'logo': 'logo_crown'
+    }
+}
+
 
 def ensure_player_shop(player):
     """Гарантирует наличие полей магазина у игрока."""
-    if 'shop' not in player:
+    if 'shop' not in player or not isinstance(player['shop'], dict):
         player['shop'] = {
-            'owned': ['accent_gold', 'shape_default', 'logo_crown', 'bg_dark'],
-            'equipped': {
-                'bg': 'bg_dark',
-                'accent': 'accent_gold',
-                'shape': 'shape_default',
-                'logo': 'logo_crown'
-            }
+            'owned': list(DEFAULT_SHOP['owned']),
+            'equipped': dict(DEFAULT_SHOP['equipped'])
         }
+    else:
+        # Восстанавливаем недостающие поля
+        if 'owned' not in player['shop']:
+            player['shop']['owned'] = list(DEFAULT_SHOP['owned'])
+        if 'equipped' not in player['shop']:
+            player['shop']['equipped'] = dict(DEFAULT_SHOP['equipped'])
+        # Добавляем дефолтные товары, если их нет
+        for k in DEFAULT_SHOP['owned']:
+            if k not in player['shop']['owned']:
+                player['shop']['owned'].append(k)
     return player['shop']
 
 
@@ -158,6 +176,10 @@ def load_all_data():
                 global_settings['tech_break_message'] = saved.get('tech_break_message', global_settings['tech_break_message'])
                 global_settings['keepalive'] = saved.get('keepalive', False)
                 global_settings['autorequest'] = saved.get('autorequest', False)
+            # Убеждаемся, что у всех игроков есть shop
+            for pid, p in players.items():
+                if not p.get('is_virtual'):
+                    ensure_player_shop(p)
             print(f'📂 Загружено: {len(players)} игроков')
     except Exception:
         print('📂 Файл данных пуст')
@@ -520,13 +542,8 @@ def register():
             'friends': [],
             'friend_requests': [],
             'shop': {
-                'owned': ['accent_gold', 'shape_default', 'logo_crown', 'bg_dark'],
-                'equipped': {
-                    'bg': 'bg_dark',
-                    'accent': 'accent_gold',
-                    'shape': 'shape_default',
-                    'logo': 'logo_crown'
-                }
+                'owned': list(DEFAULT_SHOP['owned']),
+                'equipped': dict(DEFAULT_SHOP['equipped'])
             }
         }
         players[pid] = player
@@ -707,6 +724,28 @@ def admin_players():
     data = request.get_json() or {}
     if not _check_admin(data):
         return jsonify({'error': 'unauthorized'})
+
+    # Кэш на 2 секунды для быстродействия
+    global _admin_cache
+    now_ts = now()
+    if _admin_cache['players'] and (now_ts - _admin_cache['ts']) < ADMIN_CACHE_TTL:
+        cached = _admin_cache['players']
+        # Обновляем только онлайн-статус (быстро)
+        result = []
+        for p in cached:
+            pid = p['game_id']
+            result.append({
+                **p,
+                'online': pid in player_sockets and len(player_sockets.get(pid, [])) > 0
+            })
+        return jsonify({
+            'players': result,
+            'tech_break': global_settings['tech_break'],
+            'tech_break_message': global_settings['tech_break_message'],
+            'autorequest': global_settings.get('autorequest', False),
+            'autorequest_log': global_settings.get('autorequest_log', [])
+        })
+
     with lock:
         result = []
         for pid, p in players.items():
@@ -723,13 +762,17 @@ def admin_players():
                 'online': pid in player_sockets and len(player_sockets.get(pid, [])) > 0
             })
         result.sort(key=lambda x: -x['last_seen'])
-        return jsonify({
-            'players': result,
-            'tech_break': global_settings['tech_break'],
-            'tech_break_message': global_settings['tech_break_message'],
-            'autorequest': global_settings.get('autorequest', False),
-            'autorequest_log': global_settings.get('autorequest_log', [])
-        })
+
+    _admin_cache['players'] = result
+    _admin_cache['ts'] = now_ts
+
+    return jsonify({
+        'players': result,
+        'tech_break': global_settings['tech_break'],
+        'tech_break_message': global_settings['tech_break_message'],
+        'autorequest': global_settings.get('autorequest', False),
+        'autorequest_log': global_settings.get('autorequest_log', [])
+    })
 
 
 @app.route('/api/admin/setbalance', methods=['POST', 'OPTIONS'])
@@ -751,6 +794,9 @@ def admin_setbalance():
         else:
             p['balance'] = max(0.0, round(p.get('balance', 0) + amount, 2))
         new_balance = p['balance']
+    # Сбрасываем кэш
+    _admin_cache['players'] = None
+    _admin_cache['ts'] = 0
     notify_player(pid, {'type': 'admin_balance_update', 'balance': new_balance})
     save_all_data()
     return jsonify({'ok': True, 'balance': new_balance})
@@ -823,9 +869,12 @@ def admin_selfbonus():
         if not p:
             return jsonify({'error': 'player_not_found'})
         p['balance'] = max(0.0, round(p.get('balance', 0) + amount, 2))
-    notify_player(p['game_id'], {'type': 'admin_balance_update', 'balance': p['balance']})
+        new_balance = p['balance']
+    _admin_cache['players'] = None
+    _admin_cache['ts'] = 0
+    notify_player(p['game_id'], {'type': 'admin_balance_update', 'balance': new_balance})
     save_all_data()
-    return jsonify({'ok': True, 'balance': p['balance']})
+    return jsonify({'ok': True, 'balance': new_balance})
 
 
 # ============================================================
@@ -840,6 +889,7 @@ def create_lobby():
         player = find_player(guest_id=data.get('guest_id'))
         if not player:
             return jsonify({'error': 'not_registered'})
+        # Удаляем старые лобби этого игрока
         for lid in list(lobbies.keys()):
             l = lobbies[lid]
             members = [l['host']] + (l.get('guests') or [])
@@ -1049,33 +1099,25 @@ def game_move():
                     gs['winner'] = None
 
         elif gs['type'] == 'blackjack':
-            # ==========================================
-            #  BLACKJACK ОНЛАЙН
-            # ==========================================
             if gs['phase'] == 'betting':
-                # Игрок делает ставку (виртуальную, без списания)
                 bet = int(move.get('bet', 0))
                 if bet < 0:
                     return jsonify({'error': 'bad_bet'})
                 gs['bets'][pid] = bet
-                # Если все сделали ставку — начинаем игру
                 order = [lobby['host']['game_id']] + [g['game_id'] for g in lobby['guests']]
                 gs['turn_order'] = order
                 if len(gs['bets']) == len(order):
-                    # Раздаём карты
                     for p in order:
                         gs['hands'][p] = [gs['deck'].pop(), gs['deck'].pop()]
                         gs['states'][p] = 'playing'
                     gs['dealer'] = [gs['deck'].pop(), gs['deck'].pop()]
                     gs['hole_hidden'] = True
-                    # Проверяем блэкджеки
                     order_bj = []
                     for p in order:
                         if hand_score(gs['hands'][p]) == 21 and len(gs['hands'][p]) == 2:
                             gs['states'][p] = 'blackjack'
                             order_bj.append(p)
                     if len(order_bj) == len(order):
-                        # У всех блэкджек
                         gs['hole_hidden'] = False
                         gs['phase'] = 'done'
                         gs['dealer_score'] = hand_score(gs['dealer'])
@@ -1083,14 +1125,12 @@ def game_move():
                     else:
                         gs['turn_idx'] = 0
                         gs['phase'] = 'playing'
-                        # Пропускаем тех у кого блэкджек
                         while gs['turn_idx'] < len(order) and gs['states'].get(order[gs['turn_idx']]) != 'playing':
                             gs['turn_idx'] += 1
                         if gs['turn_idx'] >= len(order):
                             _bj_dealer_turn_online(gs)
 
             elif gs['phase'] == 'playing':
-                # Ход игрока
                 order = gs['turn_order']
                 if gs['turn_idx'] >= len(order) or order[gs['turn_idx']] != pid:
                     return jsonify({'error': 'not_your_turn'})
@@ -1133,7 +1173,6 @@ def _bj_next_turn_online(gs):
 
 
 def _bj_dealer_turn_online(gs):
-    # Открываем скрытую карту дилера
     gs['hole_hidden'] = False
     while hand_score(gs['dealer']) < 17 and len(gs['dealer']) < 8:
         gs['dealer'].append(gs['deck'].pop())
