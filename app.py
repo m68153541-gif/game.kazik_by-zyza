@@ -11,9 +11,6 @@ from flask_sock import Sock
 app = Flask(__name__, static_folder='.')
 sock = Sock(app)
 
-# ============================================================
-#  CORS
-# ============================================================
 @app.after_request
 def add_cors(resp):
     resp.headers['Access-Control-Allow-Origin'] = '*'
@@ -37,7 +34,7 @@ SAVE_INTERVAL = 30
 MINI_APP_SHORT_NAME = os.environ.get('MINI_APP_SHORT_NAME', '')
 
 # ============================================================
-#  ХРАНИЛИЩА ИГРЫ
+#  ХРАНИЛИЩА
 # ============================================================
 players = {}
 guests = {}
@@ -49,35 +46,80 @@ lock = threading.Lock()
 
 VIRTUAL_PLAYER_ID = '999999'
 VIRTUAL_PLAYER_GUEST = 'virtual_keepalive_bot'
-
 ADMIN_TOKENS_FILE = 'admin_tokens.json'
 
-# ============================================================
-#  НАСТРОЙКИ СЕРВЕРА
-# ============================================================
 global_settings = {
     'tech_break': False,
     'tech_break_message': '🔧 Технический перерыв\n\nСкоро вернёмся!',
     'keepalive': False,
-    'autorequest': False,     # новая функция "Запрос Авто"
-    'autorequest_log': []     # лог последних действий
+    'autorequest': False,
+    'autorequest_log': []
+}
+
+# ============================================================
+#  МАГАЗИН ОФОРМЛЕНИЙ
+# ============================================================
+# Ключи товаров + цены
+SHOP_ITEMS = {
+    # ФОНЫ (backgrounds) — меняют цвет фона сайта
+    'bg_gold':     {'name': '👑 Золотой фон',    'desc': 'Классическое золото казино',    'price': 15000, 'type': 'bg',  'value': 'linear-gradient(180deg,#1a1408 0%,#3d2f08 50%,#1a1408 100%)'},
+    'bg_emerald':  {'name': '💎 Изумрудный фон', 'desc': 'Роскошь и стабильность',      'price': 15000, 'type': 'bg',  'value': 'linear-gradient(180deg,#051a14 0%,#0d3d2f 50%,#051a14 100%)'},
+    'bg_purple':   {'name': '🔮 Фиолетовый фон', 'desc': 'Мистика и загадка',           'price': 18000, 'type': 'bg',  'value': 'linear-gradient(180deg,#14082a 0%,#3a1d6b 50%,#14082a 100%)'},
+    'bg_blood':    {'name': '🩸 Кровавый фон',   'desc': 'Для настоящих азартных',        'price': 25000, 'type': 'bg',  'value': 'linear-gradient(180deg,#1a0505 0%,#4a0d0d 50%,#1a0505 100%)'},
+    'bg_ocean':    {'name': '🌊 Океанский фон',  'desc': 'Спокойствие и глубина',          'price': 22000, 'type': 'bg',  'value': 'linear-gradient(180deg,#041425 0%,#0c3d5e 50%,#041425 100%)'},
+    'bg_dark':     {'name': '🌑 Тёмный фон',     'desc': 'Минимализм и элегантность',    'price': 12000, 'type': 'bg',  'value': 'linear-gradient(180deg,#0a0a0a 0%,#1a1a1a 50%,#0a0a0a 100%)'},
+    'bg_rainbow':  {'name': '🌈 Радужный фон',   'desc': 'Для ярких личностей',           'price': 50000, 'type': 'bg',  'value': 'linear-gradient(180deg,#2a0a3d 0%,#0a3d3d 25%,#3d2a0a 50%,#3d0a2a 75%,#2a0a3d 100%)'},
+
+    # ЦВЕТА (accent) — меняют цвет акцентов (кнопок, границ)
+    'accent_gold':    {'name': '👑 Золотой акцент',    'desc': 'По умолчанию',   'price': 0,     'type': 'accent', 'value': '#d4af37'},
+    'accent_emerald': {'name': '💚 Изумрудный акцент', 'desc': 'Зелёный стиль',  'price': 10000, 'type': 'accent', 'value': '#10b981'},
+    'accent_purple':  {'name': '💜 Фиолетовый акцент', 'desc': 'Мистический',    'price': 10000, 'type': 'accent', 'value': '#a855f7'},
+    'accent_red':     {'name': '❤️ Красный акцент',    'desc': 'Для азартных',   'price': 12000, 'type': 'accent', 'value': '#ff5252'},
+    'accent_cyan':    {'name': '💠 Голубой акцент',    'desc': 'Технологичный',  'price': 12000, 'type': 'accent', 'value': '#22d3ee'},
+    'accent_pink':    {'name': '💗 Розовый акцент',    'desc': 'Нежный стиль',   'price': 15000, 'type': 'accent', 'value': '#ff2d95'},
+    'accent_rainbow': {'name': '🌈 Радужный акцент',   'desc': 'Анимированный',  'price': 75000, 'type': 'accent', 'value': 'rainbow'},
+
+    # ФОРМЫ ОКОН (shape) — меняют border-radius
+    'shape_default': {'name': '⬛ Классика',   'desc': 'Скруглённые углы',   'price': 0,     'type': 'shape',  'value': '22px 10px 22px 10px'},
+    'shape_round':   {'name': '⚪ Круглые',    'desc': 'Полностью круглые',  'price': 8000,  'type': 'shape',  'value': '24px'},
+    'shape_sharp':   {'name': '🔲 Острые',     'desc': 'Строгие прямые',     'price': 8000,  'type': 'shape',  'value': '4px'},
+    'shape_diamond': {'name': '💎 Ромбы',      'desc': 'Алмазная форма',     'price': 20000, 'type': 'shape',  'value': '30px 4px 30px 4px'},
+    'shape_soft':    {'name': '🌊 Мягкие',     'desc': 'Очень плавные',      'price': 12000, 'type': 'shape',  'value': '30px'},
+
+    # ЛОГОТИПЫ (logo) — меняют emoji в главном меню
+    'logo_crown':    {'name': '👑 Золотая корона', 'desc': 'Классика',     'price': 0,     'type': 'logo', 'value': '👑'},
+    'logo_diamond':  {'name': '💎 Алмаз',          'desc': 'Драгоценный',   'price': 25000, 'type': 'logo', 'value': '💎'},
+    'logo_lion':     {'name': '🦁 Лев',            'desc': 'Царь зверей',   'price': 30000, 'type': 'logo', 'value': '🦁'},
+    'logo_skull':    {'name': '💀 Череп',          'desc': 'Для азартных',  'price': 35000, 'type': 'logo', 'value': '💀'},
+    'logo_dragon':   {'name': '🐉 Дракон',         'desc': 'Мифический',    'price': 50000, 'type': 'logo', 'value': '🐉'},
+    'logo_phoenix':  {'name': '🔥 Феникс',         'desc': 'Возрождение',   'price': 60000, 'type': 'logo', 'value': '🔥'},
 }
 
 
+def ensure_player_shop(player):
+    """Гарантирует наличие полей магазина у игрока."""
+    if 'shop' not in player:
+        player['shop'] = {
+            'owned': ['accent_gold', 'shape_default', 'logo_crown', 'bg_dark'],
+            'equipped': {
+                'bg': 'bg_dark',
+                'accent': 'accent_gold',
+                'shape': 'shape_default',
+                'logo': 'logo_crown'
+            }
+        }
+    return player['shop']
+
+
 def _add_log(msg):
-    """Добавляет запись в лог авто-запросов."""
     with lock:
-        global_settings['autorequest_log'].append({
-            'time': now(),
-            'text': msg
-        })
-        # Храним последние 50 записей
+        global_settings['autorequest_log'].append({'time': now(), 'text': msg})
         if len(global_settings['autorequest_log']) > 50:
             global_settings['autorequest_log'] = global_settings['autorequest_log'][-50:]
 
 
 # ============================================================
-#  СОХРАНЕНИЕ ДАННЫХ В ФАЙЛ
+#  СОХРАНЕНИЕ ДАННЫХ
 # ============================================================
 def save_all_data():
     try:
@@ -116,10 +158,9 @@ def load_all_data():
                 global_settings['tech_break_message'] = saved.get('tech_break_message', global_settings['tech_break_message'])
                 global_settings['keepalive'] = saved.get('keepalive', False)
                 global_settings['autorequest'] = saved.get('autorequest', False)
-            saved_at = data.get('saved_at', 0)
-            print(f'📂 Загружено: {len(players)} игроков, {len(lobbies)} лобби (сохранено {now() - saved_at} сек назад)')
+            print(f'📂 Загружено: {len(players)} игроков')
     except Exception:
-        print('📂 Файл данных пуст — создаём новый')
+        print('📂 Файл данных пуст')
 
 
 def autosave_loop():
@@ -166,6 +207,7 @@ def _accrue_bonus(player):
 def _pub(player):
     if not player:
         return None
+    shop = ensure_player_shop(player)
     return {
         'game_id': player['game_id'],
         'name': player['name'],
@@ -173,7 +215,8 @@ def _pub(player):
         'pending_bonus': round(player.get('pending_bonus', 0), 2),
         'region': player.get('region', 'Не указан'),
         'friends': player.get('friends', []),
-        'friend_requests': player.get('friend_requests', [])
+        'friend_requests': player.get('friend_requests', []),
+        'shop': shop
     }
 
 
@@ -240,55 +283,41 @@ def _create_virtual_player():
             'region': 'Система',
             'friends': [],
             'friend_requests': [],
-            'is_virtual': True
+            'is_virtual': True,
+            'shop': {'owned': [], 'equipped': {}}
         }
         guests[VIRTUAL_PLAYER_GUEST] = VIRTUAL_PLAYER_ID
 
 
-# Загружаем данные и создаём виртуального игрока
 load_all_data()
 _create_virtual_player()
 
 
 # ============================================================
-#  ЗАПРОС АВТО (BETA) — пингует сервер + делает внутренние запросы
+#  АВТО-ЗАПРОСЫ
 # ============================================================
 _autorequest_stop = threading.Event()
 
 def autorequest_loop():
-    """
-    Каждые ~4 минуты делает цикл запросов:
-    1. /health (пинг)
-    2. Создание тестового лобби
-    3. Проверка admin login
-    4. Имитация входа/выхода
-    5. Удаление тестового лобби
-    Всё логируется в autorequest_log
-    """
-    time.sleep(60)  # ждём старт
+    time.sleep(60)
     base = os.environ.get('RENDER_EXTERNAL_URL', '') or f'http://127.0.0.1:{os.environ.get("PORT", "5000")}'
     base = base.rstrip('/')
-
     while True:
         try:
             if global_settings.get('autorequest'):
-                _add_log('🚀 Начало цикла авто-запросов')
-                
-                # 1. Пинг /health
+                _add_log('🚀 Начало цикла')
                 try:
                     _add_log('📡 Пинг /health...')
                     req = urllib.request.Request(base + '/health', headers={'User-Agent': 'GP-AutoReq/1.0'})
                     with urllib.request.urlopen(req, timeout=10) as resp:
                         _add_log(f'✅ /health → {resp.status}')
                 except Exception as e:
-                    _add_log(f'❌ /health ошибка: {str(e)[:50]}')
-
+                    _add_log(f'❌ /health: {str(e)[:40]}')
                 time.sleep(2)
 
-                # 2. Создание тестового лобби (без реального игрока)
                 try:
-                    _add_log('🎮 Создание тестового лобби...')
-                    fake_guest = 'autorequest_' + str(random.randint(1000, 9999))
+                    _add_log('🎮 Создание лобби...')
+                    fake_guest = 'auto_' + str(random.randint(1000, 9999))
                     payload = json.dumps({'guest_id': fake_guest}).encode()
                     req = urllib.request.Request(base + '/api/lobby/create', data=payload,
                         headers={'Content-Type': 'application/json'}, method='POST')
@@ -296,27 +325,21 @@ def autorequest_loop():
                         result = json.loads(resp.read().decode())
                         lobby_id = result.get('lobby_id')
                         if lobby_id:
-                            _add_log(f'✅ Лобби создано: #{lobby_id}')
-
-                            # 3. Выходим из лобби
+                            _add_log(f'✅ Лобби #{lobby_id}')
                             time.sleep(2)
-                            _add_log('🚪 Выход из лобби...')
+                            _add_log('🚪 Выход...')
                             leave_url = base + f'/api/lobby/leave?lobby_id={lobby_id}'
                             payload2 = json.dumps({'guest_id': fake_guest}).encode()
                             req2 = urllib.request.Request(leave_url, data=payload2,
                                 headers={'Content-Type': 'application/json'}, method='POST')
                             with urllib.request.urlopen(req2, timeout=10) as resp2:
-                                _add_log(f'✅ Выход из лобби #{lobby_id}')
-                        else:
-                            _add_log('⚠️ Лобби не создано (пустой ID)')
+                                _add_log(f'✅ Выход OK')
                 except Exception as e:
-                    _add_log(f'❌ Лобби ошибка: {str(e)[:50]}')
-
+                    _add_log(f'❌ Лобби: {str(e)[:40]}')
                 time.sleep(2)
 
-                # 4. Проверка admin login
                 try:
-                    _add_log('🔐 Проверка admin-входа...')
+                    _add_log('🔐 Проверка admin...')
                     payload = json.dumps({'login': ADMIN_LOGIN, 'password': ADMIN_PASSWORD}).encode()
                     req = urllib.request.Request(base + '/api/admin/login', data=payload,
                         headers={'Content-Type': 'application/json'}, method='POST')
@@ -324,27 +347,22 @@ def autorequest_loop():
                         result = json.loads(resp.read().decode())
                         if result.get('token'):
                             _add_log('✅ Admin login OK')
-                        else:
-                            _add_log('⚠️ Admin login вернул пусто')
                 except Exception as e:
-                    _add_log(f'❌ Admin login ошибка: {str(e)[:50]}')
-
+                    _add_log(f'❌ Admin: {str(e)[:40]}')
                 time.sleep(2)
 
-                # 5. Проверка глобального статуса
                 try:
-                    _add_log('📊 Проверка /api/global/status...')
+                    _add_log('📊 Проверка статуса...')
                     req = urllib.request.Request(base + '/api/global/status', headers={'User-Agent': 'GP-AutoReq/1.0'})
                     with urllib.request.urlopen(req, timeout=10) as resp:
-                        _add_log(f'✅ Статус получен ({resp.status})')
+                        _add_log(f'✅ Статус {resp.status}')
                 except Exception as e:
-                    _add_log(f'❌ Статус ошибка: {str(e)[:50]}')
+                    _add_log(f'❌ Статус: {str(e)[:40]}')
 
-                _add_log('🏁 Цикл завершён. Следующий через 4 минуты')
+                _add_log('🏁 Цикл завершён')
         except Exception as e:
-            _add_log(f'❌ Общая ошибка: {str(e)[:80]}')
+            _add_log(f'❌ Ошибка: {str(e)[:60]}')
 
-        # Ждём ~4 минуты (проверяя флаг остановки)
         for _ in range(48):
             if _autorequest_stop.is_set():
                 _autorequest_stop.clear()
@@ -428,7 +446,7 @@ def global_status():
 
 
 # ============================================================
-#  АВТО-РЕГИСТРАЦИЯ
+#  РЕГИСТРАЦИЯ
 # ============================================================
 def parse_init_data(init_data):
     if not init_data:
@@ -483,6 +501,7 @@ def register():
             if guest_id and guest_id not in guests:
                 guests[guest_id] = player['game_id']
             _accrue_bonus(player)
+            ensure_player_shop(player)
             save_all_data()
             return jsonify({'player': _pub(player), 'guest_id': guest_id or player['game_id']})
 
@@ -499,7 +518,16 @@ def register():
             'last_bonus_ts': now(),
             'region': region or 'Не указан',
             'friends': [],
-            'friend_requests': []
+            'friend_requests': [],
+            'shop': {
+                'owned': ['accent_gold', 'shape_default', 'logo_crown', 'bg_dark'],
+                'equipped': {
+                    'bg': 'bg_dark',
+                    'accent': 'accent_gold',
+                    'shape': 'shape_default',
+                    'logo': 'logo_crown'
+                }
+            }
         }
         players[pid] = player
         if guest_id:
@@ -511,8 +539,139 @@ def register():
 
 
 # ============================================================
+#  МАГАЗИН
+# ============================================================
+@app.route('/api/shop/items', methods=['GET', 'POST', 'OPTIONS'])
+def shop_items():
+    if request.method == 'OPTIONS':
+        return '', 204
+    return jsonify({
+        'items': SHOP_ITEMS,
+        'categories': ['bg', 'accent', 'shape', 'logo']
+    })
+
+
+@app.route('/api/shop/buy', methods=['POST', 'OPTIONS'])
+def shop_buy():
+    if request.method == 'OPTIONS':
+        return '', 204
+    data = request.get_json() or {}
+    guest_id = data.get('guest_id')
+    item_key = data.get('item_key')
+
+    if item_key not in SHOP_ITEMS:
+        return jsonify({'error': 'item_not_found'})
+
+    item = SHOP_ITEMS[item_key]
+
+    with lock:
+        player = find_player(guest_id=guest_id)
+        if not player:
+            return jsonify({'error': 'not_registered'})
+
+        shop = ensure_player_shop(player)
+
+        if item_key in shop['owned']:
+            return jsonify({'error': 'already_owned'})
+
+        price = item['price']
+        if player['balance'] < price:
+            return jsonify({'error': 'not_enough', 'need': price, 'have': player['balance']})
+
+        player['balance'] = round(player['balance'] - price, 2)
+        shop['owned'].append(item_key)
+
+        new_balance = player['balance']
+        owned = list(shop['owned'])
+
+    save_all_data()
+    notify_player(player['game_id'], {'type': 'admin_balance_update', 'balance': new_balance})
+
+    return jsonify({
+        'ok': True,
+        'balance': new_balance,
+        'owned': owned,
+        'item': item
+    })
+
+
+@app.route('/api/shop/equip', methods=['POST', 'OPTIONS'])
+def shop_equip():
+    if request.method == 'OPTIONS':
+        return '', 204
+    data = request.get_json() or {}
+    guest_id = data.get('guest_id')
+    item_key = data.get('item_key')
+
+    if item_key not in SHOP_ITEMS:
+        return jsonify({'error': 'item_not_found'})
+
+    item = SHOP_ITEMS[item_key]
+    item_type = item['type']
+
+    with lock:
+        player = find_player(guest_id=guest_id)
+        if not player:
+            return jsonify({'error': 'not_registered'})
+
+        shop = ensure_player_shop(player)
+
+        if item_key not in shop['owned']:
+            return jsonify({'error': 'not_owned'})
+
+        shop['equipped'][item_type] = item_key
+        equipped = dict(shop['equipped'])
+        owned = list(shop['owned'])
+
+    save_all_data()
+    return jsonify({
+        'ok': True,
+        'equipped': equipped,
+        'owned': owned
+    })
+
+
+@app.route('/api/shop/me', methods=['POST', 'OPTIONS'])
+def shop_me():
+    if request.method == 'OPTIONS':
+        return '', 204
+    data = request.get_json() or {}
+    with lock:
+        player = find_player(guest_id=data.get('guest_id'))
+        if not player:
+            return jsonify({'error': 'not_registered'})
+        shop = ensure_player_shop(player)
+        return jsonify({
+            'owned': list(shop['owned']),
+            'equipped': dict(shop['equipped']),
+            'balance': player.get('balance', 0)
+        })
+
+
+# ============================================================
 #  АДМИН
 # ============================================================
+def _save_admin_sessions(sessions):
+    try:
+        with open(ADMIN_TOKENS_FILE, 'w') as f:
+            json.dump(sessions, f)
+    except Exception as e:
+        print('save admin tokens error:', e)
+
+
+def _load_admin_sessions():
+    try:
+        with open(ADMIN_TOKENS_FILE, 'r') as f:
+            data = json.load(f)
+            return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+admin_sessions = _load_admin_sessions()
+ADMIN_TOKEN_TTL = 30 * 24 * 3600
+
+
 @app.route('/api/admin/login', methods=['POST', 'OPTIONS'])
 def admin_login():
     if request.method == 'OPTIONS':
@@ -568,7 +727,6 @@ def admin_players():
             'players': result,
             'tech_break': global_settings['tech_break'],
             'tech_break_message': global_settings['tech_break_message'],
-            'keepalive': global_settings.get('keepalive', False),
             'autorequest': global_settings.get('autorequest', False),
             'autorequest_log': global_settings.get('autorequest_log', [])
         })
@@ -619,20 +777,6 @@ def admin_techbreak():
     return jsonify({'ok': True, 'tech_break': enabled})
 
 
-@app.route('/api/admin/keepalive', methods=['POST', 'OPTIONS'])
-def admin_keepalive():
-    if request.method == 'OPTIONS':
-        return '', 204
-    data = request.get_json() or {}
-    if not _check_admin(data):
-        return jsonify({'error': 'unauthorized'})
-    enabled = bool(data.get('enabled'))
-    global_settings['keepalive'] = enabled
-    print(f'🛡 Антисон: {"ВКЛ" if enabled else "ВЫКЛ"}')
-    save_all_data()
-    return jsonify({'ok': True, 'keepalive': enabled})
-
-
 @app.route('/api/admin/autorequest', methods=['POST', 'OPTIONS'])
 def admin_autorequest():
     if request.method == 'OPTIONS':
@@ -646,10 +790,9 @@ def admin_autorequest():
         with lock:
             global_settings['autorequest_log'] = []
         _add_log('▶️ Запрос Авто включён')
-        _autorequest_stop.set()  # разбудить поток
+        _autorequest_stop.set()
     else:
         _add_log('⏸ Запрос Авто выключен')
-    print(f'🔄 Запрос Авто: {"ВКЛ" if enabled else "ВЫКЛ"}')
     save_all_data()
     return jsonify({'ok': True, 'autorequest': enabled})
 
@@ -780,8 +923,33 @@ def lobby_poll():
 
 
 # ============================================================
-#  ИГРЫ
+#  ИГРЫ — Lucky20, Dice, Blackjack
 # ============================================================
+def make_deck():
+    suits = ['♠', '♥', '♦', '♣']
+    ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
+    d = [{'s': s, 'r': r} for s in suits for r in ranks]
+    random.shuffle(d)
+    return d
+
+
+def hand_score(hand):
+    s = 0
+    aces = 0
+    for c in hand:
+        if c['r'] == 'A':
+            s += 11
+            aces += 1
+        elif c['r'] in ('J', 'Q', 'K', '10'):
+            s += 10
+        else:
+            s += int(c['r'])
+    while s > 21 and aces > 0:
+        s -= 10
+        aces -= 1
+    return s
+
+
 def make_initial_state(game_type):
     gs = {'type': game_type, 'phase': 'playing'}
     if game_type == 'lucky20':
@@ -790,6 +958,15 @@ def make_initial_state(game_type):
         gs['opened'] = []
     elif game_type == 'dice':
         gs['rolls'] = {}
+    elif game_type == 'blackjack':
+        gs['deck'] = make_deck()
+        gs['dealer'] = []
+        gs['hands'] = {}
+        gs['states'] = {}
+        gs['bets'] = {}
+        gs['turn_order'] = []
+        gs['turn_idx'] = 0
+        gs['phase'] = 'betting'
     return gs
 
 
@@ -812,7 +989,7 @@ def game_init():
             return jsonify({'error': 'not_host'})
         if not lobby['guests']:
             return jsonify({'error': 'no_guest'})
-        if game_type not in ('lucky20', 'dice'):
+        if game_type not in ('lucky20', 'dice', 'blackjack'):
             return jsonify({'error': 'bad_game'})
         gs = make_initial_state(game_type)
         lobby['game_state'] = gs
@@ -854,6 +1031,7 @@ def game_move():
                 gs['winner'] = pid
             else:
                 gs['turn'] = 'guest' if is_host else 'host'
+
         elif gs['type'] == 'dice':
             dice = move.get('dice', [0, 0])
             if not isinstance(dice, list) or len(dice) != 2:
@@ -870,9 +1048,130 @@ def game_move():
                 else:
                     gs['winner'] = None
 
+        elif gs['type'] == 'blackjack':
+            # ==========================================
+            #  BLACKJACK ОНЛАЙН
+            # ==========================================
+            if gs['phase'] == 'betting':
+                # Игрок делает ставку (виртуальную, без списания)
+                bet = int(move.get('bet', 0))
+                if bet < 0:
+                    return jsonify({'error': 'bad_bet'})
+                gs['bets'][pid] = bet
+                # Если все сделали ставку — начинаем игру
+                order = [lobby['host']['game_id']] + [g['game_id'] for g in lobby['guests']]
+                gs['turn_order'] = order
+                if len(gs['bets']) == len(order):
+                    # Раздаём карты
+                    for p in order:
+                        gs['hands'][p] = [gs['deck'].pop(), gs['deck'].pop()]
+                        gs['states'][p] = 'playing'
+                    gs['dealer'] = [gs['deck'].pop(), gs['deck'].pop()]
+                    gs['hole_hidden'] = True
+                    # Проверяем блэкджеки
+                    order_bj = []
+                    for p in order:
+                        if hand_score(gs['hands'][p]) == 21 and len(gs['hands'][p]) == 2:
+                            gs['states'][p] = 'blackjack'
+                            order_bj.append(p)
+                    if len(order_bj) == len(order):
+                        # У всех блэкджек
+                        gs['hole_hidden'] = False
+                        gs['phase'] = 'done'
+                        gs['dealer_score'] = hand_score(gs['dealer'])
+                        _bj_finish_online(gs)
+                    else:
+                        gs['turn_idx'] = 0
+                        gs['phase'] = 'playing'
+                        # Пропускаем тех у кого блэкджек
+                        while gs['turn_idx'] < len(order) and gs['states'].get(order[gs['turn_idx']]) != 'playing':
+                            gs['turn_idx'] += 1
+                        if gs['turn_idx'] >= len(order):
+                            _bj_dealer_turn_online(gs)
+
+            elif gs['phase'] == 'playing':
+                # Ход игрока
+                order = gs['turn_order']
+                if gs['turn_idx'] >= len(order) or order[gs['turn_idx']] != pid:
+                    return jsonify({'error': 'not_your_turn'})
+                action = move.get('action')
+                hand = gs['hands'][pid]
+                if action == 'hit':
+                    hand.append(gs['deck'].pop())
+                    if hand_score(hand) > 21:
+                        gs['states'][pid] = 'bust'
+                        _bj_next_turn_online(gs)
+                    elif hand_score(hand) == 21:
+                        gs['states'][pid] = 'stand'
+                        _bj_next_turn_online(gs)
+                elif action == 'stand':
+                    gs['states'][pid] = 'stand'
+                    _bj_next_turn_online(gs)
+                elif action == 'double':
+                    if len(hand) != 2:
+                        return jsonify({'error': 'cant_double'})
+                    gs['bets'][pid] = gs['bets'].get(pid, 0) * 2
+                    hand.append(gs['deck'].pop())
+                    if hand_score(hand) > 21:
+                        gs['states'][pid] = 'bust'
+                    else:
+                        gs['states'][pid] = 'stand'
+                    _bj_next_turn_online(gs)
+
         msg = {'type': 'game_update', 'game_state': gs}
         notify_lobby(lobby_id, msg)
     return jsonify({'ok': True})
+
+
+def _bj_next_turn_online(gs):
+    gs['turn_idx'] += 1
+    order = gs['turn_order']
+    while gs['turn_idx'] < len(order) and gs['states'].get(order[gs['turn_idx']]) != 'playing':
+        gs['turn_idx'] += 1
+    if gs['turn_idx'] >= len(order):
+        _bj_dealer_turn_online(gs)
+
+
+def _bj_dealer_turn_online(gs):
+    # Открываем скрытую карту дилера
+    gs['hole_hidden'] = False
+    while hand_score(gs['dealer']) < 17 and len(gs['dealer']) < 8:
+        gs['dealer'].append(gs['deck'].pop())
+    gs['phase'] = 'done'
+    gs['dealer_score'] = hand_score(gs['dealer'])
+    _bj_finish_online(gs)
+
+
+def _bj_finish_online(gs):
+    sd = gs['dealer_score']
+    dealer_bj = (sd == 21 and len(gs['dealer']) == 2)
+    winners = []
+    results = {}
+    for pid, hand in gs['hands'].items():
+        s = hand_score(hand)
+        state = gs['states'].get(pid, 'playing')
+        player_bj = (s == 21 and len(hand) == 2)
+        res = None
+        if state == 'bust' or s > 21:
+            res = 'lose'
+        elif player_bj and not dealer_bj:
+            res = 'bj'
+            winners.append(pid)
+        elif dealer_bj and not player_bj:
+            res = 'lose'
+        elif player_bj and dealer_bj:
+            res = 'push'
+        elif sd > 21 or s > sd:
+            res = 'win'
+            winners.append(pid)
+        elif s < sd:
+            res = 'lose'
+        else:
+            res = 'push'
+        results[pid] = res
+    gs['results'] = results
+    gs['winners'] = winners
+    gs['all_scores'] = {pid: hand_score(h) for pid, h in gs['hands'].items()}
 
 
 @app.route('/api/lobby/game/reset', methods=['POST', 'OPTIONS'])
@@ -896,7 +1195,7 @@ def game_reset():
 
 
 # ============================================================
-#  WEBSOCKET — ИГРОК
+#  WEBSOCKET
 # ============================================================
 @sock.route('/ws/player/<player_id>')
 def player_ws(ws, player_id):
@@ -925,9 +1224,6 @@ def player_ws(ws, player_id):
             pass
 
 
-# ============================================================
-#  WEBSOCKET — ЛОББИ
-# ============================================================
 @sock.route('/ws/lobby/<lobby_id>')
 def lobby_ws(ws, lobby_id):
     if lobby_id not in lobbies:
@@ -1048,7 +1344,6 @@ def bot_send(chat_id, text, keyboard=None):
 
 
 def btn_play():
-    """Кнопка для ЛИЧКИ — открывает Mini App."""
     if MINI_APP_SHORT_NAME:
         return {'inline_keyboard': [[{
             'text': '🎰 ИГРАТЬ',
@@ -1061,7 +1356,6 @@ def btn_play():
 
 
 def btn_play_group():
-    """Кнопка для ГРУПП — обычная ссылка (web_app в группах не работает)."""
     return {'inline_keyboard': [[{
         'text': '🎰 ИГРАТЬ С ДРУЗЬЯМИ',
         'url': GAME_URL
@@ -1089,41 +1383,40 @@ BOT_WELCOME = """👑 <b>ДОБРО ПОЖАЛОВАТЬ В GOLDEN PALACE!</b> �
 🪙 <b>Coin Flip</b> · 🐎 <b>Horse Race</b> · 💎 <b>Lucky 20</b>
 
 🌐 <b>Онлайн-режим</b> — играй с друзьями!
+🛒 <b>Магазин оформлений</b> — золото, изумруд, фиолет!
 
 💰 Начинаешь с <b>5000 монет</b>
-🎁 Каждый час +0.2 монеты бонусом
 
-Жми кнопку и вперёд за удачей! 👇"""
+Жми кнопку и вперёд! 👇"""
 
 
 BOT_REMINDERS = [
-    """👋 <b>Скучаешь?</b>\n\nВ Golden Palace ждут:\n🎯 Plinko до ×5\n🎱 Keno\n🃏 Blackjack\n\nЗабери свой куш! 💰""",
-    """🔥 <b>Заходи, мы скучали!</b>\n\n🎰 Slots · 🎡 Roulette · 🎲 Dice\n\nВсего 1 клик до азарта! 👇""",
-    """💎 <b>Тебя ждут 5000+ монет!</b>\n\n🎯 Plinko · 💎 Lucky 20 · 🐎 Horse Race\n\nНе заставляй удачу ждать! 💰""",
-    """⏰ <b>Напоминание от Golden Palace</b>\n\nТвой ежечасный бонус капает! Загляни — вдруг уже на хорошую ставку? 🎰""",
-    """🎰 <b>Golden Palace заждалось!</b>\n\n🔥 Plinko ×5 · 🃏 BJ ×2.5 · 🎰 Slots ×15\n\nИграй прямо сейчас! 👇""",
+    """👋 <b>Скучаешь?</b>\n\n🎯 Plinko ×5 · 🎱 Keno ×2\n🃏 Blackjack · 🎰 Slots\n\nЗабери куш! 💰""",
+    """🔥 <b>Заходи!</b>\n\n🎰 Slots · 🎡 Roulette · 🎲 Dice\n\n1 клик до азарта! 👇""",
+    """💎 <b>5000+ монет ждут!</b>\n\n🎯 Plinko · 💎 Lucky 20 · 🐎 Horse Race\n\nНе заставляй удачу ждать! 💰""",
+    """⏰ <b>Бонус капает!</b>\n\nЗагляни — вдруг уже на хорошую ставку? 🎰""",
+    """🎰 <b>Golden Palace!</b>\n\n🔥 Plinko ×5 · 🃏 BJ ×2.5 · 🎰 Slots ×15\n\nИграй! 👇""",
 ]
 
 BOT_FACTS = [
-    """🎲 <b>Интересный факт</b>\n\nСамое старое казино — <b>Casino di Venezia</b> (Венеция, 1638). Ему почти 400 лет! 🏛️\n\nСыграй! 👇""",
-    """🎰 <b>Знаешь ли ты?</b>\n\nАвтомат <b>«Liberty Bell»</b> (1895) — первый слот с 3 барабанами. Он подарил нам 🍒🍋🍇!\n\nИспытай удачу! 👇""",
-    """💎 <b>Интересный факт</b>\n\nСлово «казино» с итальянского — <b>«маленький дом»</b>. Так называли виллы знати.\n\nУ нас тоже дом 🏠""",
-    """🎡 <b>Про рулетку</b>\n\nВ европейской рулетке <b>37 чисел</b>, в американской — <b>38</b>.\n\nУ нас европейская 🎯""",
-    """🃏 <b>Знаешь ли ты?</b>\n\n«Ace + 10» в Blackjack = блэкджек, платит <b>×2.5</b>!\n\nИспытай! 👇""",
-    """🎱 <b>Про Keno</b>\n\nKeno появилось в Китае <b>2000+ лет назад</b>.\n\nПопробуй! 👇""",
+    """🎲 <b>Интересный факт</b>\n\nСамое старое казино — <b>Casino di Venezia</b> (1638). Ему почти 400 лет! 🏛️\n\nСыграй! 👇""",
+    """🎰 <b>Знаешь ли ты?</b>\n\nАвтомат <b>«Liberty Bell»</b> (1895) — первый слот с 3 барабанами!\n\nИспытай удачу! 👇""",
+    """💎 <b>Интересный факт</b>\n\n«Казино» с итальянского — <b>«маленький дом»</b>.\n\nУ нас тоже дом 🏠""",
+    """🃏 <b>Знаешь ли ты?</b>\n\n«Ace + 10» в BJ = блэкджек, платит <b>×2.5</b>!\n\nИспытай! 👇""",
+    """🎱 <b>Про Keno</b>\n\nKeno в Китае <b>2000+ лет</b>.\n\nПопробуй! 👇""",
 ]
 
 BOT_NEWS = [
-    """📢 <b>Новости Golden Palace</b>\n\n🎱 <b>Keno — угадай число!</b>\n\nПопробуй 👇""",
-    """📢 <b>Обновление!</b>\n\n🌐 Онлайн-режим с друзьями!\n\nЗаходи 👇""",
-    """📢 <b>Что нового</b>\n\n✨ Дизайн · 🎵 Музыка · 👑 Стиль\n\nЗагляни! 👇""",
+    """📢 <b>Новости</b>\n\n🎱 <b>Keno!</b> Угадай число ×2!\n\nПопробуй 👇""",
+    """📢 <b>Обновление!</b>\n\n🌐 Онлайн с друзьями!\n\nЗаходи 👇""",
+    """📢 <b>🛒 Магазин оформлений!</b>\n\n👑 Золото · 💎 Изумруд · 🔮 Фиолет\n\nЗагляни! 👇""",
 ]
 
 BOT_GROUP_MSGS = [
     """👑 <b>Golden Palace!</b>\n\n🎯 Plinko · 🎱 Keno · 🎲 Dice\n🃏 BJ · 🎡 Roulette · 🎰 Slots\n\n💰 5000 монет! 🎁 +0.2/час\n\nЖми 👇""",
     """🎰 <b>Пора играть!</b>\n\n🎯 Plinko ×5 · 🎱 Keno ×2 · 🃏 BJ ×2.5\n\n1 клик до азарта! 👇""",
-    """💎 <b>Golden Palace ждёт!</b>\n\n🎲 Dice · 🎡 Roulette · 🎰 Slots\n\nОнлайн! 👇""",
-    """🔥 <b>Не пропусти!</b>\n\n💰 5000 монет\n🎁 Бонус\n🌐 Онлайн\n\nЗаходи! 👇""",
+    """💎 <b>Golden Palace!</b>\n\n🎲 Dice · 🎡 Roulette · 🎰 Slots\n\nОнлайн! 👇""",
+    """🔥 <b>Не пропусти!</b>\n\n💰 5000 монет\n🛒 Магазин оформлений\n\nЗаходи! 👇""",
 ]
 
 
@@ -1141,8 +1434,6 @@ def bot_broadcast_loop():
                 time.sleep(BROADCAST_INTERVAL)
                 continue
             random.shuffle(recipients)
-            total = len(recipients)
-            print(f'📢 Бот: рассылка для {total}')
             for idx, (rtype, chat_id) in enumerate(recipients, 1):
                 try:
                     if rtype == 'user':
@@ -1153,7 +1444,6 @@ def bot_broadcast_loop():
                     time.sleep(SEND_DELAY)
                 except Exception as e:
                     print(f'  ❌ {chat_id}:', e)
-            print(f'✅ Бот: рассылка завершена')
             time.sleep(BROADCAST_INTERVAL)
         except Exception as e:
             print('❌ Бот: ошибка:', e)
@@ -1180,7 +1470,6 @@ def bot_handle_update(update):
                 'added_at': int(time.time())
             }
             bot_save_data()
-            print(f'➕ Бот: группа {chat.get("title")}')
         if text == '/start':
             bot_send(chat_id, BOT_GROUP_MSGS[0], btn_play_group())
         elif text == '/play':
@@ -1195,17 +1484,13 @@ def bot_handle_update(update):
                 'added_at': int(time.time())
             }
             bot_save_data()
-            print(f'➕ Бот: юзер {from_user.get("first_name")}')
         if text == '/start':
             bot_send(chat_id, BOT_WELCOME, btn_play())
         elif text == '/play':
             bot_send(chat_id, '🎰 <b>Погнали!</b> 👇', btn_play())
         elif text == '/help':
             bot_send(chat_id,
-                '👑 <b>Golden Palace</b>\n\n'
-                '/start — приветствие\n'
-                '/play — играть\n'
-                '/help — справка',
+                '👑 <b>Golden Palace</b>\n\n/start — привет\n/play — играть\n/help — справка',
                 btn_play())
 
 
@@ -1247,7 +1532,7 @@ def bot_polling_loop():
                     try:
                         bot_handle_update(update)
                     except Exception as e:
-                        print('❌ Бот: ошибка обработки:', e)
+                        print('❌ Бот: ошибка:', e)
                     offset = update['update_id'] + 1
         except Exception as e:
             print('❌ Бот: polling error:', e)
@@ -1256,7 +1541,7 @@ def bot_polling_loop():
 
 def start_bot():
     if not BOT_TOKEN:
-        print('⚠️ BOT_TOKEN не задан — бот не запущен')
+        print('⚠️ BOT_TOKEN не задан')
         return
     bot_load_data()
     threading.Thread(target=bot_polling_loop, daemon=True).start()
@@ -1267,9 +1552,6 @@ def start_bot():
 start_bot()
 
 
-# ============================================================
-#  ЗАПУСК СЕРВЕРА
-# ============================================================
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
