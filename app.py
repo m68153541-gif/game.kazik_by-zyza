@@ -252,11 +252,9 @@ def _cleanup_old_players():
                 to_delete.append(pid)
         for pid in to_delete:
             players.pop(pid, None)
-        # Чистим guests от мёртвых ссылок
         for gid, gpid in list(guests.items()):
             if gpid not in players:
                 guests.pop(gid, None)
-        # Чистим tg_users
         for tid, tpid in list(tg_users.items()):
             if tpid not in players:
                 tg_users.pop(tid, None)
@@ -273,7 +271,6 @@ def autosave_loop():
         time.sleep(SAVE_INTERVAL)
         try:
             save_all_data()
-            # Раз в сутки чистим старых игроков
             if now() - last_cleanup > 24 * 3600:
                 _cleanup_old_players()
                 last_cleanup = now()
@@ -441,10 +438,13 @@ def notify_lobby(lobby_id, message):
 
 
 # ============================================================
-#  СТАТИКА
+#  СТАТИКА (главная — city.html, потом index.html)
 # ============================================================
 @app.route('/')
 def index():
+    # Главная — город
+    if os.path.exists('city.html'):
+        return send_from_directory('.', 'city.html')
     if os.path.exists('index.html'):
         return send_from_directory('.', 'index.html')
     return 'Golden Palace server is running'
@@ -549,7 +549,6 @@ def register():
             ensure_player_shop(player)
             return jsonify({'player': _pub(player), 'guest_id': guest_id or player['game_id']})
 
-        # Лимит игроков
         if len(players) >= MAX_PLAYERS + 1:
             return jsonify({'error': 'server_full'})
 
@@ -752,12 +751,10 @@ def admin_players():
     if not _check_admin(data):
         return jsonify({'error': 'unauthorized'})
 
-    # Кэш
     global _admin_cache
     now_ts = now()
     cached = _admin_cache['players']
     if cached and (now_ts - _admin_cache['ts']) < ADMIN_CACHE_TTL:
-        # Обновляем только онлайн-статус
         result = []
         for p in cached:
             pid = p['game_id']
@@ -1579,7 +1576,6 @@ def bot_handle_my_chat_member(update):
 
 def bot_polling_loop():
     print('🤖 Бот: polling запущен')
-    # Удаляем webhook, если был установлен — иначе polling не работает
     try:
         bot_api('deleteWebhook', {'drop_pending_updates': False})
     except Exception:
@@ -1648,7 +1644,6 @@ _bg_started = False
 
 
 def _start_background_tasks():
-    """Запускает фоновые потоки один раз при старте приложения."""
     global _bg_started
     if _bg_started:
         return
@@ -1661,11 +1656,6 @@ def _start_background_tasks():
     print('✅ Фоновые задачи запущены')
 
 
-# Запускаем при импорте — gunicorn загружает app.py один раз на воркер,
-# но мы защищаемся флагом _bg_started.
-# Если gunicorn запускает несколько воркеров — потоки будут только в первом,
-# который импортирует модуль первым (за счёт GIL и порядком импорта это не гарантируется,
-# но на практике с gunicorn --workers 1 (по умолчанию для free tier) всё ок).
 _start_background_tasks()
 
 
