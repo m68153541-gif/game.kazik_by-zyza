@@ -165,9 +165,11 @@
     border-left: 3px solid #00aaff;
     z-index: 10;
     pointer-events: none;
+    text-align: center;
+    max-width: 90%;
+    line-height: 1.4;
   }
 
-  /* === КНОПКА ВХОДА В КАЗИНО === */
   #enterCasinoBtn {
     position: absolute;
     bottom: 150px;
@@ -206,7 +208,6 @@
     50% { box-shadow: 0 0 60px rgba(255,215,0,1), 0 0 100px rgba(255,215,0,0.6), 0 8px 20px rgba(0,0,0,0.5); }
   }
 
-  /* === УКАЗАТЕЛЬ К КАЗИНО === */
   #casinoArrow {
     position: absolute;
     top: 50%;
@@ -232,7 +233,6 @@
     50% { transform: scale(1.15); }
   }
 
-  /* Загрузка */
   #cityLoader {
     position: fixed;
     inset: 0;
@@ -291,7 +291,6 @@
 </head>
 <body>
 
-<!-- ЗАГРУЗЧИК -->
 <div id="cityLoader">
   <div class="cl-title">🏙️ CITY</div>
   <div class="cl-sub">Golden Palace</div>
@@ -311,7 +310,7 @@
 
   <div id="casinoArrow"><div id="casinoArrowInner"></div></div>
   
-  <div id="hint">▲/▼ газ-тормоз · ◀/▶ поворот (в движении)</div>
+  <div id="hint">▲/▼ или W/S — газ-тормоз · ◀/▶ или A/D — поворот</div>
 
   <div id="enterCasinoBtn">🎰 ВОЙТИ В КАЗИНО</div>
   
@@ -391,7 +390,6 @@ function resizeRenderer() {
 }
 resizeRenderer();
 
-// Свет
 scene.add(new THREE.AmbientLight(0xffffff, 0.7));
 const sun = new THREE.DirectionalLight(0xffffff, 0.9);
 sun.position.set(100, 150, 80);
@@ -420,9 +418,6 @@ ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
 
-// ============================================================
-// КОЛЛАЙДЕРЫ
-// ============================================================
 const colliders = [];
 function addCollider(x, z, r) { colliders.push({ x, z, r }); }
 
@@ -438,9 +433,6 @@ function isOnRoad(x, z, halfSize) {
   return false;
 }
 
-// ============================================================
-// ДОРОГИ
-// ============================================================
 const roadMat = new THREE.MeshLambertMaterial({ color: 0x2a2a2a });
 const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
@@ -473,9 +465,6 @@ for (let i = -half; i <= half; i += STEP) {
   createRoad(0, i + ROAD_W/2, CITY_SIZE, ROAD_W);
 }
 
-// ============================================================
-// РАЙОНЫ
-// ============================================================
 function getDistrict(x, z) {
   const dist = Math.sqrt(x*x + z*z);
   if (dist < 90) return 'center';
@@ -485,17 +474,11 @@ function getDistrict(x, z) {
   return 'suburb';
 }
 
-// ============================================================
-// ЗДАНИЯ
-// ============================================================
 const centerColors = [0x4a5a6a, 0x5a6a7a, 0x3a4a5a, 0x6a7a8a, 0x2a3a4a];
 const residentialColors = [0xa08870, 0xb09880, 0xc0a890, 0x907860, 0xd0b8a0];
 const industrialColors = [0x707070, 0x808080, 0x606060, 0x909090];
 const suburbColors = [0xc0a070, 0xd0b080, 0xe0c090, 0xb09060];
 
-// === КАЗИНО: занимает центральный квартал ===
-// Центр карты — координата (0,0). Первый квартал начинается от -half.
-// Пропускаем кварталы, попадающие в область казино (радиус 50 от центра).
 const CASINO_X = 0;
 const CASINO_Z = 0;
 const CASINO_RADIUS = 40;
@@ -557,7 +540,6 @@ for (let gx = -half; gx < half - BLOCK; gx += STEP) {
     const cx = gx + ROAD_W/2 + BLOCK/2;
     const cz = gz + ROAD_W/2 + BLOCK/2;
     
-    // Пропускаем квартал под казино
     if (isInCasinoZone(cx, cz)) continue;
     
     const district = getDistrict(cx, cz);
@@ -623,9 +605,6 @@ for (let gx = -half; gx < half - BLOCK; gx += STEP) {
   }
 }
 
-// ============================================================
-// ДЕРЕВЬЯ
-// ============================================================
 function createTree(x, z) {
   const trunk = new THREE.Mesh(
     new THREE.CylinderGeometry(0.35, 0.5, 3, 6),
@@ -681,7 +660,6 @@ for (let i = 0; i < treeAttempts; i++) {
 const casinoGroup = new THREE.Group();
 casinoGroup.position.set(CASINO_X, 0, CASINO_Z);
 
-// Основание
 const casinoBase = new THREE.Mesh(
   new THREE.BoxGeometry(28, 22, 28),
   new THREE.MeshLambertMaterial({ color: 0x2a1a4a })
@@ -691,7 +669,6 @@ casinoBase.castShadow = true;
 casinoBase.receiveShadow = true;
 casinoGroup.add(casinoBase);
 
-// Золотая крыша
 const casinoRoof = new THREE.Mesh(
   new THREE.ConeGeometry(22, 10, 4),
   new THREE.MeshPhongMaterial({ color: 0xd4af37, shininess: 100 })
@@ -701,7 +678,6 @@ casinoRoof.rotation.y = Math.PI / 4;
 casinoRoof.castShadow = true;
 casinoGroup.add(casinoRoof);
 
-// Купол
 const dome = new THREE.Mesh(
   new THREE.SphereGeometry(4, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2),
   new THREE.MeshPhongMaterial({ color: 0xffd700, shininess: 120 })
@@ -709,7 +685,6 @@ const dome = new THREE.Mesh(
 dome.position.y = 33;
 casinoGroup.add(dome);
 
-// Колонны по бокам входа
 for (let i = -1; i <= 1; i += 2) {
   const col = new THREE.Mesh(
     new THREE.CylinderGeometry(0.8, 0.8, 14, 12),
@@ -720,7 +695,6 @@ for (let i = -1; i <= 1; i += 2) {
   casinoGroup.add(col);
 }
 
-// Ступеньки
 for (let i = 0; i < 3; i++) {
   const step = new THREE.Mesh(
     new THREE.BoxGeometry(20 - i * 2, 0.5, 2),
@@ -730,7 +704,6 @@ for (let i = 0; i < 3; i++) {
   casinoGroup.add(step);
 }
 
-// Двери
 const doorMat = new THREE.MeshPhongMaterial({ color: 0xffd700, shininess: 100, emissive: 0x553300 });
 for (let i = -1; i <= 1; i += 2) {
   const door = new THREE.Mesh(new THREE.BoxGeometry(3, 6, 0.3), doorMat);
@@ -738,24 +711,20 @@ for (let i = -1; i <= 1; i += 2) {
   casinoGroup.add(door);
 }
 
-// === Вывеска GOLDEN PALACE ===
 function makeSignTexture(text) {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
   canvas.height = 256;
   const ctx = canvas.getContext('2d');
-  // Фон с золотым градиентом
   const grad = ctx.createLinearGradient(0, 0, 1024, 0);
   grad.addColorStop(0, '#1a0a2e');
   grad.addColorStop(0.5, '#2a1a4a');
   grad.addColorStop(1, '#1a0a2e');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 1024, 256);
-  // Рамка
   ctx.strokeStyle = '#ffd700';
   ctx.lineWidth = 8;
   ctx.strokeRect(8, 8, 1024 - 16, 256 - 16);
-  // Текст
   ctx.font = 'bold 120px Arial';
   ctx.fillStyle = '#ffd700';
   ctx.textAlign = 'center';
@@ -774,12 +743,10 @@ const sign = new THREE.Mesh(new THREE.PlaneGeometry(26, 6.5), signMat);
 sign.position.set(0, 19, 14.05);
 casinoGroup.add(sign);
 
-// Вторая вывеска сверху (на крыше)
 const sign2 = new THREE.Mesh(new THREE.PlaneGeometry(22, 5.5), signMat.clone());
 sign2.position.set(0, 26, 14.1);
 casinoGroup.add(sign2);
 
-// Светящееся кольцо на земле
 const glowRing = new THREE.Mesh(
   new THREE.RingGeometry(18, 21, 48),
   new THREE.MeshBasicMaterial({ 
@@ -793,17 +760,14 @@ glowRing.rotation.x = -Math.PI / 2;
 glowRing.position.y = 0.15;
 casinoGroup.add(glowRing);
 
-// Точечный свет у входа
 const casinoLight = new THREE.PointLight(0xffd700, 1.5, 60);
 casinoLight.position.set(0, 15, 16);
 casinoGroup.add(casinoLight);
 
 scene.add(casinoGroup);
 
-// Коллайдер казино
 addCollider(CASINO_X, CASINO_Z, 18);
 
-// Точка активации кнопки — перед входом
 const CASINO_ENTRY = { x: 0, z: 28 };
 const CASINO_RANGE = 22;
 
@@ -894,25 +858,36 @@ createWheel(-1.05, 1.3);
 createWheel(1.05, -1.3);
 createWheel(-1.05, -1.3);
 
-// Стартовая позиция — перед казино
 car.position.set(0, 0, 40);
 car.rotation.y = Math.PI;
 scene.add(car);
 
 // ============================================================
-// УПРАВЛЕНИЕ
+// УПРАВЛЕНИЕ (WASD + ЦФЫВ + стрелки)
 // ============================================================
 const input = { gas: 0, steer: 0 };
 
+// Список клавиш:
+// Газ/вперёд: W, w, Ц, ц, ArrowUp
+// Тормоз/назад: S, s, Ы, ы, ArrowDown
+// Влево: A, a, Ф, ф, ArrowLeft
+// Вправо: D, d, В, в, ArrowRight
 document.addEventListener('keydown', e => {
-  if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') input.gas = 1;
-  if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') input.gas = -1;
-  if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') input.steer = -1;
-  if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') input.steer = 1;
+  const k = e.key;
+  // Газ
+  if (k === 'w' || k === 'W' || k === 'ц' || k === 'Ц' || k === 'ArrowUp') input.gas = 1;
+  // Тормоз
+  if (k === 's' || k === 'S' || k === 'ы' || k === 'Ы' || k === 'ArrowDown') input.gas = -1;
+  // Влево
+  if (k === 'a' || k === 'A' || k === 'ф' || k === 'Ф' || k === 'ArrowLeft') input.steer = -1;
+  // Вправо
+  if (k === 'd' || k === 'D' || k === 'в' || k === 'В' || k === 'ArrowRight') input.steer = 1;
 });
+
 document.addEventListener('keyup', e => {
-  if (['w','W','s','S','ArrowUp','ArrowDown'].includes(e.key)) input.gas = 0;
-  if (['a','A','d','D','ArrowLeft','ArrowRight'].includes(e.key)) input.steer = 0;
+  const k = e.key;
+  if (['w','W','ц','Ц','s','S','ы','Ы','ArrowUp','ArrowDown'].includes(k)) input.gas = 0;
+  if (['a','A','ф','Ф','d','D','в','В','ArrowLeft','ArrowRight'].includes(k)) input.steer = 0;
 });
 
 function bindButton(el, onPress, onRelease) {
@@ -975,7 +950,6 @@ function drawMinimap() {
   mmCtx.fillStyle = '#1a3a1a';
   mmCtx.fillRect(0, 0, MM_SIZE, MM_SIZE);
   
-  // Дороги
   mmCtx.strokeStyle = '#444';
   mmCtx.lineWidth = Math.max(1, ROAD_W * MM_SCALE);
   for (let i = -half; i <= half; i += STEP) {
@@ -989,10 +963,8 @@ function drawMinimap() {
     mmCtx.stroke();
   }
   
-  // === КАЗИНО на карте ===
   const casinoPx = MM_SIZE/2 + CASINO_X * MM_SCALE;
   const casinoPz = MM_SIZE/2 + CASINO_Z * MM_SCALE;
-  // Пульсирующий круг
   const t = Date.now() / 500;
   const pulse = 4 + Math.sin(t) * 1.5;
   mmCtx.fillStyle = '#ffd700';
@@ -1003,7 +975,6 @@ function drawMinimap() {
   mmCtx.lineWidth = 1.5;
   mmCtx.stroke();
   
-  // Машина
   const carX = MM_SIZE/2 + car.position.x * MM_SCALE;
   const carZ = MM_SIZE/2 + car.position.z * MM_SCALE;
   mmCtx.fillStyle = '#00ff00';
@@ -1011,7 +982,6 @@ function drawMinimap() {
   mmCtx.arc(carX, carZ, 3, 0, Math.PI * 2);
   mmCtx.fill();
   
-  // Направление машины
   mmCtx.strokeStyle = '#00ff00';
   mmCtx.lineWidth = 2;
   mmCtx.beginPath();
@@ -1052,14 +1022,12 @@ function checkCollisions() {
 const enterBtn = document.getElementById('enterCasinoBtn');
 const casinoArrow = document.getElementById('casinoArrow');
 let casinoBtnVisible = false;
-let casinoArrowAngle = 0;
 
 function checkCasinoProximity() {
   const dx = car.position.x - CASINO_ENTRY.x;
   const dz = car.position.z - CASINO_ENTRY.z;
   const dist = Math.sqrt(dx*dx + dz*dz);
   
-  // Кнопка входа
   if (dist < CASINO_RANGE) {
     if (!casinoBtnVisible) {
       casinoBtnVisible = true;
@@ -1072,7 +1040,6 @@ function checkCasinoProximity() {
     }
   }
   
-  // Стрелка-указатель (показываем, если казино далеко но не очень)
   const distToCasino = Math.sqrt(
     (car.position.x - CASINO_X) ** 2 + 
     (car.position.z - CASINO_Z) ** 2
@@ -1080,9 +1047,7 @@ function checkCasinoProximity() {
   
   if (distToCasino > 60 && distToCasino < 300) {
     casinoArrow.classList.add('show');
-    // Угол между направлением машины и казино
     const angleToCasino = Math.atan2(CASINO_X - car.position.x, CASINO_Z - car.position.z);
-    // Поворачиваем стрелку относительно направления камеры
     const relAngle = angleToCasino - car.rotation.y;
     const deg = relAngle * 180 / Math.PI;
     casinoArrow.style.transform = `translate(-50%, -50%) rotate(${deg}deg)`;
@@ -1097,12 +1062,10 @@ function checkCasinoProximity() {
 // ВХОД В КАЗИНО
 // ============================================================
 function enterCasino() {
-  // Останавливаем движение
   input.gas = 0;
   input.steer = 0;
   speed = 0;
   
-  // Сохраняем позицию машины, чтобы вернуться сюда
   try {
     localStorage.setItem('gp_city_car_pos', JSON.stringify({
       x: car.position.x,
@@ -1111,7 +1074,6 @@ function enterCasino() {
     }));
   } catch(e) {}
   
-  // Переходим в казино
   window.location.href = 'index.html';
 }
 
@@ -1121,7 +1083,6 @@ enterBtn.addEventListener('click', (e) => {
   enterCasino();
 });
 
-// Восстанавливаем позицию машины при возврате из казино
 try {
   const saved = localStorage.getItem('gp_city_car_pos');
   if (saved) {
@@ -1132,7 +1093,7 @@ try {
 } catch(e) {}
 
 // ============================================================
-// ПАУЗА ПРИ СВОРАЧИВАНИИ
+// ПАУЗА
 // ============================================================
 let paused = false;
 document.addEventListener('visibilitychange', () => {
@@ -1208,7 +1169,6 @@ function animate() {
   drawMinimap();
   checkCasinoProximity();
   
-  // Пульсация кольца казино
   const t = Date.now() / 1000;
   glowRing.material.opacity = 0.5 + Math.sin(t * 2) * 0.2;
   glowRing.scale.setScalar(1 + Math.sin(t * 2) * 0.03);
